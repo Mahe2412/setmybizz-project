@@ -1,0 +1,17 @@
+{
+    "checkpoints": [
+        {
+            "date": "2026-02-12",
+            "summary": "Full Dashboard UI refinement, Launch Pad (Tab B) redesign, and Onboarding modal centering. Arkle AI Studio branding updated with italicized text and bolt icons.",
+            "path": ".checkpoints/2026-02-12",
+            "status": "COMPLETED"
+        },
+        {
+            "date": "2026-02-18",
+            "summary": "Implemented Workspace Dashboard with package display, service status tracking, and document upload functionality.",
+            "path": ".checkpoints/2026-02-18-workspace-feature",
+            "status": "COMPLETED"
+        }
+    ],
+    "last_updated": "2026-02-18T13:10:00Z"
+}
