@@ -1168,7 +1168,7 @@ function GetStartedModal({
         setSubmitted(true);
         // Redirect to workspace after 2 seconds
         setTimeout(() => {
-            window.location.href = '/workspace';
+            window.location.href = '/dashboard?tab=Workspace';
         }, 2000);
     };
 

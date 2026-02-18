@@ -1,10 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Dashboard from '@/components/Dashboard';
 import { BusinessData } from '@/types';
 
-export default function DashboardPage() {
+function DashboardWithParams() {
+    const searchParams = useSearchParams();
+    const tab = searchParams.get('tab');
+
     // Default mock data to satisfy type requirements
     const [data] = useState<BusinessData>({
         name: 'My Startup',
@@ -21,10 +25,13 @@ export default function DashboardPage() {
         focusAreas: ['formation']
     });
 
+    return <Dashboard data={data} initialTab={(tab as 'A' | 'B' | 'Workspace') || 'A'} />;
+}
+
+export default function DashboardPage() {
     return (
-        <Dashboard
-            data={data}
-            initialTab="A" // Set "Incorporation" as default tab to match user request
-        />
+        <Suspense fallback={<div className="flex h-screen items-center justify-center">Loading...</div>}>
+            <DashboardWithParams />
+        </Suspense>
     );
 }

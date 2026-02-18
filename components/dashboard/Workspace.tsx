@@ -11,6 +11,7 @@ import GoogleWorkspaceDashboard, { GoogleApp } from './GoogleWorkspaceDashboard'
 import AiCoFounderChat from './AiCoFounderChat';
 import AdvancedOnboarding from '../AdvancedOnboarding';
 import CenterChat from '../ai-studio/CenterChat';
+import IncorporationWidget from './IncorporationWidget';
 
 interface WorkspaceProps {
     onNavigate: (tab: 'A' | 'B' | 'LearnerStudio' | 'Workspace') => void;
@@ -341,6 +342,11 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
 
                     {/* Content Section 1: AI Co-Founder (Top View) */}
                     <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-start lg:justify-center min-w-0 transition-all duration-300">
+                        {/* Incorporation Widget */}
+                        <div className="w-full max-w-6xl">
+                            <IncorporationWidget onNavigate={onNavigate} />
+                        </div>
+
                         {/* Oracle AI Studio Chat - Hero Section */}
                         <div className="w-full h-[600px] bg-white rounded-2xl border border-slate-200 shadow-lg overflow-hidden">
                             <CenterChat
