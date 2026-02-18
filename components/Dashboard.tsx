@@ -287,7 +287,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, initialTab = 'A', onNavigat
                             <div className="pt-6 pb-2 px-3 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Launchpad</div>
                             <button
                                 onClick={() => setActiveTab('B')}
-                                className={`flex items-center gap-3 px-3 py-2.5 transition-all w-full text-left ${activeTab === 'B' ? 'text-blue-600' : 'text-black'}`}
+                                className={`flex items-center gap-3 px-3 py-2.5 transition-all w-full text-left text-black`}
                             >
                                 <span className="material-symbols-outlined text-[20px]">rocket</span>
                                 <span className="text-[15px] font-semibold">Launch Pad</span>
