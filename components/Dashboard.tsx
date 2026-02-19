@@ -417,7 +417,10 @@ const Dashboard: React.FC<DashboardProps> = ({ data, initialTab = 'A', onNavigat
 
                                         <div className="flex items-center justify-between">
                                              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Global Markets</span>
-                                             <button className="text-[10px] font-black text-blue-600 hover:underline flex items-center gap-1">
+                                             <button 
+                                                onClick={() => setShowGlobalIncorporation(true)}
+                                                className="text-[10px] font-black text-blue-600 hover:underline flex items-center gap-1"
+                                             >
                                                 Read More <span className="material-symbols-outlined text-[12px]">arrow_forward</span>
                                              </button>
                                         </div>
