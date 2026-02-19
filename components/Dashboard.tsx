@@ -228,7 +228,9 @@ const Dashboard: React.FC<DashboardProps> = ({ data, initialTab = 'A', onNavigat
         { label: 'Expert CA/CS', time: 'Reports & Filings', icon: 'support_agent', bg: 'bg-indigo-50', color: 'text-indigo-600', button: 'GET HELP', btnColor: 'bg-slate-900' },
         { label: 'Marketing Expert', time: 'Growth Strategy', icon: 'campaign', bg: 'bg-rose-50', color: 'text-rose-600', button: 'BOOK CALL' },
         { label: 'Project Reports', time: 'Business Model', icon: 'bar_chart', bg: 'bg-cyan-50', color: 'text-cyan-600', button: 'UPLOAD', variant: 'secondary' },
-        { label: 'Banking & Loans', time: 'Funding Support', icon: 'account_balance', bg: 'bg-emerald-50', color: 'text-emerald-600', button: 'GET LOAN' }
+        { label: 'Banking & Loans', time: 'Funding Support', icon: 'account_balance', bg: 'bg-emerald-50', color: 'text-emerald-600', button: 'GET LOAN' },
+        { label: 'Global Market Access', time: 'Export & Expansion', icon: 'public', bg: 'bg-blue-50', color: 'text-blue-600', button: 'EXPLORE', btnColor: 'bg-blue-600' },
+        { label: 'Ready to Go Global', time: 'International Setup', icon: 'flight_takeoff', bg: 'bg-indigo-50', color: 'text-indigo-600', button: 'START NOW', btnColor: 'bg-indigo-900' }
     ];
 
     const buildServices = [
@@ -696,7 +698,15 @@ const Dashboard: React.FC<DashboardProps> = ({ data, initialTab = 'A', onNavigat
 
                                 <div className="grid grid-cols-1 gap-3">
                                     {incorporationServices.map((item, i) => (
-                                        <div key={i} className={`bg-white rounded-xl p-3 md:p-4 border border-slate-100 flex items-center gap-4 shadow-sm hover:shadow-md transition-all group cursor-pointer`}>
+                                        <div 
+                                            key={i} 
+                                            onClick={() => {
+                                                if (item.label.includes('Global') || item.label.includes('Ready to Go')) {
+                                                    setShowGlobalIncorporation(true);
+                                                }
+                                            }}
+                                            className={`bg-white rounded-xl p-3 md:p-4 border border-slate-100 flex items-center gap-4 shadow-sm hover:shadow-md transition-all group cursor-pointer`}
+                                        >
                                             <div className={`w-10 h-10 rounded-lg ${item.bg} ${item.color} flex items-center justify-center transition-all flex-shrink-0`}>
                                                 <span className="material-symbols-outlined text-xl">{item.icon}</span>
                                             </div>
@@ -706,7 +716,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, initialTab = 'A', onNavigat
                                             </div>
                                             <div className="flex items-center gap-4 flex-shrink-0">
                                                 <button className="text-[9px] font-bold text-slate-400 hover:text-indigo-600 tracking-wide hidden sm:block transition-colors">DETAILS</button>
-                                                <button className={`px-4 py-1.5 ${item.button === 'UPLOAD' && item.variant === 'secondary' ? 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50' : (item as any).btnColor ? `${(item as any).btnColor} text-white` : 'bg-slate-900 text-white hover:bg-slate-800'} text-[10px] font-bold rounded-lg shadow-md transition-all active:scale-95 min-w-[80px]`}>
+                                                <button className={`px-4 py-1.5 ${item.button === 'UPLOAD' && (item as any).variant === 'secondary' ? 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50' : (item as any).btnColor ? `${(item as any).btnColor} text-white` : 'bg-slate-900 text-white hover:bg-slate-800'} text-[10px] font-bold rounded-lg shadow-md transition-all active:scale-95 min-w-[80px]`}>
                                                     {item.button || 'UPLOAD'}
                                                 </button>
                                             </div>
