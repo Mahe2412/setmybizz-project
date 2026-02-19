@@ -68,78 +68,102 @@ const ProfileCompletionModal: React.FC<ProfileCompletionModalProps> = ({ isOpen,
     };
 
     return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4 animate-in fade-in duration-300" onClick={() => onComplete(null)}>
-            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 border border-slate-200 relative" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-[200] flex items-center justify-center p-4 animate-in fade-in duration-300">
+            <div className="bg-white rounded-[2rem] shadow-2xl max-w-md w-full p-8 border border-white/20 relative overflow-hidden animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
+                
+                {/* Decorative Element */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+
+                {!dbUser && (
+                     <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-sm">
+                        <span className="material-symbols-outlined text-2xl">person_add</span>
+                    </div>
+                )}
 
                 {dbUser && (
-                    <button onClick={() => onComplete(null)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
-                        <span className="material-icons">close</span>
+                    <button onClick={() => onComplete(null)} className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition-colors z-10">
+                        <span className="material-symbols-outlined text-sm">close</span>
                     </button>
                 )}
 
-                <h2 className="text-2xl font-bold text-slate-900 mb-2">{dbUser ? 'Update Profile' : 'Complete Your Profile'}</h2>
-                <p className="text-slate-500 mb-6 text-sm">{dbUser ? 'Update your personal and business details.' : 'Please provide a few more details to customize your dashboard.'}</p>
+                <h2 className="text-2xl font-black text-slate-900 mb-2 tracking-tight relative z-10">
+                    {dbUser ? 'Update Profile' : 'Complete Your Profile'}
+                </h2>
+                <p className="text-slate-500 mb-8 text-sm font-medium relative z-10">
+                    {dbUser ? 'Update your personal and business details.' : 'Please provide a few more details to customize your dashboard experince.'}
+                </p>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-5 relative z-10">
                     <div>
-                        <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Full Name</label>
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 ml-1">Full Name</label>
                         <input
                             type="text"
                             required
                             value={formData.displayName}
                             onChange={e => setFormData({ ...formData, displayName: e.target.value })}
-                            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-slate-900"
+                            className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900 font-medium placeholder-slate-400"
+                            placeholder="e.g. Michael Scott"
                         />
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Business Name</label>
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 ml-1">Business Name</label>
                         <input
                             type="text"
                             required
                             value={formData.businessName}
                             onChange={e => setFormData({ ...formData, businessName: e.target.value })}
-                            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-slate-900"
+                            className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900 font-medium placeholder-slate-400"
+                            placeholder="e.g. Dunder Mifflin"
                         />
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Phone Number</label>
-                        <input
-                            type="tel"
-                            required
-                            value={formData.phone}
-                            onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-slate-900"
-                        />
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 ml-1">Mobile Number</label>
+                        <div className="flex gap-2">
+                             <div className="px-3 py-3.5 bg-slate-100 border border-slate-200 rounded-xl text-slate-500 font-bold text-sm flex items-center">
+                                🇮🇳
+                            </div>
+                            <input
+                                type="tel"
+                                required
+                                value={formData.phone}
+                                onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                                className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900 font-medium placeholder-slate-400"
+                                placeholder="98765 43210"
+                            />
+                        </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-bold text-slate-700 uppercase mb-1">State</label>
+                            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 ml-1">State</label>
                             <input
                                 type="text"
                                 required
                                 value={formData.state}
                                 onChange={e => setFormData({ ...formData, state: e.target.value })}
-                                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-slate-900"
+                                className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900 font-medium placeholder-slate-400"
+                                placeholder="State"
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-slate-700 uppercase mb-1">City</label>
+                            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 ml-1">City</label>
                             <input
                                 type="text"
                                 required
                                 value={formData.city}
                                 onChange={e => setFormData({ ...formData, city: e.target.value })}
-                                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-slate-900"
+                                className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900 font-medium placeholder-slate-400"
+                                placeholder="City"
                             />
                         </div>
                     </div>
 
-                    <div className="pt-4">
+                    <div className="pt-6">
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50"
+                            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-500/30 transition-all transform active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
+                            {loading ? <span className="material-symbols-outlined animate-spin">sync</span> : null}
                             {loading ? 'Saving...' : (dbUser ? 'Update Profile' : 'Enter Dashboard')}
                         </button>
                     </div>

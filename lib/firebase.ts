@@ -26,9 +26,12 @@ if (typeof window !== "undefined") {
   });
 }
 
+import { getStorage } from "firebase/storage";
+
 // Initialize Firestore
 const db = getFirestore(app);
 const auth = getAuth(app);
+const storage = getStorage(app);
 
 import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 
@@ -110,4 +113,4 @@ export const createUserAccount = async (email: string, password: string, display
   }
 };
 
-export { app, analytics, db, auth };
+export { app, analytics, db, auth, storage };

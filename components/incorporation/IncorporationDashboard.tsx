@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from '@/context/AuthContext';
+import { db } from '@/lib/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface PackageService {
@@ -1145,9 +1147,9 @@ function GetStartedModal({
     const addonsTotal = selectedAddons.reduce((s, a) => s + a.price, 0);
     const basePrice = pkg.price - addonsTotal; // base price without addons
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (!name || !phone || !email) return;
-        // Save purchased package to localStorage for workspace dashboard
+
         const purchaseData = {
             packageId: pkg.id,
             packageName: pkg.name,
@@ -1160,11 +1162,27 @@ function GetStartedModal({
             userName: name,
             userPhone: phone,
             userEmail: email,
-            guestId: guestId, // Link to Guest ID
-            userId: user?.uid || null // Link to User ID if logged in
+            guestId: guestId,
+            userId: user?.uid || null
         };
+
+        // 1. Save to LocalStorage for immediate UI feedback (Workspace Dashboard)
         localStorage.setItem('smb_purchased_package', JSON.stringify(purchaseData));
-        console.log("Lead captured:", { name, phone, email, package: pkg.id, addons: selectedAddons.map(a => a.id), guestId });
+
+        // 2. Save Key to Firestore to prevent Data Loss (Real Lead Capture)
+        try {
+            await addDoc(collection(db, "leads"), {
+                ...purchaseData,
+                status: 'new',
+                source: 'incorporation_flow',
+                createdAt: serverTimestamp()
+            });
+            console.log("Lead secured in cloud database.");
+        } catch (err) {
+            console.error("Error saving lead to cloud:", err);
+            // We continue anyway since we have localStorage backup
+        }
+
         setSubmitted(true);
         // Redirect to workspace after 2 seconds
         setTimeout(() => {

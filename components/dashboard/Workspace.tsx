@@ -161,162 +161,13 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
                 />
             )}
 
-            {/* Mobile Sidebar Backdrop */}
-            {mobileLeftSidebarOpen && (
-                <div
-                    className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 lg:hidden"
-                    onClick={() => setMobileLeftSidebarOpen(false)}
-                />
-            )}
 
-            {/* Mobile Sidebar */}
-            <aside
-                className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 flex flex-col transition-transform duration-300 transform lg:hidden ${mobileLeftSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
-            >
-                <div className="h-16 flex items-center justify-between px-6 border-b border-transparent flex-shrink-0">
-                    <div className="flex items-center gap-2">
-                        <img src="/images/logo.png" alt="SetMyBizz Logo" className="h-14 w-auto object-contain" />
-                    </div>
-                    <button onClick={() => setMobileLeftSidebarOpen(false)} className="text-slate-500 hover:text-slate-800">
-                        <span className="material-icons-outlined">close</span>
-                    </button>
-                </div>
-                <div className="flex-1 overflow-y-auto px-3 space-y-6 py-4">
-                    <div className="space-y-1">
-                        <button onClick={() => onNavigate('A')} className="flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-slate-100 hover:text-blue-600 rounded-lg font-medium w-full text-left transition-colors">
-                            <span className="material-icons-outlined text-xl">home</span> Dashboard A
-                        </button>
-                        <button onClick={() => onNavigate('B')} className="flex items-center gap-3 px-3 py-2.5 bg-blue-50 text-blue-600 rounded-lg font-bold w-full text-left">
-                            <span className="material-icons-outlined text-xl">rocket_launch</span> Dashboard B
-                        </button>
-                        <button onClick={() => onNavigate('LearnerStudio')} className="flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-slate-100 hover:text-blue-600 rounded-lg font-medium w-full text-left transition-colors">
-                            <span className="material-icons-outlined text-xl">school</span> Learner Studio
-                        </button>
-                    </div>
-                </div>
-            </aside>
 
-            {/* Desktop Left Sidebar */}
-            <aside className={`hidden lg:flex flex-col h-full flex-shrink-0 z-30 transition-all duration-300 ${leftSidebarOpen ? 'w-64' : 'w-0'}`}>
-                <div className={`bg-slate-50 border-r border-slate-200 flex flex-col h-full w-64 overflow-hidden`}>
-                    <div className="h-16 flex items-center px-6 border-b border-slate-100 flex-shrink-0 bg-white">
-                        <div className="flex items-center gap-2">
-                            <span className="font-serif font-black text-xl text-slate-900 tracking-tighter">SetMyBizz<span className="text-blue-600">.</span></span>
-                        </div>
-                    </div>
-                    <div className="flex-1 overflow-y-auto py-4 px-3 space-y-8 scrollbar-hide">
-                        <div className="space-y-1">
-                            <button onClick={() => onNavigate('A')} className="flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-white hover:shadow-sm hover:text-blue-600 rounded-xl font-bold text-xs uppercase tracking-widest w-full text-left transition-all duration-300">
-                                <span className="material-icons text-lg">home</span> Dashboard A
-                            </button>
-                            <button onClick={() => onNavigate('B')} className="flex items-center gap-3 px-3 py-2.5 bg-white text-blue-600 rounded-xl font-bold text-xs uppercase tracking-widest w-full text-left shadow-md border border-blue-50 ring-1 ring-black/5">
-                                <span className="material-icons text-lg">rocket_launch</span> Dashboard B
-                            </button>
-                            <button onClick={() => onNavigate('LearnerStudio')} className="flex items-center gap-3 px-3 py-2.5 text-slate-600 hover:bg-white hover:shadow-sm hover:text-blue-600 rounded-xl font-bold text-xs uppercase tracking-widest w-full text-left transition-all duration-300">
-                                <span className="material-icons text-lg">school</span> Learner Studio
-                            </button>
-                        </div>
-                        {/* Google Workspace Quick Access */}
-                        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-2.5 border border-blue-100">
-                            <div className="flex items-center gap-1.5 mb-2">
-                                <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google" className="w-3.5 h-3.5" />
-                                <span className="text-[10px] font-bold text-slate-700">Workspace</span>
-                                <button
-                                    onClick={() => setShowGoogleDashboard(true)}
-                                    className="ml-auto p-0.5 hover:bg-white/50 rounded transition-colors"
-                                    title="Open Full Dashboard"
-                                >
-                                    <span className="material-icons text-xs text-slate-500">open_in_new</span>
-                                </button>
-                            </div>
-                            <div className="flex flex-wrap gap-1">
-                                {pinnedApps.slice(0, 6).map((app) => (
-                                    <button
-                                        key={app.id}
-                                        onClick={() => handleOpenApp(app)}
-                                        className={`flex items-center gap-1 px-1.5 py-1 bg-white hover:bg-${app.color}-50 rounded-md transition-colors group text-left flex-1 min-w-[45%]`}
-                                        title={app.label}
-                                    >
-                                        <span className={`material-icons text-sm text-${app.color}-600`}>{app.icon}</span>
-                                        <span className="text-[9px] font-bold text-slate-600 truncate">{app.label}</span>
-                                    </button>
-                                ))}
-                                <button
-                                    onClick={() => setShowAppSelector(true)}
-                                    className="flex items-center justify-center px-1.5 py-1 border border-dashed border-slate-300 hover:border-blue-400 hover:bg-blue-50 rounded-md transition-colors group flex-1"
-                                    title="Add App"
-                                >
-                                    <span className="material-icons text-sm text-slate-400 group-hover:text-blue-500">add</span>
-                                </button>
-                            </div>
-                        </div>
 
-                        {/* Operations */}
-                        <div>
-                            <h3 className="px-3 text-xs font-serif font-bold text-slate-500 mb-3 tracking-wide">Operations</h3>
-                            <nav className="space-y-1">
-                                {[
-                                    { label: 'Website Management', icon: 'language', color: 'blue' },
-                                    { label: 'Store', icon: 'storefront', color: 'indigo' },
-                                    { label: 'Orders', icon: 'receipt_long', color: 'orange' },
-                                    { label: 'Inventory', icon: 'inventory_2', color: 'emerald' },
-                                    { label: 'Stock Management', icon: 'warehouse', color: 'teal' },
-                                    { label: 'Suppliers', icon: 'local_shipping', color: 'cyan' }
-                                ].map((item, idx) => (
-                                    <a key={idx} className="flex items-center gap-3 px-3 py-2 text-slate-600 hover:text-slate-900 hover:bg-white hover:shadow-sm rounded-xl text-sm font-medium transition-all duration-300 group" href="#">
-                                        <div className={`p-1.5 rounded-lg ${colorVariants[item.color]?.bg || colorVariants.blue.bg} ${colorVariants[item.color]?.text || colorVariants.blue.text} group-hover:scale-110 transition-transform duration-300`}>
-                                            <span className="material-icons text-lg">{item.icon}</span>
-                                        </div>
-                                        {item.label}
-                                    </a>
-                                ))}
-                            </nav>
-                        </div>
-                        {/* Finance & Accounting */}
-                        <div>
-                            <h3 className="px-3 text-xs font-serif font-bold text-slate-500 mb-3 tracking-wide">Finance & Accounting</h3>
-                            <nav className="space-y-1">
-                                {[
-                                    { label: 'Invoices', icon: 'description', color: 'blue' },
-                                    { label: 'Quotations', icon: 'request_quote', color: 'indigo' },
-                                    { label: 'Bills', icon: 'receipt', color: 'violet' },
-                                    { label: 'Expenses', icon: 'payments', color: 'fuchsia' }
-                                ].map((item, idx) => (
-                                    <a key={idx} className="flex items-center gap-3 px-3 py-2 text-slate-600 hover:text-slate-900 hover:bg-white hover:shadow-sm rounded-xl text-sm font-medium transition-all duration-300 group" href="#">
-                                        <div className={`p-1.5 rounded-lg ${colorVariants[item.color]?.bg || colorVariants.blue.bg} ${colorVariants[item.color]?.text || colorVariants.blue.text} group-hover:scale-110 transition-transform duration-300`}>
-                                            <span className="material-icons text-lg">{item.icon}</span>
-                                        </div>
-                                        {item.label}
-                                    </a>
-                                ))}
-                            </nav>
-                        </div>
-                        {/* Sales & CRM */}
-                        <div>
-                            <h3 className="px-3 text-xs font-serif font-bold text-slate-500 mb-3 tracking-wide">Sales & CRM</h3>
-                            <nav className="space-y-1">
-                                {[
-                                    { label: 'Leads', icon: 'leaderboard', color: 'rose' },
-                                    { label: 'CRM', icon: 'people', color: 'pink' }
-                                ].map((item, idx) => (
-                                    <a key={idx} className="flex items-center gap-3 px-3 py-2 text-slate-600 hover:text-slate-900 hover:bg-white hover:shadow-sm rounded-xl text-sm font-medium transition-all duration-300 group" href="#">
-                                        <div className={`p-1.5 rounded-lg ${colorVariants[item.color]?.bg || colorVariants.blue.bg} ${colorVariants[item.color]?.text || colorVariants.blue.text} group-hover:scale-110 transition-transform duration-300`}>
-                                            <span className="material-icons text-lg">{item.icon}</span>
-                                        </div>
-                                        {item.label}
-                                    </a>
-                                ))}
-                            </nav>
-                        </div>
-                    </div>
-                </div>
-            </aside>
 
             {/* Main Content Area */}
-            <main className="flex-1 flex flex-col h-full overflow-hidden relative min-w-0">
-                <header className="h-16 flex items-center justify-between px-4 lg:px-8 relative z-10 border-b border-slate-200/50 backdrop-blur-sm flex-shrink-0 bg-white/50">
-                    <div className="flex items-center gap-4">
-                    </div>
+            <div className="flex-1 flex flex-col h-full relative min-w-0">
+                <div className="h-16 flex items-center justify-end px-4 lg:px-8 relative z-10 border-b border-slate-200/50 backdrop-blur-sm flex-shrink-0 bg-white/50">
                     <div className="flex items-center gap-3">
                         <button
                             onClick={() => setRightSidebarOpen(!rightSidebarOpen)}
@@ -327,15 +178,8 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
                             <span className="hidden xl:inline">AI Tools</span>
                             <span className="material-icons-outlined text-sm">{rightSidebarOpen ? 'chevron_right' : 'chevron_left'}</span>
                         </button>
-                        <button
-                            onClick={() => setMobileAiAssistantsOpen(true)}
-                            className="lg:hidden text-slate-600 hover:bg-slate-100 p-2 rounded-lg"
-                            title="Open AI Assistants"
-                        >
-                            <span className="material-icons-outlined text-xl">smart_toy</span>
-                        </button>
                     </div>
-                </header>
+                </div>
 
                 <div className="flex-1 overflow-y-auto overflow-x-hidden relative z-10 w-full" id="main-scroll-container">
                     <div className="absolute top-0 left-0 w-full h-full bg-white z-0"></div>
@@ -451,7 +295,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
 
 
                 </div>
-            </main>
+            </div>
 
             {/* Right Sidebar - AI Assistant */}
             <aside className={`fixed lg:static inset-y-0 right-0 h-full border-l border-slate-200 z-50 transition-all duration-300 transform bg-white flex flex-col ${rightSidebarOpen ? 'w-80 translate-x-0' : 'w-0 translate-x-full lg:translate-x-0 lg:w-0 overflow-hidden'} ${mobileAiAssistantsOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}`}>

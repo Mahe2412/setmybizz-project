@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { storage } from "@/lib/firebase";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 
 interface PackageService {
     name: string;
@@ -37,6 +39,7 @@ interface ServiceState {
     name: string;
     status: ServiceStatus;
     uploadedFile?: string;
+    downloadUrl?: string;
     isAddon?: boolean;
     addonEmoji?: string;
 }
@@ -48,14 +51,29 @@ function UploadModal({
     onClose,
 }: {
     serviceName: string;
-    onUpload: (fileName: string) => void;
+    onUpload: (file: File) => Promise<void>;
     onClose: () => void;
 }) {
     const [dragging, setDragging] = useState(false);
-    const [fileName, setFileName] = useState("");
+    const [file, setFile] = useState<File | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
 
-    const handleFile = (file: File) => {
-        setFileName(file.name);
+    const handleFile = (f: File) => {
+        setFile(f);
+    };
+
+    const handleUploadClick = async () => {
+        if (!file) return;
+        setIsUploading(true);
+        try {
+            await onUpload(file);
+            onClose();
+        } catch (error) {
+            console.error("Upload failed", error);
+            // Optionally handle error state here
+        } finally {
+            setIsUploading(false);
+        }
     };
 
     return (
@@ -81,8 +99,8 @@ function UploadModal({
                         onClick={() => document.getElementById("file-input")?.click()}
                     >
                         <span className="material-icons text-4xl text-slate-300 mb-3 block">cloud_upload</span>
-                        {fileName ? (
-                            <p className="text-sm font-black text-indigo-600">{fileName}</p>
+                        {file ? (
+                            <p className="text-sm font-black text-indigo-600">{file.name}</p>
                         ) : (
                             <>
                                 <p className="text-sm font-bold text-slate-600">Drop files here or click to browse</p>
@@ -109,15 +127,22 @@ function UploadModal({
                     </div>
 
                     <div className="flex gap-3 mt-5">
-                        <button onClick={onClose} className="flex-1 py-3 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors">
+                        <button onClick={onClose} disabled={isUploading} className="flex-1 py-3 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-50">
                             Cancel
                         </button>
                         <button
-                            onClick={() => { if (fileName) { onUpload(fileName); onClose(); } }}
-                            disabled={!fileName}
-                            className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${fileName ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg hover:shadow-indigo-500/30" : "bg-slate-100 text-slate-400 cursor-not-allowed"}`}
+                            onClick={handleUploadClick}
+                            disabled={!file || isUploading}
+                            className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${file ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg hover:shadow-indigo-500/30" : "bg-slate-100 text-slate-400 cursor-not-allowed"}`}
                         >
-                            Upload Document
+                            {isUploading ? (
+                                <>
+                                    <span className="material-icons text-sm animate-spin">autorenew</span>
+                                    Uploading...
+                                </>
+                            ) : (
+                                "Upload Document"
+                            )}
                         </button>
                     </div>
                 </div>
@@ -184,15 +209,58 @@ export default function IncorporationWidget({ onNavigate }: { onNavigate?: (tab:
         }
     }, []);
 
-    const handleUpload = (fileName: string) => {
-        if (!uploadModal) return;
+    const handleUpload = async (file: File) => {
+        if (!uploadModal || !purchase) return;
 
-        const updated = services.map(s =>
-            s.name === uploadModal ? { ...s, status: "uploaded" as ServiceStatus, uploadedFile: fileName } : s
-        );
-        setServices(updated);
-        localStorage.setItem("smb_services_status", JSON.stringify(updated));
-        setUploadModal(null);
+        // Create a storage ref -> uploads/userName/serviceName/fileName
+        // Sanitizing names to avoid path issues
+        const safeUserName = purchase.userName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+        const safeServiceName = uploadModal.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+        const storageRef = ref(storage, `uploads/${safeUserName}/${safeServiceName}/${file.name}`);
+
+        try {
+            // Upload the file
+            const uploadTask = uploadBytesResumable(storageRef, file);
+            
+            // Wait for upload to complete
+            await new Promise<void>((resolve, reject) => {
+                uploadTask.on('state_changed',
+                    (snapshot) => {
+                        // Observe state change events such as progress, pause, and resume
+                        // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                        console.log('Upload is ' + progress + '% done');
+                    },
+                    (error) => {
+                        // Handle unsuccessful uploads
+                        reject(error);
+                    },
+                    () => {
+                        // Handle successful uploads on complete
+                        resolve();
+                    }
+                );
+            });
+
+            // Get download URL
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+
+            const updated = services.map(s =>
+                s.name === uploadModal ? { 
+                    ...s, 
+                    status: "uploaded" as ServiceStatus, 
+                    uploadedFile: file.name,
+                    downloadUrl: downloadURL
+                } : s
+            );
+            
+            setServices(updated);
+            localStorage.setItem("smb_services_status", JSON.stringify(updated));
+            setUploadModal(null);
+        } catch (error) {
+            console.error("Error uploading file:", error);
+            alert("Failed to upload file. Please try again.");
+        }
     };
 
     if (!purchase) {
@@ -264,20 +332,20 @@ export default function IncorporationWidget({ onNavigate }: { onNavigate?: (tab:
                 
                 <div className="space-y-3">
                     {services.map((service, idx) => (
-                        <div key={idx} className="flex items-center justify-between p-4 rounded-2xl border border-slate-100 hover:border-indigo-100 hover:shadow-md transition-all group bg-slate-50/50">
+                        <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl border border-slate-100 hover:border-indigo-100 hover:shadow-md transition-all group bg-slate-50/50 gap-4 sm:gap-0">
                              <div className="flex items-center gap-3">
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${service.status === 'completed' ? 'bg-green-100 text-green-600' : 'bg-slate-200 text-slate-500'}`}>
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${service.status === 'completed' ? 'bg-green-100 text-green-600' : 'bg-slate-200 text-slate-500'}`}>
                                     <span className="material-icons text-sm">
                                         {service.isAddon ? (service.addonEmoji || 'extension') : (service.status === 'completed' ? 'check' : 'business_center')}
                                     </span>
                                 </div>
-                                <div>
-                                    <h4 className="font-bold text-sm text-slate-800">{service.name}</h4>
+                                <div className="min-w-0">
+                                    <h4 className="font-bold text-sm text-slate-800 truncate pr-2">{service.name}</h4>
                                     {service.isAddon && <span className="text-[9px] font-black uppercase tracking-wider text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded-full">Add-on</span>}
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3 self-end sm:self-auto">
                                 <StatusBadge status={service.status} />
                                 {service.status === 'pending' && (
                                     <button 
@@ -288,9 +356,22 @@ export default function IncorporationWidget({ onNavigate }: { onNavigate?: (tab:
                                     </button>
                                 )}
                                 {service.status === 'uploaded' && (
-                                    <span className="text-xs font-bold text-slate-400 flex items-center gap-1">
-                                        <span className="material-icons text-sm">check</span> Done
-                                    </span>
+                                    <div className="flex items-center gap-3">
+                                        {service.downloadUrl && (
+                                            <a 
+                                                href={service.downloadUrl} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer" 
+                                                className="text-xs font-extrabold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 bg-indigo-50 px-2 py-1 rounded-lg transition-colors"
+                                                title="View Document"
+                                            >
+                                                <span className="material-icons text-sm">visibility</span> View
+                                            </a>
+                                        )}
+                                        <span className="text-xs font-bold text-slate-400 flex items-center gap-1">
+                                            <span className="material-icons text-sm">check_circle</span> Done
+                                        </span>
+                                    </div>
                                 )}
                             </div>
                         </div>
