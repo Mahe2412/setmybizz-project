@@ -723,6 +723,31 @@ const Dashboard: React.FC<DashboardProps> = ({ data, initialTab = 'A', onNavigat
                                         </div>
                                     ))}
                                 </div>
+                                
+                                {/* Ready to Go Global Banner */}
+                                <div className="mt-8 relative overflow-hidden bg-gradient-to-r from-blue-600 to-indigo-600 rounded-[2.5rem] p-10 text-white shadow-2xl group cursor-pointer border-4 border-white/20 transition-all hover:scale-[1.01]" onClick={() => setShowGlobalIncorporation(true)}>
+                                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32 blur-3xl group-hover:bg-white/20 transition-all duration-1000"></div>
+                                    <div className="absolute bottom-0 left-0 w-64 h-64 bg-cyan-500/20 rounded-full translate-y-32 -translate-x-32 blur-3xl group-hover:bg-cyan-500/30 transition-all duration-1000"></div>
+                                    
+                                    <div className="relative z-10 flex flex-col items-center justify-center text-center">
+                                        <div className="w-20 h-20 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mb-6 shadow-xl group-hover:scale-110 transition-transform duration-500 border border-white/20">
+                                            <span className="material-icons text-4xl text-white">public</span>
+                                        </div>
+                                        
+                                        <h2 className="text-3xl md:text-4xl font-black mb-3 tracking-tight">
+                                            Ready to Go Global?
+                                        </h2>
+                                        <p className="text-blue-100 text-sm md:text-base mb-8 max-w-lg mx-auto font-medium leading-relaxed">
+                                            Expand your business to international markets. Incorporation, Export, and Market Access in 50+ countries.
+                                        </p>
+                                        
+                                        <button className="bg-white text-blue-600 px-8 py-3.5 rounded-xl font-bold text-sm shadow-xl hover:shadow-white/20 hover:bg-blue-50 transition-all hover:-translate-y-1 flex items-center gap-2 group-hover:gap-3">
+                                            <span className="material-icons text-lg">public</span>
+                                            Explore Global Opportunities 
+                                            <span className="material-icons text-sm">arrow_forward</span>
+                                        </button>
+                                    </div>
+                                </div>
 
 
                             </div>
