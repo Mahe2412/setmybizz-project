@@ -41,3 +41,23 @@ export interface BusinessData {
     location?: string;
     goal?: string;
 }
+
+export type LeadStatus = 'new' | 'viewed' | 'engaged' | 'warm' | 'hot' | 'ordered' | 'fulfilled' | 'lost';
+
+export interface Lead {
+    leadId: string; // SMB-2024-XXXX
+    uid?: string; // Firebase Auth ID (if logged in)
+    guestId: string; // Session ID for non-logged users
+    businessData: BusinessData;
+    status: LeadStatus;
+    interestScore: number;
+    lastActiveAt: any; // Timestamp
+    createdAt: any; // Timestamp
+    source: string; // 'direct', 'google', 'referral'
+    contact?: {
+        email?: string;
+        phone?: string;
+        whatsapp?: string;
+    };
+    adminNotes?: string[];
+}

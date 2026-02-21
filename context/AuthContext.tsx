@@ -9,6 +9,7 @@ interface AuthContextType {
     user: User | null;
     dbUser: any | null;
     guestId: string | null;
+    leadId: string | null;
     loading: boolean;
 }
 
@@ -16,6 +17,7 @@ const AuthContext = createContext<AuthContextType>({
     user: null,
     dbUser: null,
     guestId: null,
+    leadId: null,
     loading: true,
 });
 
@@ -25,6 +27,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [user, setUser] = useState<User | null>(null);
     const [dbUser, setDbUser] = useState<any | null>(null);
     const [guestId, setGuestId] = useState<string | null>(null);
+    const [leadId, setLeadId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -38,9 +41,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         setGuestId(storedGuestId);
 
+        // Identify Lead (Async)
+        // We import dynamically to avoid circular dependencies if any, or just direct import
+        import('../lib/leadSystem').then(({ identifyLead }) => {
+            if (storedGuestId) {
+                 identifyLead(storedGuestId, user?.uid).then(id => {
+                     setLeadId(id);
+                     console.log("Lead Identified:", id);
+                 });
+            }
+        });
+
         // Listen for auth changes
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
             setUser(currentUser);
+
+            // Re-identify lead on login to link UID
+            if (currentUser && storedGuestId) {
+                import('../lib/leadSystem').then(({ identifyLead }) => {
+                    identifyLead(storedGuestId, currentUser.uid).then(id => setLeadId(id));
+                });
+            }
 
             if (currentUser) {
                 // Fetch extra user details from Firestore
@@ -73,7 +94,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, [user]);
 
     return (
-        <AuthContext.Provider value={{ user, dbUser, guestId, loading }}>
+        <AuthContext.Provider value={{ user, dbUser, guestId, leadId, loading }}>
             {children}
         </AuthContext.Provider>
     );

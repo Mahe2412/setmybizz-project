@@ -10,7 +10,7 @@ interface AIIncorporationAssistantProps {
 }
 
 export default function AIIncorporationAssistant({ onComplete }: AIIncorporationAssistantProps) {
-    const { user } = useAuth();
+    const { user, leadId } = useAuth();
     const isGuest = !user;
 
     const [showChatbot, setShowChatbot] = useState(false);
@@ -124,7 +124,6 @@ export default function AIIncorporationAssistant({ onComplete }: AIIncorporation
 
             setChatMessages(prev => [...prev, { role: 'ai', message: aiResponse }]);
 
-            // After 3+ messages, suggest login for guests
             if (isGuest && chatMessages.length >= 5) {
                 setTimeout(() => {
                     setChatMessages(prev => [...prev, {
@@ -134,6 +133,13 @@ export default function AIIncorporationAssistant({ onComplete }: AIIncorporation
                 }, 1500);
             }
         }, 800);
+
+        // Tracker: Log Chat Action
+        if (leadId) {
+            import('@/lib/leadSystem').then(({ logUserAction }) => {
+                logUserAction(leadId, 'ai_chat', { message: userInput });
+            });
+        }
 
         setUserInput('');
     };

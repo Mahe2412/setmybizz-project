@@ -728,8 +728,28 @@ function QuickFlowPopup({
         setTimeout(() => setStep((s) => s + 1), 300);
     };
 
-    const handleComplete = () => {
+    const handleComplete = async () => {
         if (!phone || !email) return;
+
+        // Auto-capture lead
+        try {
+            await fetch('/api/leads', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: "AI Pack User", 
+                    email, 
+                    phone, 
+                    businessName: "Pre-Incorporation Inquiry",
+                    nature: `AI Pack Answers: ${JSON.stringify(answers)}`,
+                    source: "ai_pack_flow",
+                    metadata: { answers }
+                })
+            });
+        } catch (e) {
+            console.error("Error capturing lead:", e);
+        }
+        
         onComplete({ ...answers, contact: { phone, email } });
     };
 
@@ -1170,12 +1190,20 @@ function GetStartedModal({
         localStorage.setItem('smb_purchased_package', JSON.stringify(purchaseData));
 
         // 2. Save Key to Firestore to prevent Data Loss (Real Lead Capture)
+        // 2. Save Key to Firestore to prevent Data Loss (Real Lead Capture)
         try {
-            await addDoc(collection(db, "leads"), {
-                ...purchaseData,
-                status: 'new',
-                source: 'incorporation_flow',
-                createdAt: serverTimestamp()
+            await fetch('/api/leads', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name,
+                    email,
+                    phone, 
+                    businessName: pkg.name,
+                    nature: `Purchase: ${pkg.name}. Total: ${pkg.price}`,
+                    source: 'incorporation_checkout',
+                    metadata: purchaseData
+                })
             });
             console.log("Lead secured in cloud database.");
         } catch (err) {
@@ -1186,7 +1214,7 @@ function GetStartedModal({
         setSubmitted(true);
         // Redirect to workspace after 2 seconds
         setTimeout(() => {
-            window.location.href = '/dashboard?tab=Workspace';
+            window.location.href = '/workspace';
         }, 2000);
     };
 

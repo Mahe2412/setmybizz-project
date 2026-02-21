@@ -11,6 +11,7 @@ import AIStudioLayout from './ai-studio/AIStudioLayout';
 import GlobalIncorporationFullPage from './dashboard/GlobalIncorporationFullPage';
 import AIIncorporationAssistant from './dashboard/AIIncorporationAssistant';
 import LaunchPadAIOnboarding from './dashboard/LaunchPadAIOnboarding';
+import AIProjectReportTool from './dashboard/AIProjectReportTool';
 import { useAuth } from '@/context/AuthContext';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -57,6 +58,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, initialTab = 'A', onNavigat
 
     const [selectedModel, setSelectedModel] = useState<'gemini' | 'gpt4o' | 'claude'>('gemini');
     const [showBuildPopup, setShowBuildPopup] = useState(false);
+    const [showDPRTool, setShowDPRTool] = useState(false);
     const [businessDescription, setBusinessDescription] = useState("");
 
     // Resizable Sidebar States
@@ -696,13 +698,15 @@ const Dashboard: React.FC<DashboardProps> = ({ data, initialTab = 'A', onNavigat
                                     </div>
                                 )}
 
-                                <div className="grid grid-cols-1 gap-3">
+<div className="grid grid-cols-1 gap-3">
                                     {incorporationServices.map((item, i) => (
                                         <div 
                                             key={i} 
                                             onClick={() => {
                                                 if (item.label.includes('Global') || item.label.includes('Ready to Go')) {
                                                     setShowGlobalIncorporation(true);
+                                                } else if (item.label === 'Project Reports') {
+                                                    setShowDPRTool(true);
                                                 }
                                             }}
                                             className={`bg-white rounded-xl p-3 md:p-4 border border-slate-100 flex items-center gap-4 shadow-sm hover:shadow-md transition-all group cursor-pointer`}
@@ -1279,6 +1283,13 @@ const Dashboard: React.FC<DashboardProps> = ({ data, initialTab = 'A', onNavigat
                         </div>
                     </div>
                 </div>
+            )}
+            {/* AI Project Report (DPR) Tool */}
+            {showDPRTool && (
+                <AIProjectReportTool 
+                    businessData={data} 
+                    onClose={() => setShowDPRTool(false)} 
+                />
             )}
         </div>
     );

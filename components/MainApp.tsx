@@ -52,7 +52,7 @@ const AppContent: React.FC = () => {
     const [isLoaded, setIsLoaded] = useState(false);
 
     // Auth Context
-    const { user, loading } = useAuth();
+    const { user, loading, leadId } = useAuth(); // Destructure leadId
     const [showProfileModal, setShowProfileModal] = useState(false);
 
     // Deep Link & Persistence Logic
@@ -112,8 +112,19 @@ const AppContent: React.FC = () => {
 
     const nextStep = () => setCurrentStep(prev => prev + 1);
     const prevStep = () => setCurrentStep(prev => Math.max(0, prev - 1));
+    
+    // Updated updateData to sync with Lead Engine
     const updateData = (newData: Partial<BusinessData>) => {
-        setData(prev => ({ ...prev, ...newData }));
+        setData(prev => {
+            const updated = { ...prev, ...newData };
+            // Sync to Lead Engine if leadId exists
+            if (leadId) {
+                import('../lib/leadSystem').then(({ syncLeadData }) => {
+                    syncLeadData(leadId, updated);
+                });
+            }
+            return updated;
+        });
     };
 
     const toggleDarkMode = () => setIsDarkMode(prev => !prev);
@@ -146,7 +157,7 @@ const AppContent: React.FC = () => {
                 fetch('/api/crm-webhook', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user, businessData: data })
+                    body: JSON.stringify({ user, businessData: data, guestId: leadId }) // Use leadId as guestId source if tracking
                 });
             } catch (crmErr) {
                 console.error("Failed to sync with CRM:", crmErr);

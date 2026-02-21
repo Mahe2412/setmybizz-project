@@ -1,6 +1,8 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { NextRequest, NextResponse } from 'next/server';
 import { SecurityGuard } from '@/lib/security-guard';
+import { db } from '@/lib/firebase';
+import { doc, setDoc, updateDoc, arrayUnion, serverTimestamp, getDoc } from 'firebase/firestore';
 
 // Initialize Gemini AI
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
@@ -66,7 +68,9 @@ export async function POST(req: NextRequest) {
         const filteredResponse = SecurityGuard.filterOutput(rawResponse, userRole);
 
         // Save to memory system (for context persistence)
-        await saveToMemory(userId, chatId, sanitizedMessage, filteredResponse);
+        if (chatId) {
+            await saveToMemory(userId, chatId, sanitizedMessage, filteredResponse);
+        }
 
         // Log interaction for monitoring
         SecurityGuard.logInteraction(userId, sanitizedMessage, filteredResponse, tokensUsed);
@@ -183,24 +187,47 @@ async function saveToMemory(
     aiResponse: string
 ): Promise<void> {
     try {
-        // In production, save to database (Firebase, Supabase, etc.)
-        // For now, we'll use a simple in-memory cache or localStorage on client
-        // This is called from server, so we'd typically save to a database here
+        const chatRef = doc(db, 'chats', chatId);
+        
+        // Define messages
+        const userMsg = {
+           role: 'user',
+           content: userMessage,
+           timestamp: new Date().toISOString()
+        };
+        
+        const aiMsg = {
+           role: 'assistant',
+           content: aiResponse,
+           timestamp: new Date().toISOString()
+        };
 
-        // Example structure for database:
-        // {
-        //   userId: string,
-        //   chatId: string,
-        //   messages: [{ role, content, timestamp }],
-        //   lastUpdated: timestamp,
-        //   metadata: { chatName, messageCount, etc. }
-        // }
+        // Check if document exists
+        const chatDoc = await getDoc(chatRef);
+
+        if (chatDoc.exists()) {
+            // Update existing chat
+            await updateDoc(chatRef, {
+                messages: arrayUnion(userMsg, aiMsg),
+                lastUpdated: serverTimestamp(),
+                messageCount: (chatDoc.data().messageCount || 0) + 2
+            });
+        } else {
+            // Create new chat
+            await setDoc(chatRef, {
+                chatId,
+                userId,
+                messages: [userMsg, aiMsg],
+                createdAt: serverTimestamp(),
+                lastUpdated: serverTimestamp(),
+                title: 'New Conversation', // Can use AI to generate title later
+                messageCount: 2
+            });
+        }
 
         console.log(`[Memory] Saved interaction for user: ${userId}, chat: ${chatId}`);
-        // TODO: Implement actual database persistence
-    } catch (error) {
-        console.error('[Memory] Failed to save:', error);
-        // Don't throw - memory failures shouldn't break the chat
+    } catch (error: any) {
+        console.error('[Memory] Failed to save:', error?.message || error);
     }
 }
 
