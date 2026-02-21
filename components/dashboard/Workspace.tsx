@@ -152,7 +152,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
 
 
     return (
-        <div className="flex h-screen overflow-hidden bg-white font-sans text-slate-900 transition-colors duration-200">
+        <div className="flex min-h-full w-full bg-slate-50/30 font-sans text-slate-900 transition-colors duration-200">
             {/* Google Workspace Dashboard Overlay */}
             {showGoogleDashboard && (
                 <GoogleWorkspaceDashboard
@@ -181,7 +181,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto overflow-x-hidden relative z-10 w-full" id="main-scroll-container">
+                <div className="flex-1 relative z-10 w-full" id="main-scroll-container">
                     <div className="absolute top-0 left-0 w-full h-full bg-white z-0"></div>
 
                     {/* Content Section 1: AI Co-Founder (Top View) */}
@@ -210,7 +210,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
                         </div>
                         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                             <SortableContext items={tools} strategy={rectSortingStrategy}>
-                                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6 p-2">
                                     {tools.map((tool) => (
                                         <SortableToolCard
                                             key={tool.id}
@@ -235,7 +235,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
                             <h2 className="text-sm font-bold text-slate-900 font-serif">Add Iterations</h2>
                             <span className="material-icons-outlined text-blue-600 text-lg cursor-pointer">arrow_forward</span>
                         </div>
-                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6 p-2">
                             {[
                                 { label: 'Website', icon: 'language', color: 'blue' },
                                 { label: 'Store', icon: 'storefront', color: 'indigo' },
@@ -262,7 +262,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
                             <h2 className="text-sm font-bold text-slate-900 font-serif">Add Integrations</h2>
                             <span className="material-icons-outlined text-blue-600 text-lg cursor-pointer">arrow_forward</span>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 p-2">
                             {[
                                 { label: 'Bank Account', icon: 'account_balance', color: 'blue' },
                                 { label: 'Ecommerce', icon: 'shopping_bag', color: 'green' },
@@ -298,7 +298,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
             </div>
 
             {/* Right Sidebar - AI Assistant */}
-            <aside className={`fixed lg:static inset-y-0 right-0 h-full border-l border-slate-200 z-50 transition-all duration-300 transform bg-white flex flex-col ${rightSidebarOpen ? 'w-80 translate-x-0' : 'w-0 translate-x-full lg:translate-x-0 lg:w-0 overflow-hidden'} ${mobileAiAssistantsOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}`}>
+            <aside className={`fixed lg:sticky top-0 right-0 h-[calc(100vh-64px)] border-l border-slate-200 z-50 transition-all duration-300 transform bg-white flex flex-col flex-shrink-0 ${rightSidebarOpen ? 'w-80 translate-x-0' : 'w-0 translate-x-full lg:translate-x-0 lg:w-0 overflow-hidden'} ${mobileAiAssistantsOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}`}>
                 <div className="flex flex-col h-full bg-slate-50/50">
                     <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-white flex-shrink-0">
                         <h2 className="font-bold text-slate-800 text-sm flex items-center gap-2">
@@ -309,7 +309,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
                         </button>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-hide">
+                    <div className="flex-1 overflow-y-auto custom-scroll p-4 space-y-6">
                         {/* AI Tools List */}
                         <div className="space-y-3">
                             <div className="px-1 py-2">

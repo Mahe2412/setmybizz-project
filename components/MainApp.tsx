@@ -68,11 +68,19 @@ const AppContent: React.FC = () => {
             }
         }
 
-        // 2. Handle Business Name Deep Link
+        // 2. Handle Search Params for Deep Linking
         const businessName = searchParams?.get('businessName');
+        const viewParam = searchParams?.get('view');
+
         if (businessName) {
             setData(prev => ({ ...prev, name: businessName }));
             setCurrentStep(1);
+        }
+
+        if (viewParam === 'login') {
+            setView('login');
+        } else if (viewParam === 'dashboard') {
+            setView('dashboard');
         }
 
         setIsLoaded(true);

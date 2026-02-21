@@ -502,7 +502,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, initialTab = 'A', onNavigat
                                 onClick={() => setActiveTab('Workspace')}
                                 className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-[10px] font-black shadow-xl shadow-indigo-500/20 hover:bg-indigo-700 transition-all flex items-center gap-2 uppercase tracking-widest active:scale-95 border border-indigo-400/30"
                             >
-                                <span className="material-icons-outlined text-sm">rocket</span> WORKSPACE <span className="bg-white/20 px-1 py-0.5 rounded text-[8px] text-white">SOON</span>
+                                <span className="material-icons-outlined text-sm">rocket</span> WORKSPACE
                             </button>
 
                             {/* Hover Popup for Workspace */}
@@ -523,103 +523,88 @@ const Dashboard: React.FC<DashboardProps> = ({ data, initialTab = 'A', onNavigat
                     </div>
                 </header>
 
-                <main className="flex-1 overflow-y-auto custom-scroll p-4 md:p-8 bg-white">
-                    <div className="max-w-3xl mx-auto">
-
-                        {/* Guest Banner */}
-                        {!user && (
-                            <div className="mb-6 bg-gradient-to-r from-slate-900 to-slate-800 p-4 rounded-xl shadow-lg flex items-center justify-between border border-slate-700 animate-in slide-in-from-top-4 duration-700">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center shrink-0">
-                                        <span className="material-symbols-outlined text-slate-900 font-bold">lock_open</span>
-                                    </div>
-                                    <div className="text-white">
-                                        <h3 className="font-bold text-sm">Login to Unlock your FREE Startup Credits & Business Tools!</h3>
-                                        <p className="text-[10px] text-slate-400">Save your progress and access premium features.</p>
-                                    </div>
-                                </div>
-                                <button className="bg-white text-slate-900 px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-100 transition-colors whitespace-nowrap">
-                                    Login Now
-                                </button>
-                            </div>
-                        )}
-
-                        {/* Workspace Dashboard */}
-                        {activeTab === 'Workspace' && (
-                            <div className="h-full w-full animate-in fade-in duration-500">
-                                <Workspace onNavigate={setActiveTab} />
-                            </div>
-                        )}
-
-                        {activeTab === 'A' && (
-                            <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-
-                                {/* ── Incorporation Hero CTA ── */}
-                                <div className="mb-8">
-                                    {/* Main Hero Banner */}
-                                    <a href="/incorporation" className="block group relative bg-gradient-to-r from-indigo-950 via-slate-900 to-purple-950 rounded-3xl p-7 text-white overflow-hidden shadow-2xl hover:shadow-indigo-900/40 transition-all hover:-translate-y-1 mb-5">
-                                        <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl -translate-y-40 translate-x-40 group-hover:bg-indigo-500/20 transition-all duration-1000" />
-                                        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
-                                            <div>
-                                                <div className="flex items-center gap-2 mb-3">
-                                                    <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                                                    <span className="text-[10px] font-black uppercase tracking-widest text-indigo-300">AI-Powered Incorporation</span>
-                                                </div>
-                                                <h2 className="text-2xl font-black mb-2 leading-tight">
-                                                    Register Your Business <span className="text-indigo-400">in 10-15 Days</span>
-                                                </h2>
-                                                <p className="text-slate-400 text-sm mb-4 max-w-md">
-                                                    Choose from 3 expert packages or let our AI build a custom plan for your business. 100% online, CA-supported.
-                                                </p>
-                                                {/* Mini Package Preview */}
-                                                <div className="flex items-center gap-3 flex-wrap">
-                                                    {[
-                                                        { emoji: '🏪', name: 'Proprietor', price: '₹2,999' },
-                                                        { emoji: '🚀', name: 'Startup', price: '₹7,999', popular: true },
-                                                        { emoji: '📈', name: 'Scale-Up', price: '₹14,999' },
-                                                    ].map((p, i) => (
-                                                        <div key={i} className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${p.popular ? 'bg-indigo-500/30 border-indigo-400/50 text-white' : 'bg-white/10 border-white/10 text-slate-300'}`}>
-                                                            <span>{p.emoji}</span>
-                                                            <span>{p.name}</span>
-                                                            <span className="text-indigo-300 font-black">{p.price}</span>
-                                                            {p.popular && <span className="bg-indigo-500 text-white text-[8px] px-1.5 py-0.5 rounded-full font-black">⭐</span>}
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                            <div className="flex flex-col gap-3 flex-shrink-0">
-                                                <div className="flex items-center gap-3 px-7 py-4 bg-white text-indigo-900 rounded-2xl font-black text-sm shadow-2xl group-hover:shadow-white/20 transition-all group-hover:scale-105">
-                                                    <span className="material-icons">rocket_launch</span>
-                                                    Open Incorporation Dashboard
-                                                    <span className="material-icons">arrow_forward</span>
-                                                </div>
-                                                <div className="flex items-center gap-3 px-7 py-3 bg-white/10 border border-white/20 text-white rounded-2xl font-bold text-xs hover:bg-white/20 transition-all text-center justify-center">
-                                                    <span className="material-icons text-sm">auto_awesome</span>
-                                                    Get AI-Recommended Pack
-                                                </div>
-                                            </div>
+                <main className="flex-1 overflow-y-auto custom-scroll bg-white">
+                    {activeTab === 'Workspace' ? (
+                        <Workspace onNavigate={setActiveTab} />
+                    ) : (
+                        <div className="max-w-3xl mx-auto p-4 md:p-8">
+                            {/* Guest Banner */}
+                            {!user && (
+                                <div className="mb-6 bg-gradient-to-r from-slate-900 to-slate-800 p-4 rounded-xl shadow-lg flex items-center justify-between border border-slate-700 animate-in slide-in-from-top-4 duration-700">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center shrink-0">
+                                            <span className="material-symbols-outlined text-slate-900 font-bold">lock_open</span>
                                         </div>
-                                    </a>
+                                        <div className="text-white">
+                                            <h3 className="font-bold text-sm">Login to Unlock your FREE Startup Credits & Business Tools!</h3>
+                                            <p className="text-[10px] text-slate-400">Save your progress and access premium features.</p>
+                                        </div>
+                                    </div>
+                                    <button className="bg-white text-slate-900 px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-100 transition-colors whitespace-nowrap">
+                                        Login Now
+                                    </button>
+                                </div>
+                            )}
 
-                                    {/* Quick Stats Row */}
-                                    <div className="grid grid-cols-3 gap-4">
-                                        {[
-                                            { icon: 'verified', label: '5,000+ Registered', sub: 'Businesses incorporated', color: 'text-green-600 bg-green-50' },
-                                            { icon: 'schedule', label: '10-15 Days', sub: 'Average timeline', color: 'text-indigo-600 bg-indigo-50' },
-                                            { icon: 'support_agent', label: 'Expert CA Support', sub: 'Dedicated professionals', color: 'text-purple-600 bg-purple-50' },
-                                        ].map((stat, i) => (
-                                            <div key={i} className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm flex items-center gap-3">
-                                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${stat.color}`}>
-                                                    <span className="material-icons text-xl">{stat.icon}</span>
-                                                </div>
+                            {activeTab === 'A' && (
+                                <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                    {/* ── Incorporation Hero CTA ── */}
+                                    <div className="mb-8">
+                                        {/* Main Hero Banner */}
+                                        <a href="/incorporation" className="block group relative bg-gradient-to-r from-indigo-950 via-slate-900 to-purple-950 rounded-3xl p-7 text-white overflow-hidden shadow-2xl hover:shadow-indigo-900/40 transition-all hover:-translate-y-1 mb-5">
+                                            <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl -translate-y-40 translate-x-40 group-hover:bg-indigo-500/20 transition-all duration-1000" />
+                                            <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
                                                 <div>
-                                                    <p className="text-xs font-black text-slate-900">{stat.label}</p>
-                                                    <p className="text-[10px] text-slate-400">{stat.sub}</p>
+                                                    <div className="flex items-center gap-2 mb-3">
+                                                        <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                                                        <span className="text-[10px] font-black uppercase tracking-widest text-indigo-300">AI-Powered Incorporation</span>
+                                                    </div>
+                                                    <h2 className="text-2xl font-black mb-2 leading-tight">
+                                                        Register Your Business <span className="text-indigo-400">in 10-15 Days</span>
+                                                    </h2>
+                                                    <p className="text-slate-400 text-sm mb-4 max-w-md">
+                                                        Choose from 3 expert packages or let our AI build a custom plan for your business. 100% online, CA-supported.
+                                                    </p>
+                                                    {/* Mini Package Preview */}
+                                                    <div className="flex items-center gap-3 flex-wrap">
+                                                        {[
+                                                            { emoji: '🏪', name: 'Proprietor', price: '₹2,999' },
+                                                            { emoji: '🚀', name: 'Startup', price: '₹7,999', popular: true },
+                                                            { emoji: '📈', name: 'Scale-Up', price: '₹14,999' },
+                                                        ].map((p, i) => (
+                                                            <div key={i} className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${p.popular ? 'bg-indigo-500/30 border-indigo-400/50 text-white' : 'bg-white/10 border-white/10 text-slate-300'}`}>
+                                                                <span>{p.emoji}</span>
+                                                                <span>{p.name}</span>
+                                                                <span className="text-indigo-300 font-black">{p.price}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                <div className="bg-indigo-600 text-white w-14 h-14 rounded-2xl flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform flex-shrink-0">
+                                                    <span className="material-icons-outlined">arrow_forward</span>
                                                 </div>
                                             </div>
-                                        ))}
+                                        </a>
+
+                                        {/* Quick Stats Row */}
+                                        <div className="grid grid-cols-3 gap-4">
+                                            {[
+                                                { icon: 'verified', label: '5,000+ Registered', sub: 'Businesses incorporated', color: 'text-green-600 bg-green-50' },
+                                                { icon: 'schedule', label: '10-15 Days', sub: 'Average timeline', color: 'text-indigo-600 bg-indigo-50' },
+                                                { icon: 'support_agent', label: 'Expert CA Support', sub: 'Dedicated professionals', color: 'text-purple-600 bg-purple-50' },
+                                            ].map((stat, i) => (
+                                                <div key={i} className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm flex items-center gap-3">
+                                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${stat.color}`}>
+                                                        <span className="material-icons text-xl">{stat.icon}</span>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs font-black text-slate-900">{stat.label}</p>
+                                                        <p className="text-[10px] text-slate-400">{stat.sub}</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
 
                                 {/* Hero Grid: Roadmap + Progress */}
                                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8 items-start">
@@ -1153,6 +1138,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, initialTab = 'A', onNavigat
                         )}
                         <div className="h-8"></div>
                     </div>
+                    )}
                 </main>
 
                 <div className="bg-white border-t border-slate-200 p-3 sticky bottom-0 z-40">

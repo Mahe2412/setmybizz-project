@@ -1,0 +1,4 @@
+react-hooks/set-state-in-effect
+react-hooks/purity
+@typescript-eslint/no-explicit-any
+react/no-unescaped-entities

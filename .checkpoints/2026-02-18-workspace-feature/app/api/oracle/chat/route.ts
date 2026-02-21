@@ -61,7 +61,7 @@ Personality:
         const responseText = response.text();
 
         // Clean up the response
-        let cleanedResponse = responseText
+        const cleanedResponse = responseText
             .replace(/^Oracle:\s*/i, '')
             .replace(/\*\*/g, '')
             .trim();

@@ -1,0 +1,423 @@
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\app\admin\layout.tsx
+  23:26 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\app\admin\layout.tsx:23:26
+  21 |
+  22 |     useEffect(() => {
+> 23 |         if (currentView) setActiveModule(currentView);
+     |                          ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  24 |     }, [currentView]);
+  25 |
+  26 |     const handleTabChange = (moduleId: AdminModule) => {
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\app\admin\page.tsx
+  76:82 Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\app\admin\page.tsx:76:82
+  74 |                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+  75 |                      {['GST Registration', 'Trademark', 'FSSAI License', 'Web Development'].map((svc, i) => (
+> 76 |                          <DashboardCard key={i} title={svc} value={`${Math.floor(Math.random() * 50)} Orders`} icon="shopping_bag" color="indigo" />
+     |                                                                                  ^^^^^^^^^^^^^ Cannot call impure function
+  77 |                      ))}
+  78 |                  </div>
+  79 |             </div>
+  232:22 Unexpected any. Specify a different type.
+  248:55 Unexpected any. Specify a different type.
+  249:21 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\app\api\ai-cofounder-claude\route.ts
+  23:23 Unexpected any. Specify a different type.
+  28:25 Unexpected any. Specify a different type.
+  100:52 Unexpected any. Specify a different type.
+  124:21 Unexpected any. Specify a different type.
+  134:20 Unexpected any. Specify a different type.
+  162:18 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\app\api\ai-cofounder\route.ts
+  94:21 Unexpected any. Specify a different type.
+  115:22 Unexpected any. Specify a different type.
+  116:26 Unexpected any. Specify a different type.
+  126:21 Unexpected any. Specify a different type.
+  229:21 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\app\api\crm-webhook\route.ts
+  35:19 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\app\api\export-artifact\route.ts
+  17:31 Unexpected any. Specify a different type.
+  41:21 Unexpected any. Specify a different type.
+  51:45 Unexpected any. Specify a different type.
+  70:47 Unexpected any. Specify a different type.
+  81:47 Unexpected any. Specify a different type.
+  92:38 Unexpected any. Specify a different type.
+  106:38 Unexpected any. Specify a different type.
+  117:38 Unexpected any. Specify a different type.
+  127:38 Unexpected any. Specify a different type.
+  137:19 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\app\api\export-to-drive\route.ts
+  27:21 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\app\api\leads\route.ts
+  75:21 Unexpected any. Specify a different type.
+  100:21 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\app\api\oracle\chat\route.ts
+  51:47 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\app\api\security\route.ts
+  47:21 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\app\workspace\page.tsx
+  36:55 Unexpected any. Specify a different type.
+  78:49 Unexpected any. Specify a different type.
+  119:79 `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.
+  151:46 Unexpected any. Specify a different type.
+  152:46 Unexpected any. Specify a different type.
+  162:17 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\app\workspace\page.tsx:162:17
+  160 |             try {
+  161 |                 const data = JSON.parse(raw);
+> 162 |                 setPurchase(data);
+      |                 ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  163 |                 
+  164 |                 // Init services state including addons
+  165 |                 const initServices = [
+  166:49 Unexpected any. Specify a different type.
+  166:77 Unexpected any. Specify a different type.
+  167:44 Unexpected any. Specify a different type.
+  178:40 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\Admin\LeadTable.tsx
+  6:12 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\Admin\OperationsTab.tsx
+  12:17 Unexpected any. Specify a different type.
+  16:24 Unexpected any. Specify a different type.
+  36:20 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\AdvancedOnboarding.tsx
+  84:70 Unexpected any. Specify a different type.
+  114:46 Unexpected any. Specify a different type.
+  134:46 Unexpected any. Specify a different type.
+  147:58 Unexpected any. Specify a different type.
+  161:49 `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.
+  161:97 `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.
+  186:62 Unexpected any. Specify a different type.
+  214:75 `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.
+  255:76 Unexpected any. Specify a different type.
+  278:48 `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.
+  332:68 Unexpected any. Specify a different type.
+  378:75 Unexpected any. Specify a different type.
+  473:99 Unexpected any. Specify a different type.
+  565:73 Unexpected any. Specify a different type.
+  649:85 Unexpected any. Specify a different type.
+  719:69 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\AuthGuard.tsx
+  30:32 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\AuthGuard.tsx:30:32
+  28 |                 try {
+  29 |                     const saved = localStorage.getItem('setmybizz_data');
+> 30 |                     if (saved) setData(JSON.parse(saved));
+     |                                ^^^^^^^ Avoid calling setState() directly within an effect
+  31 |                 } catch (e) {
+  32 |                     console.error("Failed to parse data", e);
+  33 |                 }
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\Dashboard.tsx
+  57:56 Unexpected any. Specify a different type.
+  124:17 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\Dashboard.tsx:124:17
+  122 |             const hasSeen = localStorage.getItem('hasSeenLaunchPadFlow');
+  123 |             if (!hasSeen) {
+> 124 |                 setShowLaunchPadFlow(true);
+      |                 ^^^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  125 |             }
+  126 |         }
+  127 |     }, [activeTab]);
+  129:60 Unexpected any. Specify a different type.
+  308:102 Unexpected any. Specify a different type.
+  340:115 Unexpected any. Specify a different type.
+  341:152 Unexpected any. Specify a different type.
+  405:47 `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.
+  405:79 `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.
+  419:45 `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.
+  419:127 `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.
+  481:103 `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.
+  708:120 Unexpected any. Specify a different type.
+  708:230 Unexpected any. Specify a different type.
+  708:258 Unexpected any. Specify a different type.
+  848:112 Unexpected any. Specify a different type.
+  891:82 Unexpected any. Specify a different type.
+  891:201 Unexpected any. Specify a different type.
+  1124:106 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\LeadCaptureModal.tsx
+  9:28 Unexpected any. Specify a different type.
+  115:23 Unexpected any. Specify a different type.
+  165:23 Unexpected any. Specify a different type.
+  182:87 `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\MainApp.tsx
+  184:55 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\Marketplace.tsx
+  137:47 Unexpected any. Specify a different type.
+  223:54 Unexpected any. Specify a different type.
+  285:59 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\ProfileCompletionModal.tsx
+  9:24 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\ai-studio\AIStudioLayout.tsx
+  70:145 Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\ai-studio\AIStudioLayout.tsx:70:145
+  68 |     const [chats, setChats] = useState<Chat[]>([
+  69 |         { id: '1', projectId: '1', title: 'Create sales strategy', lastMessage: 'Here\'s a comprehensive sales strategy...', timestamp: new Date(), pinned: true },
+> 70 |         { id: '2', projectId: '1', title: 'Marketing campaign ideas', lastMessage: 'I suggest a multi-channel approach...', timestamp: new Date(Date.now() - 3600000) },
+     |                                                                                                                                                 ^^^^^^^^^^ Cannot call impure function
+  71 |         { id: '3', projectId: '2', title: 'Business plan for Q2', lastMessage: 'Let me help you outline Q2 goals...', timestamp: new Date(Date.now() - 7200000) },
+  72 |     ]);
+  73 |
+  71:139 Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\ai-studio\AIStudioLayout.tsx:71:139
+  69 |         { id: '1', projectId: '1', title: 'Create sales strategy', lastMessage: 'Here\'s a comprehensive sales strategy...', timestamp: new Date(), pinned: true },
+  70 |         { id: '2', projectId: '1', title: 'Marketing campaign ideas', lastMessage: 'I suggest a multi-channel approach...', timestamp: new Date(Date.now() - 3600000) },
+> 71 |         { id: '3', projectId: '2', title: 'Business plan for Q2', lastMessage: 'Let me help you outline Q2 goals...', timestamp: new Date(Date.now() - 7200000) },
+     |                                                                                                                                           ^^^^^^^^^^ Cannot call impure function
+  72 |     ]);
+  73 |
+  74 |     const [connectedApps, setConnectedApps] = useState<ConnectedApp[]>([
+  76:136 Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\ai-studio\AIStudioLayout.tsx:76:136
+  74 |     const [connectedApps, setConnectedApps] = useState<ConnectedApp[]>([
+  75 |         { id: 'sheets', name: 'Google Sheets', icon: 'table_chart', color: 'green', connected: true, category: 'google', lastUsed: new Date() },
+> 76 |         { id: 'docs', name: 'Google Docs', icon: 'description', color: 'blue', connected: true, category: 'google', lastUsed: new Date(Date.now() - 1800000) },
+     |                                                                                                                                        ^^^^^^^^^^ Cannot call impure function
+  77 |         { id: 'gmail', name: 'Gmail', icon: 'mail', color: 'red', connected: false, category: 'google' },
+  78 |         { id: 'slides', name: 'Google Slides', icon: 'slideshow', color: 'yellow', connected: false, category: 'google' },
+  79 |     ]);
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\ai-studio\CenterChat.tsx
+  50:35 Unexpected any. Specify a different type.
+  137:50 Unexpected any. Specify a different type.
+  137:87 Unexpected any. Specify a different type.
+  144:48 Unexpected any. Specify a different type.
+  153:47 Unexpected any. Specify a different type.
+  898:82 `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\dashboard\AIIncorporationAssistant.tsx
+  371:45 `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.
+  371:146 `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\dashboard\AIProjectReportTool.tsx
+  14:19 Unexpected any. Specify a different type.
+  146:48 Unexpected any. Specify a different type.
+  169:44 Unexpected any. Specify a different type.
+  171:40 Unexpected any. Specify a different type.
+  189:38 Unexpected any. Specify a different type.
+  208:83 Unexpected any. Specify a different type.
+  210:161 Unexpected any. Specify a different type.
+  285:77 `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.
+  320:79 Unexpected any. Specify a different type.
+  372:140 Unexpected any. Specify a different type.
+  807:114 `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.
+  807:156 `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.
+  807:161 `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.
+  807:179 `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`.
+  900:52 `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\dashboard\AdvancedAiCoFounder.tsx
+  142:25 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\dashboard\AiCoFounderChat.tsx
+  123:25 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\dashboard\GlobalChatbot.tsx
+  10:24 Unexpected any. Specify a different type.
+  198:44 `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\dashboard\GlobalIncorporation.tsx
+  10:32 Unexpected any. Specify a different type.
+  36:48 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\dashboard\GlobalIncorporationFullPage.tsx
+  9:32 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\dashboard\GoogleWorkspaceDashboard.tsx
+  21:44 Unexpected any. Specify a different type.
+  169:51 Unexpected any. Specify a different type.
+  203:53 Unexpected any. Specify a different type.
+  230:51 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\dashboard\IncorporationWidget.tsx
+  182:17 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\dashboard\IncorporationWidget.tsx:182:17
+  180 |             try {
+  181 |                 const data: PurchaseData = JSON.parse(saved);
+> 182 |                 setPurchase(data);
+      |                 ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  183 |
+  184 |                 // Initialize services status
+  185 |                 const initServices: ServiceState[] = data.services
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\dashboard\IntegrationModal.tsx
+  8:20 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\dashboard\LaunchPadAIOnboarding.tsx
+  8:24 Unexpected any. Specify a different type.
+  27:31 Unexpected any. Specify a different type.
+  236:74 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\dashboard\Workspace.tsx
+  58:9 Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\dashboard\Workspace.tsx:58:9
+  56 |     useEffect(() => {
+  57 |         const hasProfile = localStorage.getItem('workspaceProfile');
+> 58 |         setIsNewUser(!hasProfile);
+     |         ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  59 |     }, []);
+  60 |
+  61 |     // Show popup every 40 seconds for new users
+  141:42 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\steps\ExistingAssetsStep.tsx
+  44:83 `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\steps\LoginStep.tsx
+  33:23 Unexpected any. Specify a different type.
+  52:23 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\steps\Placeholder.tsx
+  3:33 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\steps\SummaryStep.tsx
+  70:90 `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\steps\WelcomeStep.tsx
+  32:24 `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.
+  35:62 `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\context\AuthContext.tsx
+  10:13 Unexpected any. Specify a different type.
+  28:42 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\lib\aiService.ts
+  4:56 Unexpected any. Specify a different type.
+  14:51 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\lib\dpr-engine.ts
+  44:52 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\lib\firebase.ts
+  70:19 Unexpected any. Specify a different type.
+  81:19 Unexpected any. Specify a different type.
+  100:19 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\lib\gemini.ts
+  27:32 Unexpected any. Specify a different type.
+  44:45 Unexpected any. Specify a different type.
+  83:72 Unexpected any. Specify a different type.
+  123:48 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\lib\google-api.ts
+  73:76 Unexpected any. Specify a different type.
+  80:58 Unexpected any. Specify a different type.
+  81:61 Unexpected any. Specify a different type.
+  112:39 Unexpected any. Specify a different type.
+  135:38 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\lib\googleSheets.ts
+  12:43 Unexpected any. Specify a different type.
+  42:21 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\lib\imageService.ts
+  12:67 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\lib\leadSystem.ts
+  50:29 Unexpected any. Specify a different type.
+  79:39 Unexpected any. Specify a different type.
+  89:79 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\types\ai.ts
+  5:11 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\types\dpr.ts
+  74:16 Unexpected any. Specify a different type.
+  75:16 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\types\index.ts
+  54:19 Unexpected any. Specify a different type.
+  55:16 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\types\lead.ts
+  8:16 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\types\react-draggable.d.ts
+  12:23 Unexpected any. Specify a different type.
+  12:34 Unexpected any. Specify a different type.
+  13:22 Unexpected any. Specify a different type.
+  13:33 Unexpected any. Specify a different type.
+  14:22 Unexpected any. Specify a different type.
+  14:33 Unexpected any. Specify a different type.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\types\workspace.ts
+  90:19 Unexpected any. Specify a different type.
+  91:14 Unexpected any. Specify a different type.
+  115:12 Unexpected any. Specify a different type.
+  131:15 Unexpected any. Specify a different type.
+  182:22 Unexpected any. Specify a different type.
+  204:13 Unexpected any. Specify a different type.
