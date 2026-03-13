@@ -221,7 +221,7 @@ export default function AIIncorporationAssistant({ onComplete }: AIIncorporation
                 <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100 shadow-md hover:shadow-lg transition-all">
                     <div className="flex items-start gap-3 mb-3">
                         <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center shadow-md">
-                            <span className="material-icons text-white text-lg">smart_toy</span>
+                            <span className="material-symbols-outlined text-white text-lg">smart_toy</span>
                         </div>
                         <div className="flex-1">
                             <h3 className="text-base font-bold text-slate-900 mb-0.5">AI Incorporation Assistant</h3>
@@ -232,7 +232,7 @@ export default function AIIncorporationAssistant({ onComplete }: AIIncorporation
                         onClick={() => setShowChatbot(!showChatbot)}
                         className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg py-2 px-4 text-sm font-bold shadow-md hover:shadow-blue-500/30 transition-all hover:scale-105 flex items-center justify-center gap-2"
                     >
-                        <span className="material-icons text-sm">{showChatbot ? 'close' : 'chat'}</span>
+                        <span className="material-symbols-outlined text-sm">{showChatbot ? 'close' : 'chat'}</span>
                         {showChatbot ? 'Close Chat' : 'Start Chatting'}
                     </button>
                 </div>
@@ -241,7 +241,7 @@ export default function AIIncorporationAssistant({ onComplete }: AIIncorporation
                 <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-100 shadow-md hover:shadow-lg transition-all">
                     <div className="flex items-start gap-3 mb-3">
                         <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center shadow-md">
-                            <span className="material-icons text-white text-lg">auto_awesome</span>
+                            <span className="material-symbols-outlined text-white text-lg">auto_awesome</span>
                         </div>
                         <div className="flex-1">
                             <h3 className="text-base font-bold text-slate-900 mb-0.5">Get Tailor-Made Business Setup</h3>
@@ -256,7 +256,7 @@ export default function AIIncorporationAssistant({ onComplete }: AIIncorporation
                         }}
                         className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg py-2 px-4 text-sm font-bold shadow-md hover:shadow-purple-500/30 transition-all hover:scale-105 flex items-center justify-center gap-2"
                     >
-                        <span className="material-icons text-sm">rocket_launch</span>
+                        <span className="material-symbols-outlined text-sm">rocket_launch</span>
                         Start Questionnaire
                     </button>
                 </div>
@@ -268,7 +268,7 @@ export default function AIIncorporationAssistant({ onComplete }: AIIncorporation
                     <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-3 text-white flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                                <span className="material-icons text-sm">smart_toy</span>
+                                <span className="material-symbols-outlined text-sm">smart_toy</span>
                             </div>
                             <div>
                                 <h3 className="text-sm font-bold">AI Assistant</h3>
@@ -276,7 +276,7 @@ export default function AIIncorporationAssistant({ onComplete }: AIIncorporation
                             </div>
                         </div>
                         <button onClick={() => setShowChatbot(false)} className="hover:bg-white/10 rounded-lg p-1 transition-colors">
-                            <span className="material-icons text-sm">close</span>
+                            <span className="material-symbols-outlined text-sm">close</span>
                         </button>
                     </div>
 
@@ -309,7 +309,7 @@ export default function AIIncorporationAssistant({ onComplete }: AIIncorporation
                                 onClick={handleSendMessage}
                                 className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-bold shadow-md hover:shadow-blue-500/30 transition-all flex items-center gap-1"
                             >
-                                <span className="material-icons text-sm">send</span>
+                                <span className="material-symbols-outlined text-sm">send</span>
                             </button>
                         </div>
 
@@ -319,7 +319,7 @@ export default function AIIncorporationAssistant({ onComplete }: AIIncorporation
                                 onClick={() => setShowLeadCapture(true)}
                                 className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg py-2 text-xs font-bold shadow-md hover:shadow-green-500/30 transition-all flex items-center justify-center gap-1"
                             >
-                                <span className="material-icons text-sm">account_circle</span>
+                                <span className="material-symbols-outlined text-sm">account_circle</span>
                                 Create Account to Save Progress
                             </button>
                         )}
@@ -344,7 +344,7 @@ export default function AIIncorporationAssistant({ onComplete }: AIIncorporation
                                     }}
                                     className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
                                 >
-                                    <span className="material-icons text-sm">close</span>
+                                    <span className="material-symbols-outlined text-sm">close</span>
                                 </button>
                             </div>
                             <div className="flex justify-between text-xs mb-1.5">
@@ -429,7 +429,7 @@ export default function AIIncorporationAssistant({ onComplete }: AIIncorporation
                                             <div className="flex items-center justify-between">
                                                 <span>{option}</span>
                                                 {businessData[currentStep.id as keyof BusinessData] === option && (
-                                                    <span className="material-icons text-purple-600 text-sm">check_circle</span>
+                                                    <span className="material-symbols-outlined text-purple-600 text-sm">check_circle</span>
                                                 )}
                                             </div>
                                         </button>
@@ -457,7 +457,7 @@ export default function AIIncorporationAssistant({ onComplete }: AIIncorporation
                                 className="px-6 py-2 text-sm bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-bold shadow-md hover:shadow-purple-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                             >
                                 {currentFlowStep === totalSteps - 1 ? (isGuest ? 'Create Account' : 'Complete') : 'Next'}
-                                <span className="material-icons text-xs">arrow_forward</span>
+                                <span className="material-symbols-outlined text-xs">arrow_forward</span>
                             </button>
                         </div>
                     </div>

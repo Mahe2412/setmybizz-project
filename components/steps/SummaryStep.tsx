@@ -4,6 +4,8 @@ import { BusinessData } from '../../types';
 import { CORE_SERVICES, PACKAGE_OPTIONS } from '../../lib/pricingConfig';
 import GlobalAccessStep from './GlobalAccessStep';
 import RkleAiAdvisor from './RkleAiAdvisor';
+import AdvisorBoard from '../dashboard/AdvisorBoard';
+import { motion } from 'framer-motion';
 
 
 interface SummaryStepProps {
@@ -318,18 +320,9 @@ const SummaryStep: React.FC<SummaryStepProps> = ({ data, onBack, onDashboard }) 
 
                     <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 lg:gap-6 relative z-20">
                         
-                        {/* Step 1: Advisor */}
-                        <div className="relative group flex flex-row lg:flex-col items-start lg:items-center gap-6 lg:gap-8 hover:-translate-y-2 transition-transform duration-300 z-20">
-                            <div className="w-12 h-12 lg:w-16 lg:h-16 shrink-0 bg-white border-2 border-slate-900 rounded-full flex items-center justify-center text-slate-900 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] group-hover:bg-amber-50 transition-colors duration-300 relative z-30">
-                                <Lightbulb className="w-6 h-6 lg:w-7 lg:h-7 text-amber-500 icon-lightbulb" strokeWidth={2.5} />
-                            </div>
-                            <div className="flex-col text-left lg:text-center mt-2 lg:mt-0 p-4 sm:p-5 rounded-2xl bg-white border-2 border-slate-900 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] group-hover:shadow-[6px_6px_0px_0px_rgba(59,130,246,1)] group-hover:border-blue-500 transition-all duration-300 relative z-30">
-                                <div className="text-slate-500 font-bold text-[10px] sm:text-xs tracking-[0.2em] uppercase mb-2 border-b-2 border-slate-200 pb-2 inline-block">Step 1: Start Here</div>
-                                <h3 className="text-lg md:text-xl font-black text-slate-900 mb-2 leading-tight">Personal Business Advisor</h3>
-                                <p className="text-slate-600 text-xs sm:text-sm font-medium leading-relaxed bg-white">
-                                    <strong className="text-slate-900">365-day strong tracking & advice</strong> from top professionals. Includes scale-up planning & <strong className="text-slate-900">global access support</strong>.
-                                </p>
-                            </div>
+                        {/* Step 1: Advisor Professional Board */}
+                        <div className="lg:col-span-4 mb-8">
+                            <AdvisorBoard />
                         </div>
 
                         {/* Step 2: Launchpad */}

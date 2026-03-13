@@ -56,12 +56,9 @@ export default function HomePage() {
 
     const handleStart = (e: React.FormEvent) => {
         e.preventDefault();
-        const baseRoute = bizName.trim() ? `/onboarding?name=${encodeURIComponent(bizName.trim())}` : '/onboarding';
-        if (activeMode === 'setup') {
-            router.push(baseRoute);
-        } else {
-            router.push(`${baseRoute}${bizName.trim() ? '&' : '?'}flow=${activeMode}`);
-        }
+        const baseRoute = bizName.trim() ? `?name=${encodeURIComponent(bizName.trim())}` : '';
+        const flowSuffix = activeMode === 'setup' ? '' : `${baseRoute ? '&' : '?'}flow=${activeMode}`;
+        router.push(`/onboarding${baseRoute}${flowSuffix}`);
     };
 
     const getModeProps = () => {

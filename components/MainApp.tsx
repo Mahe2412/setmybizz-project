@@ -17,6 +17,7 @@ import Dashboard from './Dashboard';
 import Layout from './Layout';
 import ProfileCompletionModal from './ProfileCompletionModal';
 import SmartFooter from './SmartFooter';
+import TeaserFlow from './onboarding/TeaserFlow';
 import { BusinessData } from '../types';
 
 const INITIAL_DATA: BusinessData = {
@@ -51,13 +52,14 @@ const AppContent: React.FC = () => {
     const [data, setData] = useState<BusinessData>(INITIAL_DATA);
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [isLoaded, setIsLoaded] = useState(false);
+    const [showTeaser, setShowTeaser] = useState(false);
 
     // Auth Context
     const { user, loading, leadId } = useAuth(); // Destructure leadId
     const [showProfileModal, setShowProfileModal] = useState(false);
 
     // State for initial dashboard configuration from deep links
-    const [dashboardConfig, setDashboardConfig] = useState<{tab: 'A'|'B'|'Workspace'|'LearnerStudio', global?: boolean}>({tab: 'Workspace'});
+    const [dashboardConfig, setDashboardConfig] = useState<{tab: 'A'|'B'|'Workspace'|'LearnerStudio'|'Oracle'|'Hook', global?: boolean}>({tab: 'Workspace'});
 
     // Deep Link & Persistence Logic
     useEffect(() => {
@@ -92,6 +94,7 @@ const AppContent: React.FC = () => {
             setView('dashboard');
             setDashboardConfig({ tab: 'Workspace' });
         } else if (nameFromHome && !flowParam) {
+            setShowTeaser(true);
             // Skip WelcomeStep (0) and NameStep (1) — go directly to IndustryOfferStep (2)
             setCurrentStep(2);
         }
@@ -233,6 +236,14 @@ const AppContent: React.FC = () => {
 
     if (view === 'login') {
         return <LoginStep onLogin={handleLoginSuccess} businessName={data.name} />;
+    }
+
+    if (showTeaser) {
+        return <TeaserFlow businessName={data.name} onComplete={() => {
+            setShowTeaser(false);
+            setView('dashboard');
+            setDashboardConfig({ tab: 'Hook' });
+        }} />;
     }
 
     if (view === 'dashboard') {

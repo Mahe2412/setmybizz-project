@@ -12,6 +12,7 @@ import GlobalIncorporationFullPage from './dashboard/GlobalIncorporationFullPage
 import AIIncorporationAssistant from './dashboard/AIIncorporationAssistant';
 import LaunchPadAIOnboarding from './dashboard/LaunchPadAIOnboarding';
 import AIProjectReportTool from './dashboard/AIProjectReportTool';
+import HookDashboard from './dashboard/HookDashboard';
 import { useAuth } from '@/context/AuthContext';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -19,14 +20,14 @@ import Toast from './ToastNotification';
 
 interface DashboardProps {
     data: BusinessData;
-    initialTab?: 'A' | 'B' | 'Workspace' | 'LearnerStudio' | 'Oracle';
+    initialTab?: 'A' | 'B' | 'Workspace' | 'LearnerStudio' | 'Oracle' | 'Hook';
     onNavigateToFlow?: () => void;
     initialGlobal?: boolean;
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ data, initialTab = 'A', onNavigateToFlow, initialGlobal = false }) => {
     const { user, dbUser, guestId } = useAuth();
-    const [activeTab, setActiveTab] = useState<'A' | 'B' | 'Workspace' | 'LearnerStudio' | 'Oracle'>(initialTab);
+    const [activeTab, setActiveTab] = useState<'A' | 'B' | 'Workspace' | 'LearnerStudio' | 'Oracle' | 'Hook'>(initialTab);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [chatCount, setChatCount] = useState(0);
     const [aiMessage, setAiMessage] = useState("Greetings. I am your Setmybizz AI Architect. How can I assist with your incorporation path today?");
@@ -551,6 +552,12 @@ const Dashboard: React.FC<DashboardProps> = ({ data, initialTab = 'A', onNavigat
                                 </div>
                             )}
 
+                            {activeTab === 'Hook' && (
+                                <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                    <HookDashboard />
+                                </div>
+                            )}
+
                             {activeTab === 'A' && (
                                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
 
@@ -617,7 +624,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, initialTab = 'A', onNavigat
                                                     </div>
                                                 </div>
                                                 <div className="bg-indigo-600 text-white w-14 h-14 rounded-2xl flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform flex-shrink-0">
-                                                    <span className="material-icons-outlined">arrow_forward</span>
+                                                    <span className="material-symbols-outlined">arrow_forward</span>
                                                 </div>
                                             </div>
                                         </a>
