@@ -23,9 +23,10 @@ interface DashboardProps {
     initialTab?: 'A' | 'B' | 'Workspace' | 'LearnerStudio' | 'Oracle' | 'Hook';
     onNavigateToFlow?: () => void;
     initialGlobal?: boolean;
+    onLogin?: () => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ data, initialTab = 'A', onNavigateToFlow, initialGlobal = false }) => {
+const Dashboard: React.FC<DashboardProps> = ({ data, initialTab = 'A', onNavigateToFlow, initialGlobal = false, onLogin }) => {
     const { user, dbUser, guestId } = useAuth();
     const [activeTab, setActiveTab] = useState<'A' | 'B' | 'Workspace' | 'LearnerStudio' | 'Oracle' | 'Hook'>(initialTab);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -368,8 +369,8 @@ const Dashboard: React.FC<DashboardProps> = ({ data, initialTab = 'A', onNavigat
                 </div>
             </aside>
 
-            <div className="flex-1 flex flex-col h-full overflow-hidden relative">
-                <header className="sticky top-0 h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 md:px-10 flex-shrink-0 z-50 shadow-sm">
+            <div className={`flex-1 flex flex-col h-full overflow-hidden relative ${isSidebarOpen && 'md:ml-0'}`}>
+                <header className="sticky top-0 h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-10 flex-shrink-0 z-50 shadow-sm gap-2">
                     <div className="flex items-center gap-2">
                         <button
                             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -383,15 +384,15 @@ const Dashboard: React.FC<DashboardProps> = ({ data, initialTab = 'A', onNavigat
                         >
                             <span className="material-symbols-outlined text-xl">menu_open</span>
                         </button>
-                        <div className="flex bg-slate-100/50 p-1.5 rounded-2xl gap-2">
+                        <div className="flex bg-slate-100/50 p-1 rounded-xl md:rounded-2xl gap-1 md:gap-2 overflow-x-auto no-scrollbar max-w-[calc(100vw-120px)] sm:max-w-none">
                             {/* Business Setup Nav Item */}
                             <div className="relative group">
                                 <button
                                     onClick={() => setActiveTab('A')}
-                                    className={`px-5 py-2.5 rounded-xl transition-all text-xs font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'A' ? 'bg-white text-blue-600 shadow-md shadow-blue-500/10 scale-105' : 'text-slate-500 hover:text-slate-900 hover:bg-white/50'}`}
+                                    className={`px-3 md:px-5 py-2 md:py-2.5 rounded-lg md:rounded-xl transition-all text-[10px] md:text-xs font-bold uppercase tracking-widest flex items-center gap-1 md:gap-2 inline-flex ${activeTab === 'A' ? 'bg-white text-blue-600 shadow-md shadow-blue-500/10 scale-105' : 'text-slate-500 hover:text-slate-900 hover:bg-white/50'}`}
                                 >
-                                    <span className="material-symbols-outlined text-[16px]">description</span>
-                                    Business Setup
+                                    <span className="material-symbols-outlined text-[14px] md:text-[16px]">description</span>
+                                    <span className="whitespace-nowrap">Setup</span>
                                 </button>
 
                                 {/* Hover Popup for Business Setup */}
@@ -442,10 +443,10 @@ const Dashboard: React.FC<DashboardProps> = ({ data, initialTab = 'A', onNavigat
                             <div className="relative group">
                                 <button
                                     onClick={() => setActiveTab('B')}
-                                    className={`px-5 py-2.5 rounded-xl transition-all text-xs font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'B' ? 'bg-white text-indigo-600 shadow-md shadow-indigo-500/10 scale-105' : 'text-slate-500 hover:text-slate-900 hover:bg-white/50'}`}
+                                    className={`px-3 md:px-5 py-2 md:py-2.5 rounded-lg md:rounded-xl transition-all text-[10px] md:text-xs font-bold uppercase tracking-widest flex items-center gap-1 md:gap-2 inline-flex ${activeTab === 'B' ? 'bg-white text-indigo-600 shadow-md shadow-indigo-500/10 scale-105' : 'text-slate-500 hover:text-slate-900 hover:bg-white/50'}`}
                                 >
-                                    <span className="material-symbols-outlined text-[16px]">rocket</span>
-                                    Launch Pad
+                                    <span className="material-symbols-outlined text-[14px] md:text-[16px]">rocket</span>
+                                    <span className="whitespace-nowrap">Launch</span>
                                 </button>
 
                                 {/* Hover Popup for Launch Pad */}
@@ -474,10 +475,10 @@ const Dashboard: React.FC<DashboardProps> = ({ data, initialTab = 'A', onNavigat
                             <div className="relative group">
                                 <button
                                     onClick={() => setActiveTab('LearnerStudio')}
-                                    className={`px-5 py-2.5 rounded-xl transition-all text-xs font-bold uppercase tracking-widest flex items-center gap-2 ${activeTab === 'LearnerStudio' ? 'bg-white text-teal-600 shadow-md shadow-teal-500/10 scale-105' : 'text-slate-500 hover:text-slate-900 hover:bg-white/50'}`}
+                                    className={`px-3 md:px-5 py-2 md:py-2.5 rounded-lg md:rounded-xl transition-all text-[10px] md:text-xs font-bold uppercase tracking-widest flex items-center gap-1 md:gap-2 inline-flex ${activeTab === 'LearnerStudio' ? 'bg-white text-teal-600 shadow-md shadow-teal-500/10 scale-105' : 'text-slate-500 hover:text-slate-900 hover:bg-white/50'}`}
                                 >
-                                    <span className="material-symbols-outlined text-[16px]">menu_book</span>
-                                    Learner Studio
+                                    <span className="material-symbols-outlined text-[14px] md:text-[16px]">menu_book</span>
+                                    <span className="whitespace-nowrap">Academy</span>
                                 </button>
 
                                 {/* Hover Popup for Learner Studio */}
@@ -553,8 +554,8 @@ const Dashboard: React.FC<DashboardProps> = ({ data, initialTab = 'A', onNavigat
                             )}
 
                             {activeTab === 'Hook' && (
-                                <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-                                    <HookDashboard />
+                                <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 h-full overflow-y-auto">
+                                    <HookDashboard onAction={onLogin || (() => {})} />
                                 </div>
                             )}
 
@@ -1245,8 +1246,11 @@ const Dashboard: React.FC<DashboardProps> = ({ data, initialTab = 'A', onNavigat
                                     <h3 className="text-3xl font-black text-slate-900 tracking-tighter italic leading-none">NEURAL <span className="not-italic text-indigo-600">IGNITION</span></h3>
                                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">Initialize your digital ecosystem</p>
                                 </div>
-                                <button onClick={() => setShowBuildPopup(false)} className="ml-auto w-12 h-12 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-400 transition-colors">
-                                    <span className="material-symbols-outlined">close</span>
+                                <button
+                                    onClick={() => setShowBuildPopup(false)}
+                                    className="ml-auto w-12 h-12 bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-900 rounded-full flex items-center justify-center transition-all cursor-pointer active:scale-90"
+                                >
+                                    <span className="material-symbols-outlined text-2xl">close</span>
                                 </button>
                             </div>
 

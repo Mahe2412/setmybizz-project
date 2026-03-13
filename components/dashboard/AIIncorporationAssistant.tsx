@@ -221,7 +221,7 @@ export default function AIIncorporationAssistant({ onComplete }: AIIncorporation
                 <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100 shadow-md hover:shadow-lg transition-all">
                     <div className="flex items-start gap-3 mb-3">
                         <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center shadow-md">
-                            <span className="material-symbols-outlined text-white text-lg">smart_toy</span>
+                            <span className="material-symbols-outlined text-lg">smart_toy</span>
                         </div>
                         <div className="flex-1">
                             <h3 className="text-base font-bold text-slate-900 mb-0.5">AI Incorporation Assistant</h3>
@@ -342,9 +342,9 @@ export default function AIIncorporationAssistant({ onComplete }: AIIncorporation
                                         setGuestEmail('');
                                         setGuestPhone('');
                                     }}
-                                    className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+                                    className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-all active:scale-95"
                                 >
-                                    <span className="material-symbols-outlined text-sm">close</span>
+                                    <span className="material-symbols-outlined text-lg">close</span>
                                 </button>
                             </div>
                             <div className="flex justify-between text-xs mb-1.5">

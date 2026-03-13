@@ -72,19 +72,19 @@ export default function TeaserFlow({ onComplete, businessName }: TeaserFlowProps
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
                         transition={{ duration: 0.5 }}
-                        className="mb-12"
+                        className="mb-8 md:mb-12"
                     >
-                        <div className={`w-24 h-24 mx-auto mb-8 rounded-3xl ${phases[phase].bg} flex items-center justify-center shadow-2xl`}>
-                            <span className={`material-symbols-outlined text-5xl font-black ${phases[phase].color}`}>
+                        <div className={`w-20 h-20 md:w-24 md:h-24 mx-auto mb-6 md:mb-8 rounded-[1.5rem] md:rounded-3xl ${phases[phase].bg} flex items-center justify-center shadow-2xl`}>
+                            <span className={`material-symbols-outlined text-4xl md:text-5xl font-black ${phases[phase].color}`}>
                                 {phases[phase].icon}
                             </span>
                         </div>
                         
-                        <div className="space-y-3">
-                            <h2 className="text-sm font-black text-slate-500 uppercase tracking-[0.4em]">
+                        <div className="space-y-2 md:space-y-3 px-4">
+                            <h2 className="text-[10px] md:text-sm font-black text-slate-500 uppercase tracking-[0.3em] md:tracking-[0.4em]">
                                 {phases[phase].title}
                             </h2>
-                            <h3 className="text-2xl font-black text-white italic tracking-tight">
+                            <h3 className="text-xl md:text-2xl font-black text-white italic tracking-tight leading-tight">
                                 {businessName.toUpperCase()}: <span className="text-slate-400 not-italic font-bold">{phases[phase].sub}</span>
                             </h3>
                         </div>

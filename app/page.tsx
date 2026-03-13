@@ -156,16 +156,18 @@ export default function HomePage() {
                                 </p>
 
                                 {/* Search input */}
-                                <form onSubmit={handleStart} className="w-full max-w-2xl mx-auto lg:mx-0 mt-6 flex flex-col sm:flex-row gap-3 relative z-10 transition-all">
-                                    <input
-                                        value={bizName}
-                                        onChange={e => setBizName(e.target.value)}
-                                        className="flex-1 bg-white border border-transparent focus:border-[#2653EB] focus:ring-2 focus:ring-[#2653EB]/20 text-slate-900 placeholder-slate-500 h-14 px-6 rounded-xl outline-none text-base shadow-sm transition-all"
-                                        placeholder={modeProps.placeholder}
-                                        type="text"
-                                    />
-                                    <button type="submit" className="bg-[#2653EB] hover:bg-[#1A3CB3] text-white px-8 py-3 rounded-xl font-bold text-base transition-all whitespace-nowrap shadow-md shadow-blue-500/25 flex items-center justify-center gap-2 h-14 w-full sm:w-auto">
-                                        {modeProps.btnText} <span className="text-xl">{modeProps.btnIcon}</span>
+                                <form onSubmit={handleStart} className="w-full max-w-2xl mx-auto lg:mx-0 mt-8 flex flex-col sm:flex-row gap-4 relative z-10 transition-all">
+                                    <div className="flex-1 relative">
+                                        <input
+                                            value={bizName}
+                                            onChange={e => setBizName(e.target.value)}
+                                            className="w-full bg-white border-2 border-slate-200 focus:border-[#2653EB] focus:ring-4 focus:ring-[#2653EB]/10 text-slate-900 placeholder-slate-400 h-16 sm:h-20 px-8 rounded-2xl outline-none text-lg sm:text-xl font-bold shadow-xl transition-all"
+                                            placeholder={modeProps.placeholder}
+                                            type="text"
+                                        />
+                                    </div>
+                                    <button type="submit" className="bg-[#2653EB] hover:bg-[#1A3CB3] text-white px-10 py-4 sm:py-0 rounded-2xl font-black text-lg transition-all whitespace-nowrap shadow-2xl shadow-blue-500/30 flex items-center justify-center gap-2 h-16 sm:h-20 w-full sm:w-auto hover:scale-[1.02] active:scale-[0.98]">
+                                        {modeProps.btnText} <span className="text-2xl">{modeProps.btnIcon}</span>
                                     </button>
                                 </form>
 

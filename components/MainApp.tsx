@@ -254,6 +254,7 @@ const AppContent: React.FC = () => {
                     initialTab={dashboardConfig.tab} 
                     initialGlobal={dashboardConfig.global}
                     onNavigateToFlow={handleBackToFlow} 
+                    onLogin={() => setView('login')}
                 />
                 <ProfileCompletionModal
                     isOpen={showProfileModal}
