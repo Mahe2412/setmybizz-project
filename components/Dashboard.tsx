@@ -21,9 +21,10 @@ interface DashboardProps {
     data: BusinessData;
     initialTab?: 'A' | 'B' | 'Workspace' | 'LearnerStudio' | 'Oracle';
     onNavigateToFlow?: () => void;
+    initialGlobal?: boolean;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ data, initialTab = 'A', onNavigateToFlow }) => {
+const Dashboard: React.FC<DashboardProps> = ({ data, initialTab = 'A', onNavigateToFlow, initialGlobal = false }) => {
     const { user, dbUser, guestId } = useAuth();
     const [activeTab, setActiveTab] = useState<'A' | 'B' | 'Workspace' | 'LearnerStudio' | 'Oracle'>(initialTab);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -44,7 +45,11 @@ const Dashboard: React.FC<DashboardProps> = ({ data, initialTab = 'A', onNavigat
     const [loadingImage, setLoadingImage] = useState(false);
 
     // Global Incorporation Modal
-    const [showGlobalIncorporation, setShowGlobalIncorporation] = useState(false);
+    const [showGlobalIncorporation, setShowGlobalIncorporation] = useState(initialGlobal);
+
+    useEffect(() => {
+        if (initialGlobal) setShowGlobalIncorporation(true);
+    }, [initialGlobal]);
 
     // Canvas View State for Tab B
     const [currentCanvas, setCurrentCanvas] = useState<string | null>(null);
@@ -121,7 +126,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, initialTab = 'A', onNavigat
         if (activeTab === 'B') {
             const hasSeen = localStorage.getItem('hasSeenLaunchPadFlow');
             if (!hasSeen) {
-                setShowLaunchPadFlow(true);
+                setTimeout(() => setShowLaunchPadFlow(true), 0);
             }
         }
     }, [activeTab]);
@@ -268,7 +273,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, initialTab = 'A', onNavigat
             {/* Sidebar */}
             {/* Mobile Sidebar Overlay */}
             {isSidebarOpen && (
-                <div 
+                <div
                     className="fixed inset-0 bg-black/40 backdrop-blur-sm z-30 md:hidden"
                     onClick={() => setIsSidebarOpen(false)}
                 />
@@ -365,14 +370,14 @@ const Dashboard: React.FC<DashboardProps> = ({ data, initialTab = 'A', onNavigat
             <div className="flex-1 flex flex-col h-full overflow-hidden relative">
                 <header className="sticky top-0 h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 md:px-10 flex-shrink-0 z-50 shadow-sm">
                     <div className="flex items-center gap-2">
-                        <button 
-                            onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
+                        <button
+                            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                             className="p-2 -ml-2 text-slate-500 hover:bg-slate-100 rounded-lg md:hidden"
                         >
                             <span className="material-symbols-outlined text-2xl">menu</span>
                         </button>
-                        <button 
-                            onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
+                        <button
+                            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                             className="hidden md:block text-slate-400 hover:text-slate-600 mr-2"
                         >
                             <span className="material-symbols-outlined text-xl">menu_open</span>
@@ -387,7 +392,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, initialTab = 'A', onNavigat
                                     <span className="material-symbols-outlined text-[16px]">description</span>
                                     Business Setup
                                 </button>
-                                
+
                                 {/* Hover Popup for Business Setup */}
                                 <div className="absolute top-full left-0 mt-4 w-96 bg-white/80 backdrop-blur-xl p-6 rounded-[2rem] shadow-2xl border border-white/40 opacity-0 invisible group-hover:visible group-hover:opacity-100 transition-all duration-300 z-50 transform translate-y-4 group-hover:translate-y-0">
                                     <div className="absolute -top-2 left-8 w-4 h-4 bg-white/80 backdrop-blur-xl border-t border-l border-white/40 rotate-45"></div>
@@ -402,9 +407,9 @@ const Dashboard: React.FC<DashboardProps> = ({ data, initialTab = 'A', onNavigat
                                             </div>
                                         </div>
                                         <p className="text-xs text-slate-600 leading-relaxed mb-4 font-medium">
-                                            It's not just selling services. It's an entire business journey assistance.
+                                            It&apos;s not just selling services. It&apos;s an entire business journey assistance.
                                         </p>
-                                        
+
                                         <div className="flex items-center justify-between text-[9px] font-black text-slate-400 uppercase tracking-widest mb-4 bg-slate-50 p-3 rounded-xl border border-slate-100">
                                             <span>Idea</span>
                                             <span className="text-slate-300">→</span>
@@ -416,17 +421,17 @@ const Dashboard: React.FC<DashboardProps> = ({ data, initialTab = 'A', onNavigat
                                         </div>
 
                                         <p className="text-[10px] text-slate-500 font-medium border-l-2 border-blue-500 pl-3 mb-5 italic">
-                                            "Build, monitor & scale your startup with AI + experts. 365 days business support."
+                                            &quot;Build, monitor & scale your startup with AI + experts. 365 days business support.&quot;
                                         </p>
 
                                         <div className="flex items-center justify-between">
-                                             <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Global Markets</span>
-                                             <button 
+                                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Global Markets</span>
+                                            <button
                                                 onClick={() => setShowGlobalIncorporation(true)}
                                                 className="text-[10px] font-black text-blue-600 hover:underline flex items-center gap-1"
-                                             >
+                                            >
                                                 Read More <span className="material-symbols-outlined text-[12px]">arrow_forward</span>
-                                             </button>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -478,7 +483,7 @@ const Dashboard: React.FC<DashboardProps> = ({ data, initialTab = 'A', onNavigat
                                 <div className="absolute top-full right-0 mt-4 w-80 bg-white/80 backdrop-blur-xl p-6 rounded-[2rem] shadow-2xl border border-white/40 opacity-0 invisible group-hover:visible group-hover:opacity-100 transition-all duration-300 z-50 transform translate-y-4 group-hover:translate-y-0">
                                     <div className="absolute -top-2 right-12 w-4 h-4 bg-white/80 backdrop-blur-xl border-t border-l border-white/40 rotate-45"></div>
                                     <div className="relative z-10">
-                                        <h4 className="text-sm font-black text-slate-900 mb-1">Founder's Academy</h4>
+                                        <h4 className="text-sm font-black text-slate-900 mb-1">Founder&apos;s Academy</h4>
                                         <p className="text-[10px] text-teal-600 font-bold uppercase tracking-wider mb-3">Skill Upgradation</p>
                                         <p className="text-xs text-slate-500 leading-relaxed mb-4">
                                             Master business operations, financial literacy, and leadership.
@@ -548,6 +553,37 @@ const Dashboard: React.FC<DashboardProps> = ({ data, initialTab = 'A', onNavigat
 
                             {activeTab === 'A' && (
                                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+
+                                    {/* ── D1 Business Advisor Banner ── */}
+                                    <a
+                                        href="/os"
+                                        className="flex flex-col md:flex-row items-start md:items-center gap-5 mb-7 p-5 rounded-3xl border hover:shadow-lg transition-all hover:-translate-y-0.5 group"
+                                        style={{ background: 'white', borderColor: '#e2e8f0' }}
+                                    >
+                                        {/* Arkle avatar */}
+                                        <div className="flex-shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center text-2xl font-black text-white" style={{ background: 'linear-gradient(135deg,#1a56db,#0284c7)' }}>A</div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className="font-black text-slate-900 text-base">Business Advisor Dashboard · D1</span>
+                                                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">NEW</span>
+                                                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse ml-1" />
+                                            </div>
+                                            <p className="text-sm text-slate-500 mb-3">Your CA, CS, CFO & Compliance Officer — all in one AI-powered dashboard. Powered by <strong className="text-slate-700">Arkle AI</strong>.</p>
+                                            <div className="flex flex-wrap gap-2">
+                                                {['ITR & Tax Filing', 'GST Center', 'Company Records', 'Hire Experts', 'Go Global', 'Records Room'].map(tag => (
+                                                    <span key={tag} className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">{tag}</span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div className="flex-shrink-0 flex flex-col items-end gap-2">
+                                            <div className="text-right">
+                                                <p className="text-[10px] text-slate-400">Health Score</p>
+                                                <p className="text-2xl font-black text-amber-500">72<span className="text-sm text-slate-400">/100</span></p>
+                                            </div>
+                                            <span className="text-sm font-bold px-4 py-2 rounded-xl text-white group-hover:opacity-90 transition-all" style={{ background: '#2563eb' }}>Open Dashboard →</span>
+                                        </div>
+                                    </a>
+
                                     {/* ── Incorporation Hero CTA ── */}
                                     <div className="mb-8">
                                         {/* Main Hero Banner */}
@@ -606,538 +642,538 @@ const Dashboard: React.FC<DashboardProps> = ({ data, initialTab = 'A', onNavigat
                                         </div>
                                     </div>
 
-                                {/* Hero Grid: Roadmap + Progress */}
-                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8 items-start">
-                                    {/* Left Column: Progress */}
-                                    <div className="lg:col-span-2 space-y-6">
-                                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 group relative overflow-hidden">
-                                            <h2 className="text-xl font-bold flex items-center justify-center gap-2 text-slate-800 relative z-10">
-                                                Incorporation & Compliance
-                                                <span className="text-[10px] bg-green-50 text-green-600 px-2 py-0.5 rounded-full border border-green-100 uppercase font-extrabold tracking-wide">Live Progress</span>
-                                            </h2>
-                                            <div className="mt-4 max-w-[240px] mx-auto relative z-10">
-                                                <div className="flex justify-between text-[10px] mb-1.5 font-bold tracking-wider text-slate-400">
-                                                    <span>SYSTEM STATUS</span>
-                                                    <span className="text-indigo-600">35%</span>
-                                                </div>
-                                                <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                                                    <div className="bg-indigo-600 h-2 rounded-full transition-all duration-1000 relative overflow-hidden" style={{ width: '35%' }}>
-                                                        <div className="absolute inset-0 bg-white/20 w-full h-full animate-[shimmer_2s_infinite]"></div>
+                                    {/* Hero Grid: Roadmap + Progress */}
+                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8 items-start">
+                                        {/* Left Column: Progress */}
+                                        <div className="lg:col-span-2 space-y-6">
+                                            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 group relative overflow-hidden">
+                                                <h2 className="text-xl font-bold flex items-center justify-center gap-2 text-slate-800 relative z-10">
+                                                    Incorporation & Compliance
+                                                    <span className="text-[10px] bg-green-50 text-green-600 px-2 py-0.5 rounded-full border border-green-100 uppercase font-extrabold tracking-wide">Live Progress</span>
+                                                </h2>
+                                                <div className="mt-4 max-w-[240px] mx-auto relative z-10">
+                                                    <div className="flex justify-between text-[10px] mb-1.5 font-bold tracking-wider text-slate-400">
+                                                        <span>SYSTEM STATUS</span>
+                                                        <span className="text-indigo-600">35%</span>
+                                                    </div>
+                                                    <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                                                        <div className="bg-indigo-600 h-2 rounded-full transition-all duration-1000 relative overflow-hidden" style={{ width: '35%' }}>
+                                                            <div className="absolute inset-0 bg-white/20 w-full h-full animate-[shimmer_2s_infinite]"></div>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                            <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute mt-2 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] px-3 py-1 rounded shadow-xl font-bold z-50">
-                                                Your Customized Roadmap is ready!
-                                            </div>
-                                        </div>
-
-                                        {!roadmap && (
-                                            <div className="flex justify-center">
-                                                <button
-                                                    onClick={handleGenerateRoadmap}
-                                                    disabled={loadingRoadmap}
-                                                    className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-8 py-4 rounded-xl font-bold text-sm shadow-lg hover:shadow-purple-500/30 transition-all hover:-translate-y-1 flex items-center justify-center gap-2"
-                                                >
-                                                    {loadingRoadmap ? (
-                                                        <><span className="animate-spin material-symbols-outlined text-lg">sync</span> Generating Plan...</>
-                                                    ) : (
-                                                        <><span className="material-symbols-outlined text-lg">auto_awesome</span> Generate My 30-Day Launch Plan</>
-                                                    )}
-                                                </button>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Right Column: Advanced AI Co-Founder */}
-                                    <div className="lg:col-span-1 shadow-2xl shadow-indigo-200 rounded-2xl">
-                                        {/* Removed - Now using global floating widget */}
-                                        {/* <AdvancedAiCoFounder /> */}
-                                    </div>
-                                </div>
-
-                                {/* AI Roadmap Display */}
-                                {roadmap && (
-                                    <div className="mb-8 bg-white rounded-2xl border border-purple-100 shadow-xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700">
-                                        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-6 text-white">
-                                            <h3 className="text-xl font-serif font-bold flex items-center gap-2">
-                                                <span className="material-symbols-outlined">map</span> Your 30-Day Launch Plan
-                                            </h3>
-                                            <p className="opacity-90 text-sm mt-1">{roadmap.overview}</p>
-                                        </div>
-                                        <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                            {roadmap.weeks.map((week, idx) => (
-                                                <div key={idx} className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-                                                    <div className="text-xs font-bold text-purple-600 uppercase tracking-widest mb-2">Week {week.week}</div>
-                                                    <h4 className="font-bold text-slate-900 mb-3">{week.title}</h4>
-                                                    <ul className="space-y-2">
-                                                        {week.tasks.map((task, tIdx) => (
-                                                            <li key={tIdx} className="flex items-start gap-2 text-xs text-slate-600">
-                                                                <span className="material-symbols-outlined text-sm text-green-500 mt-0.5">check_circle</span>
-                                                                {task}
-                                                            </li>
-                                                        ))}
-                                                    </ul>
+                                                <div className="opacity-0 group-hover:opacity-100 transition-opacity absolute mt-2 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] px-3 py-1 rounded shadow-xl font-bold z-50">
+                                                    Your Customized Roadmap is ready!
                                                 </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-<div className="grid grid-cols-1 gap-3">
-                                    {incorporationServices.map((item, i) => (
-                                        <div 
-                                            key={i} 
-                                            onClick={() => {
-                                                if (item.label.includes('Global') || item.label.includes('Ready to Go')) {
-                                                    setShowGlobalIncorporation(true);
-                                                } else if (item.label === 'Project Reports') {
-                                                    setShowDPRTool(true);
-                                                }
-                                            }}
-                                            className={`bg-white rounded-xl p-3 md:p-4 border border-slate-100 flex items-center gap-4 shadow-sm hover:shadow-md transition-all group cursor-pointer`}
-                                        >
-                                            <div className={`w-10 h-10 rounded-lg ${item.bg} ${item.color} flex items-center justify-center transition-all flex-shrink-0`}>
-                                                <span className="material-symbols-outlined text-xl">{item.icon}</span>
                                             </div>
-                                            <div className="flex-1 min-w-0">
-                                                <h3 className="font-bold text-sm text-slate-800 leading-tight tracking-tight truncate" title={item.label}>{item.label}</h3>
-                                                <p className="text-[10px] text-slate-400 font-medium mt-0.5 truncate">{item.time}</p>
-                                            </div>
-                                            <div className="flex items-center gap-4 flex-shrink-0">
-                                                <button className="text-[9px] font-bold text-slate-400 hover:text-indigo-600 tracking-wide hidden sm:block transition-colors">DETAILS</button>
-                                                <button className={`px-4 py-1.5 ${item.button === 'UPLOAD' && (item as any).variant === 'secondary' ? 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50' : (item as any).btnColor ? `${(item as any).btnColor} text-white` : 'bg-slate-900 text-white hover:bg-slate-800'} text-[10px] font-bold rounded-lg shadow-md transition-all active:scale-95 min-w-[80px]`}>
-                                                    {item.button || 'UPLOAD'}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                                
-                                {/* Ready to Go Global Banner */}
-                                <div className="mt-8 relative overflow-hidden bg-gradient-to-r from-blue-600 to-indigo-600 rounded-[2.5rem] p-10 text-white shadow-2xl group cursor-pointer border-4 border-white/20 transition-all hover:scale-[1.01]" onClick={() => setShowGlobalIncorporation(true)}>
-                                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32 blur-3xl group-hover:bg-white/20 transition-all duration-1000"></div>
-                                    <div className="absolute bottom-0 left-0 w-64 h-64 bg-cyan-500/20 rounded-full translate-y-32 -translate-x-32 blur-3xl group-hover:bg-cyan-500/30 transition-all duration-1000"></div>
-                                    
-                                    <div className="relative z-10 flex flex-col items-center justify-center text-center">
-                                        <div className="w-20 h-20 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mb-6 shadow-xl group-hover:scale-110 transition-transform duration-500 border border-white/20">
-                                            <span className="material-icons text-4xl text-white">public</span>
-                                        </div>
-                                        
-                                        <h2 className="text-3xl md:text-4xl font-black mb-3 tracking-tight">
-                                            Ready to Go Global?
-                                        </h2>
-                                        <p className="text-blue-100 text-sm md:text-base mb-8 max-w-lg mx-auto font-medium leading-relaxed">
-                                            Expand your business to international markets. Incorporation, Export, and Market Access in 50+ countries.
-                                        </p>
-                                        
-                                        <button className="bg-white text-blue-600 px-8 py-3.5 rounded-xl font-bold text-sm shadow-xl hover:shadow-white/20 hover:bg-blue-50 transition-all hover:-translate-y-1 flex items-center gap-2 group-hover:gap-3">
-                                            <span className="material-icons text-lg">public</span>
-                                            Explore Global Opportunities 
-                                            <span className="material-icons text-sm">arrow_forward</span>
-                                        </button>
-                                    </div>
-                                </div>
 
-
-                            </div>
-                        )}
-
-                        {activeTab === 'B' && (
-                            <div className="flex gap-4 relative min-h-[85vh]">
-                                {/* Main Content Area */}
-                                <div className={`flex-1 transition-all duration-300 ${isAgentSidebarExpanded ? 'mr-0' : 'mr-12'}`} style={{ marginRight: isAgentSidebarExpanded ? `${agentSidebarWidth + 32}px` : '48px' }}>
-                                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 relative p-8 rounded-[3rem] bg-[#f8faff] min-h-full">
-                                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(79,70,229,0.03),transparent_40%),radial-gradient(circle_at_10%_80%,rgba(236,72,153,0.03),transparent_40%)] rounded-[3rem] pointer-events-none"></div>
-
-                                        {showLaunchPadFlow && (
-                                            <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-500">
-                                                <div className="relative w-full max-w-xl">
+                                            {!roadmap && (
+                                                <div className="flex justify-center">
                                                     <button
-                                                        onClick={() => setShowLaunchPadFlow(false)}
-                                                        className="absolute -top-4 -right-4 w-10 h-10 bg-white rounded-full shadow-2xl flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all z-[110] border border-slate-100"
+                                                        onClick={handleGenerateRoadmap}
+                                                        disabled={loadingRoadmap}
+                                                        className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-8 py-4 rounded-xl font-bold text-sm shadow-lg hover:shadow-purple-500/30 transition-all hover:-translate-y-1 flex items-center justify-center gap-2"
                                                     >
-                                                        <span className="material-symbols-outlined font-black">close</span>
+                                                        {loadingRoadmap ? (
+                                                            <><span className="animate-spin material-symbols-outlined text-lg">sync</span> Generating Plan...</>
+                                                        ) : (
+                                                            <><span className="material-symbols-outlined text-lg">auto_awesome</span> Generate My 30-Day Launch Plan</>
+                                                        )}
                                                     </button>
-                                                    <LaunchPadAIOnboarding
-                                                        businessData={data}
-                                                        onComplete={handleLaunchPadComplete}
-                                                    />
                                                 </div>
-                                            </div>
-                                        )}
+                                            )}
+                                        </div>
 
-                                        {currentCanvas === 'Logo Designer' ? (
-                                            <div className="animate-in zoom-in-95 duration-500 relative max-w-4xl mx-auto">
-                                                <button
-                                                    onClick={() => setCurrentCanvas(null)}
-                                                    className="absolute top-0 -left-6 w-12 h-12 bg-white rounded-full shadow-lg border border-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all z-10"
-                                                >
-                                                    <span className="material-symbols-outlined font-black">arrow_back</span>
-                                                </button>
-                                                <div className="bg-white rounded-[3rem] p-12 border border-slate-100 shadow-2xl mt-12">
-                                                    <div className="flex items-center gap-4 mb-10">
-                                                        <div className="w-16 h-16 bg-indigo-50 rounded-3xl flex items-center justify-center text-indigo-600">
-                                                            <span className="material-symbols-outlined text-4xl font-black">brush</span>
-                                                        </div>
-                                                        <div>
-                                                            <h2 className="text-3xl font-black text-slate-900 tracking-tighter">Logo Designer Studio</h2>
-                                                            <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">AI-Powered Brand Identity</p>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-                                                        {[
-                                                            { label: 'Minimalist', desc: 'Clean & Modern' },
-                                                            { label: 'Gradient', desc: 'Vibrant & Bold' },
-                                                            { label: 'Abstract', desc: 'Unique Shapes' },
-                                                            { label: 'Lettermark', desc: 'Typographic focus' }
-                                                        ].map((style, i) => (
-                                                            <div key={i} className="group cursor-pointer">
-                                                                <div className="aspect-square bg-slate-50 rounded-[2.5rem] border-2 border-slate-100 group-hover:border-indigo-600 transition-all flex items-center justify-center mb-4 relative overflow-hidden shadow-sm hover:shadow-xl">
-                                                                    <div className="w-16 h-16 rounded-full border-4 border-slate-200 flex items-center justify-center text-4xl font-black text-slate-300 group-hover:text-indigo-600 group-hover:border-indigo-600 transition-all">
-                                                                        {data?.name?.charAt(0) || 'b'}
-                                                                    </div>
-                                                                </div>
-                                                                <h4 className="text-xs font-black uppercase tracking-widest text-slate-900">{style.label}</h4>
-                                                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">{style.desc}</p>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <div className="max-w-5xl mx-auto pt-4">
-                                                {/* NEW: Build your Business CTA (35% Smaller Version) */}
-                                                <div className="mb-8 relative overflow-hidden bg-gradient-to-r from-indigo-950 via-slate-900 to-black rounded-[2.5rem] p-6 text-white shadow-2xl group cursor-pointer border border-white/5" onClick={() => setShowBuildPopup(true)}>
-                                                    <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full -translate-y-24 translate-x-24 blur-3xl group-hover:bg-white/10 transition-all duration-1000"></div>
-                                                    <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
-                                                        <div className="text-left">
-                                                            <div className="flex items-center gap-2 mb-3">
-                                                                <span className="px-2.5 py-1 bg-indigo-500/20 text-indigo-300 rounded-lg text-[7px] font-black uppercase tracking-[0.2em] border border-indigo-500/20">Ignition Phase</span>
-                                                                <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-                                                                <span className="text-[7px] font-black text-white/30 uppercase tracking-[0.2em]">Neural Link Active</span>
-                                                            </div>
-                                                            <h2 className="text-2xl font-black tracking-tightest leading-[0.9] italic mb-3">
-                                                                BUILD YOUR ENTIRE <span className="text-indigo-400 not-italic">BRAND PRESENCE</span>
-                                                            </h2>
-                                                            <p className="text-white/50 text-[9px] font-black uppercase tracking-[0.2em] mb-3">
-                                                                GET LIFE TO YOUR STARTUP • BUILD EVERYTHING IN MINUTE CLICK
-                                                            </p>
-                                                            <div className="flex items-center gap-2 text-indigo-400/80">
-                                                                <span className="material-symbols-outlined text-[12px] animate-bounce">expand_circle_down</span>
-                                                                <span className="text-[8px] font-black uppercase tracking-[0.3em]">Initialize Mission Control</span>
-                                                            </div>
-                                                        </div>
-                                                        <div className="w-14 h-14 bg-white/10 rounded-[1.5rem] flex items-center justify-center group-hover:scale-110 transition-transform duration-500 backdrop-blur-xl border border-white/10 shadow-2xl relative shrink-0">
-                                                            <div className="absolute inset-0 bg-indigo-500/20 blur-xl rounded-full animate-pulse"></div>
-                                                            <span className="material-symbols-outlined text-2xl font-black animate-bounce relative z-10">rocket_launch</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {/* Service Category Toggles */}
-                                                <div className="flex items-center justify-center gap-2 mb-12 bg-white/50 backdrop-blur-md p-2 rounded-2xl border border-white/50 shadow-sm w-fit mx-auto">
-                                                    {[
-                                                        { id: 'all', label: 'All Engines', icon: 'grid_view' },
-                                                        { id: 'brand', label: 'Brand Identity', icon: 'brush' },
-                                                        { id: 'legal', label: 'Legal & Compliance', icon: 'gavel' },
-                                                        { id: 'growth', label: 'Growth & Socials', icon: 'campaign' }
-                                                    ].map((cat) => (
-                                                        <button
-                                                            key={cat.id}
-                                                            onClick={() => setCurrentServiceCategory(cat.id as any)}
-                                                            className={`flex items-center gap-2 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${currentServiceCategory === cat.id
-                                                                ? 'bg-slate-900 text-white shadow-xl scale-105'
-                                                                : 'text-slate-400 hover:text-slate-900 hover:bg-white/80'
-                                                                }`}
-                                                        >
-                                                            <span className="material-symbols-outlined text-sm">{cat.icon}</span>
-                                                            {cat.label}
-                                                        </button>
-                                                    ))}
-                                                </div>
-
-                                                {/* Filtered Service Grid */}
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                                                    {[
-                                                        { label: 'DOMAIN SEARCH', icon: 'language', bg: 'bg-blue-50', color: 'text-blue-600', badge: 'COMING SOON', cat: 'brand' },
-                                                        { label: 'WEBSITE BUILDER', icon: 'web_stories', bg: 'bg-emerald-50', color: 'text-emerald-600', badge: 'COMING SOON', cat: 'brand' },
-                                                        { label: 'E-STORE SETUP', icon: 'shopping_cart', bg: 'bg-indigo-50', color: 'text-indigo-600', badge: 'COMING SOON', cat: 'growth' },
-                                                        { label: 'PRODUCT COPY', icon: 'edit_note', bg: 'bg-amber-50', color: 'text-amber-600', badge: 'COMING SOON', sub: 'PAGE CREATE', cat: 'growth' },
-                                                        { label: 'BRAND BROCHURE', icon: 'folder_open', bg: 'bg-pink-50', color: 'text-pink-600', badge: 'COMING SOON', cat: 'brand' },
-                                                        { label: 'PRODUCT CATALOG', icon: 'menu_book', bg: 'bg-purple-50', color: 'text-purple-600', badge: 'COMING SOON', cat: 'brand' },
-                                                        { label: 'DIGITAL CARD', icon: 'contact_page', bg: 'bg-slate-50', color: 'text-slate-600', badge: 'COMING SOON', cat: 'brand' },
-                                                        { label: 'PITCH DECK AI', icon: 'play_circle', bg: 'bg-cyan-50', color: 'text-cyan-600', badge: 'BETA', cat: 'growth' },
-                                                        { label: 'SM MANAGER', icon: 'share', bg: 'bg-rose-50', color: 'text-rose-600', badge: 'COMING SOON', cat: 'growth' },
-                                                        { label: 'AI POST GEN', icon: 'post_add', bg: 'bg-green-50', color: 'text-green-600', badge: 'BETA', cat: 'growth' },
-                                                        { label: 'BRAND KITS', icon: 'category', bg: 'bg-teal-50', color: 'text-teal-600', badge: 'COMING SOON', cat: 'brand' },
-                                                        { label: 'SEO TOOLS', icon: 'build', bg: 'bg-sky-50', color: 'text-sky-600', badge: 'COMING SOON', cat: 'growth' }
-                                                    ]
-                                                        .filter(s => currentServiceCategory === 'all' || s.cat === currentServiceCategory)
-                                                        .map((service, i) => (
-                                                            <div
-                                                                key={i}
-                                                                className="bg-white p-4 h-28 rounded-[2rem] shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all group flex flex-col justify-between cursor-pointer relative overflow-hidden"
-                                                                onClick={() => setCurrentCanvas(service.label)}
-                                                            >
-                                                                <div className="absolute top-3 right-5 text-[6px] font-black text-slate-300 uppercase tracking-[0.1em]">
-                                                                    {service.badge}
-                                                                </div>
-                                                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${service.bg} ${service.color} group-hover:scale-110 transition-transform`}>
-                                                                    <span className="material-symbols-outlined text-xl font-black">{service.icon}</span>
-                                                                </div>
-                                                                <div className="text-left">
-                                                                    <h4 className="text-[9px] font-black text-slate-900 uppercase tracking-widest leading-tight">{service.label}</h4>
-                                                                    {(service as any).sub && <p className="text-[6px] text-slate-400 font-bold uppercase mt-1 tracking-wider leading-none">{(service as any).sub}</p>}
-                                                                </div>
-                                                            </div>
-                                                        ))}
-                                                </div>
-                                            </div>
-                                        )}
+                                        {/* Right Column: Advanced AI Co-Founder */}
+                                        <div className="lg:col-span-1 shadow-2xl shadow-indigo-200 rounded-2xl">
+                                            {/* Removed - Now using global floating widget */}
+                                            {/* <AdvancedAiCoFounder /> */}
+                                        </div>
                                     </div>
-                                </div>
 
-                                {/* Right Agent Sidebar */}
-                                <div
-                                    className={`fixed top-24 bottom-24 right-8 z-50 transition-all duration-300 ease-in-out ${isAgentSidebarExpanded ? '' : 'w-14'}`}
-                                    style={{ width: isAgentSidebarExpanded ? `${agentSidebarWidth}px` : '56px' }}
-                                >
-                                    <div className="h-full bg-white rounded-[2.5rem] border border-slate-200 shadow-2xl flex flex-col overflow-hidden relative group/sidebar">
-                                        {/* Resize Drag Handle (Left Edge) */}
-                                        {isAgentSidebarExpanded && (
+                                    {/* AI Roadmap Display */}
+                                    {roadmap && (
+                                        <div className="mb-8 bg-white rounded-2xl border border-purple-100 shadow-xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                            <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-6 text-white">
+                                                <h3 className="text-xl font-serif font-bold flex items-center gap-2">
+                                                    <span className="material-symbols-outlined">map</span> Your 30-Day Launch Plan
+                                                </h3>
+                                                <p className="opacity-90 text-sm mt-1">{roadmap.overview}</p>
+                                            </div>
+                                            <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                                {roadmap.weeks.map((week, idx) => (
+                                                    <div key={idx} className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                                                        <div className="text-xs font-bold text-purple-600 uppercase tracking-widest mb-2">Week {week.week}</div>
+                                                        <h4 className="font-bold text-slate-900 mb-3">{week.title}</h4>
+                                                        <ul className="space-y-2">
+                                                            {week.tasks.map((task, tIdx) => (
+                                                                <li key={tIdx} className="flex items-start gap-2 text-xs text-slate-600">
+                                                                    <span className="material-symbols-outlined text-sm text-green-500 mt-0.5">check_circle</span>
+                                                                    {task}
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="grid grid-cols-1 gap-3">
+                                        {incorporationServices.map((item, i) => (
                                             <div
-                                                onMouseDown={() => setIsResizing(true)}
-                                                className="absolute top-1/4 bottom-1/4 left-0 w-1.5 cursor-ew-resize hover:bg-indigo-500/20 transition-colors z-30 group/handle flex items-center justify-center"
+                                                key={i}
+                                                onClick={() => {
+                                                    if (item.label.includes('Global') || item.label.includes('Ready to Go')) {
+                                                        setShowGlobalIncorporation(true);
+                                                    } else if (item.label === 'Project Reports') {
+                                                        setShowDPRTool(true);
+                                                    }
+                                                }}
+                                                className={`bg-white rounded-xl p-3 md:p-4 border border-slate-100 flex items-center gap-4 shadow-sm hover:shadow-md transition-all group cursor-pointer`}
                                             >
-                                                <div className="w-0.5 h-8 bg-slate-200 group-hover/handle:bg-indigo-400 rounded-full transition-colors"></div>
+                                                <div className={`w-10 h-10 rounded-lg ${item.bg} ${item.color} flex items-center justify-center transition-all flex-shrink-0`}>
+                                                    <span className="material-symbols-outlined text-xl">{item.icon}</span>
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <h3 className="font-bold text-sm text-slate-800 leading-tight tracking-tight truncate" title={item.label}>{item.label}</h3>
+                                                    <p className="text-[10px] text-slate-400 font-medium mt-0.5 truncate">{item.time}</p>
+                                                </div>
+                                                <div className="flex items-center gap-4 flex-shrink-0">
+                                                    <button className="text-[9px] font-bold text-slate-400 hover:text-indigo-600 tracking-wide hidden sm:block transition-colors">DETAILS</button>
+                                                    <button className={`px-4 py-1.5 ${item.button === 'UPLOAD' && (item as any).variant === 'secondary' ? 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50' : (item as any).btnColor ? `${(item as any).btnColor} text-white` : 'bg-slate-900 text-white hover:bg-slate-800'} text-[10px] font-bold rounded-lg shadow-md transition-all active:scale-95 min-w-[80px]`}>
+                                                        {item.button || 'UPLOAD'}
+                                                    </button>
+                                                </div>
                                             </div>
-                                        )}
+                                        ))}
+                                    </div>
 
-                                        {/* Resize/Toggle Button */}
-                                        <button
-                                            onClick={() => setIsAgentSidebarExpanded(!isAgentSidebarExpanded)}
-                                            className="absolute top-1/2 -left-4 w-8 h-8 bg-slate-900 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-40"
-                                        >
-                                            <span className="material-symbols-outlined text-[16px]">
-                                                {isAgentSidebarExpanded ? 'chevron_right' : 'chevron_left'}
-                                            </span>
-                                        </button>
+                                    {/* Ready to Go Global Banner */}
+                                    <div className="mt-8 relative overflow-hidden bg-gradient-to-r from-blue-600 to-indigo-600 rounded-[2.5rem] p-10 text-white shadow-2xl group cursor-pointer border-4 border-white/20 transition-all hover:scale-[1.01]" onClick={() => setShowGlobalIncorporation(true)}>
+                                        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-32 translate-x-32 blur-3xl group-hover:bg-white/20 transition-all duration-1000"></div>
+                                        <div className="absolute bottom-0 left-0 w-64 h-64 bg-cyan-500/20 rounded-full translate-y-32 -translate-x-32 blur-3xl group-hover:bg-cyan-500/30 transition-all duration-1000"></div>
 
-                                        {isAgentSidebarExpanded ? (
-                                            <>
-                                                {/* Sidebar Header */}
-                                                <div className="border-b border-slate-100 bg-white sticky top-0 z-20">
-                                                    <div className="p-6">
-                                                        <div className="flex items-center justify-between mb-6">
-                                                            <div className="flex items-center gap-3">
-                                                                <div className="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center shadow-lg group-hover:rotate-12 transition-transform">
-                                                                    <span className="material-symbols-outlined text-xl">bolt</span>
+                                        <div className="relative z-10 flex flex-col items-center justify-center text-center">
+                                            <div className="w-20 h-20 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mb-6 shadow-xl group-hover:scale-110 transition-transform duration-500 border border-white/20">
+                                                <span className="material-icons text-4xl text-white">public</span>
+                                            </div>
+
+                                            <h2 className="text-3xl md:text-4xl font-black mb-3 tracking-tight">
+                                                Ready to Go Global?
+                                            </h2>
+                                            <p className="text-blue-100 text-sm md:text-base mb-8 max-w-lg mx-auto font-medium leading-relaxed">
+                                                Expand your business to international markets. Incorporation, Export, and Market Access in 50+ countries.
+                                            </p>
+
+                                            <button className="bg-white text-blue-600 px-8 py-3.5 rounded-xl font-bold text-sm shadow-xl hover:shadow-white/20 hover:bg-blue-50 transition-all hover:-translate-y-1 flex items-center gap-2 group-hover:gap-3">
+                                                <span className="material-icons text-lg">public</span>
+                                                Explore Global Opportunities
+                                                <span className="material-icons text-sm">arrow_forward</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+
+                                </div>
+                            )}
+
+                            {activeTab === 'B' && (
+                                <div className="flex gap-4 relative min-h-[85vh]">
+                                    {/* Main Content Area */}
+                                    <div className={`flex-1 transition-all duration-300 ${isAgentSidebarExpanded ? 'mr-0' : 'mr-12'}`} style={{ marginRight: isAgentSidebarExpanded ? `${agentSidebarWidth + 32}px` : '48px' }}>
+                                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 relative p-8 rounded-[3rem] bg-[#f8faff] min-h-full">
+                                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(79,70,229,0.03),transparent_40%),radial-gradient(circle_at_10%_80%,rgba(236,72,153,0.03),transparent_40%)] rounded-[3rem] pointer-events-none"></div>
+
+                                            {showLaunchPadFlow && (
+                                                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-500">
+                                                    <div className="relative w-full max-w-xl">
+                                                        <button
+                                                            onClick={() => setShowLaunchPadFlow(false)}
+                                                            className="absolute -top-4 -right-4 w-10 h-10 bg-white rounded-full shadow-2xl flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all z-[110] border border-slate-100"
+                                                        >
+                                                            <span className="material-symbols-outlined font-black">close</span>
+                                                        </button>
+                                                        <LaunchPadAIOnboarding
+                                                            businessData={data}
+                                                            onComplete={handleLaunchPadComplete}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {currentCanvas === 'Logo Designer' ? (
+                                                <div className="animate-in zoom-in-95 duration-500 relative max-w-4xl mx-auto">
+                                                    <button
+                                                        onClick={() => setCurrentCanvas(null)}
+                                                        className="absolute top-0 -left-6 w-12 h-12 bg-white rounded-full shadow-lg border border-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all z-10"
+                                                    >
+                                                        <span className="material-symbols-outlined font-black">arrow_back</span>
+                                                    </button>
+                                                    <div className="bg-white rounded-[3rem] p-12 border border-slate-100 shadow-2xl mt-12">
+                                                        <div className="flex items-center gap-4 mb-10">
+                                                            <div className="w-16 h-16 bg-indigo-50 rounded-3xl flex items-center justify-center text-indigo-600">
+                                                                <span className="material-symbols-outlined text-4xl font-black">brush</span>
+                                                            </div>
+                                                            <div>
+                                                                <h2 className="text-3xl font-black text-slate-900 tracking-tighter">Logo Designer Studio</h2>
+                                                                <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">AI-Powered Brand Identity</p>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+                                                            {[
+                                                                { label: 'Minimalist', desc: 'Clean & Modern' },
+                                                                { label: 'Gradient', desc: 'Vibrant & Bold' },
+                                                                { label: 'Abstract', desc: 'Unique Shapes' },
+                                                                { label: 'Lettermark', desc: 'Typographic focus' }
+                                                            ].map((style, i) => (
+                                                                <div key={i} className="group cursor-pointer">
+                                                                    <div className="aspect-square bg-slate-50 rounded-[2.5rem] border-2 border-slate-100 group-hover:border-indigo-600 transition-all flex items-center justify-center mb-4 relative overflow-hidden shadow-sm hover:shadow-xl">
+                                                                        <div className="w-16 h-16 rounded-full border-4 border-slate-200 flex items-center justify-center text-4xl font-black text-slate-300 group-hover:text-indigo-600 group-hover:border-indigo-600 transition-all">
+                                                                            {data?.name?.charAt(0) || 'b'}
+                                                                        </div>
+                                                                    </div>
+                                                                    <h4 className="text-xs font-black uppercase tracking-widest text-slate-900">{style.label}</h4>
+                                                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">{style.desc}</p>
                                                                 </div>
-                                                                <div>
-                                                                    <h3 className="text-sm font-black text-slate-900 uppercase tracking-tighter italic flex items-center gap-2">
-                                                                        Arkle <span className={`not-italic ${agentMode === 'developer' ? 'text-emerald-600' : 'text-indigo-600'}`}>
-                                                                            {agentMode === 'developer' ? 'Developer' : 'Co-founder'}
-                                                                        </span>
-                                                                        <span className="bg-slate-900 text-white text-[6px] px-1.5 py-0.5 rounded-full not-italic tracking-[0.2em] font-black uppercase">Plus</span>
-                                                                    </h3>
-                                                                    <div className="flex items-center gap-1">
-                                                                        <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-                                                                        <span className="text-[8px] font-medium text-slate-400 uppercase tracking-widest">Neural Link Active</span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="max-w-5xl mx-auto pt-4">
+                                                    {/* NEW: Build your Business CTA (35% Smaller Version) */}
+                                                    <div className="mb-8 relative overflow-hidden bg-gradient-to-r from-indigo-950 via-slate-900 to-black rounded-[2.5rem] p-6 text-white shadow-2xl group cursor-pointer border border-white/5" onClick={() => setShowBuildPopup(true)}>
+                                                        <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full -translate-y-24 translate-x-24 blur-3xl group-hover:bg-white/10 transition-all duration-1000"></div>
+                                                        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+                                                            <div className="text-left">
+                                                                <div className="flex items-center gap-2 mb-3">
+                                                                    <span className="px-2.5 py-1 bg-indigo-500/20 text-indigo-300 rounded-lg text-[7px] font-black uppercase tracking-[0.2em] border border-indigo-500/20">Ignition Phase</span>
+                                                                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                                                                    <span className="text-[7px] font-black text-white/30 uppercase tracking-[0.2em]">Neural Link Active</span>
+                                                                </div>
+                                                                <h2 className="text-2xl font-black tracking-tightest leading-[0.9] italic mb-3">
+                                                                    BUILD YOUR ENTIRE <span className="text-indigo-400 not-italic">BRAND PRESENCE</span>
+                                                                </h2>
+                                                                <p className="text-white/50 text-[9px] font-black uppercase tracking-[0.2em] mb-3">
+                                                                    GET LIFE TO YOUR STARTUP • BUILD EVERYTHING IN MINUTE CLICK
+                                                                </p>
+                                                                <div className="flex items-center gap-2 text-indigo-400/80">
+                                                                    <span className="material-symbols-outlined text-[12px] animate-bounce">expand_circle_down</span>
+                                                                    <span className="text-[8px] font-black uppercase tracking-[0.3em]">Initialize Mission Control</span>
+                                                                </div>
+                                                            </div>
+                                                            <div className="w-14 h-14 bg-white/10 rounded-[1.5rem] flex items-center justify-center group-hover:scale-110 transition-transform duration-500 backdrop-blur-xl border border-white/10 shadow-2xl relative shrink-0">
+                                                                <div className="absolute inset-0 bg-indigo-500/20 blur-xl rounded-full animate-pulse"></div>
+                                                                <span className="material-symbols-outlined text-2xl font-black animate-bounce relative z-10">rocket_launch</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Service Category Toggles */}
+                                                    <div className="flex items-center justify-center gap-2 mb-12 bg-white/50 backdrop-blur-md p-2 rounded-2xl border border-white/50 shadow-sm w-fit mx-auto">
+                                                        {[
+                                                            { id: 'all', label: 'All Engines', icon: 'grid_view' },
+                                                            { id: 'brand', label: 'Brand Identity', icon: 'brush' },
+                                                            { id: 'legal', label: 'Legal & Compliance', icon: 'gavel' },
+                                                            { id: 'growth', label: 'Growth & Socials', icon: 'campaign' }
+                                                        ].map((cat) => (
+                                                            <button
+                                                                key={cat.id}
+                                                                onClick={() => setCurrentServiceCategory(cat.id as any)}
+                                                                className={`flex items-center gap-2 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${currentServiceCategory === cat.id
+                                                                    ? 'bg-slate-900 text-white shadow-xl scale-105'
+                                                                    : 'text-slate-400 hover:text-slate-900 hover:bg-white/80'
+                                                                    }`}
+                                                            >
+                                                                <span className="material-symbols-outlined text-sm">{cat.icon}</span>
+                                                                {cat.label}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+
+                                                    {/* Filtered Service Grid */}
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                                                        {[
+                                                            { label: 'DOMAIN SEARCH', icon: 'language', bg: 'bg-blue-50', color: 'text-blue-600', badge: 'COMING SOON', cat: 'brand' },
+                                                            { label: 'WEBSITE BUILDER', icon: 'web_stories', bg: 'bg-emerald-50', color: 'text-emerald-600', badge: 'COMING SOON', cat: 'brand' },
+                                                            { label: 'E-STORE SETUP', icon: 'shopping_cart', bg: 'bg-indigo-50', color: 'text-indigo-600', badge: 'COMING SOON', cat: 'growth' },
+                                                            { label: 'PRODUCT COPY', icon: 'edit_note', bg: 'bg-amber-50', color: 'text-amber-600', badge: 'COMING SOON', sub: 'PAGE CREATE', cat: 'growth' },
+                                                            { label: 'BRAND BROCHURE', icon: 'folder_open', bg: 'bg-pink-50', color: 'text-pink-600', badge: 'COMING SOON', cat: 'brand' },
+                                                            { label: 'PRODUCT CATALOG', icon: 'menu_book', bg: 'bg-purple-50', color: 'text-purple-600', badge: 'COMING SOON', cat: 'brand' },
+                                                            { label: 'DIGITAL CARD', icon: 'contact_page', bg: 'bg-slate-50', color: 'text-slate-600', badge: 'COMING SOON', cat: 'brand' },
+                                                            { label: 'PITCH DECK AI', icon: 'play_circle', bg: 'bg-cyan-50', color: 'text-cyan-600', badge: 'BETA', cat: 'growth' },
+                                                            { label: 'SM MANAGER', icon: 'share', bg: 'bg-rose-50', color: 'text-rose-600', badge: 'COMING SOON', cat: 'growth' },
+                                                            { label: 'AI POST GEN', icon: 'post_add', bg: 'bg-green-50', color: 'text-green-600', badge: 'BETA', cat: 'growth' },
+                                                            { label: 'BRAND KITS', icon: 'category', bg: 'bg-teal-50', color: 'text-teal-600', badge: 'COMING SOON', cat: 'brand' },
+                                                            { label: 'SEO TOOLS', icon: 'build', bg: 'bg-sky-50', color: 'text-sky-600', badge: 'COMING SOON', cat: 'growth' }
+                                                        ]
+                                                            .filter(s => currentServiceCategory === 'all' || s.cat === currentServiceCategory)
+                                                            .map((service, i) => (
+                                                                <div
+                                                                    key={i}
+                                                                    className="bg-white p-4 h-28 rounded-[2rem] shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all group flex flex-col justify-between cursor-pointer relative overflow-hidden"
+                                                                    onClick={() => setCurrentCanvas(service.label)}
+                                                                >
+                                                                    <div className="absolute top-3 right-5 text-[6px] font-black text-slate-300 uppercase tracking-[0.1em]">
+                                                                        {service.badge}
+                                                                    </div>
+                                                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${service.bg} ${service.color} group-hover:scale-110 transition-transform`}>
+                                                                        <span className="material-symbols-outlined text-xl font-black">{service.icon}</span>
+                                                                    </div>
+                                                                    <div className="text-left">
+                                                                        <h4 className="text-[9px] font-black text-slate-900 uppercase tracking-widest leading-tight">{service.label}</h4>
+                                                                        {(service as any).sub && <p className="text-[6px] text-slate-400 font-bold uppercase mt-1 tracking-wider leading-none">{(service as any).sub}</p>}
                                                                     </div>
                                                                 </div>
-                                                            </div>
-                                                            <div className="flex items-center gap-2">
-                                                                <button
-                                                                    onClick={() => setAgentSidebarWidth(prev => prev > 500 ? 400 : 700)}
-                                                                    className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${agentSidebarWidth > 500 ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}
-                                                                >
-                                                                    <span className="material-symbols-outlined text-sm font-black">
-                                                                        {agentSidebarWidth > 500 ? 'close_fullscreen' : 'fullscreen'}
-                                                                    </span>
-                                                                </button>
-                                                                <button className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400">
-                                                                    <span className="material-symbols-outlined text-sm font-black">settings</span>
-                                                                </button>
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Mode Switcher Tabs */}
-                                                        <div className="flex p-1 bg-slate-100 rounded-2xl gap-1">
-                                                            <button
-                                                                onClick={() => setAgentMode('cofounder')}
-                                                                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl transition-all ${agentMode === 'cofounder' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                                                            >
-                                                                <span className="material-symbols-outlined text-[18px]">psychology</span>
-                                                                <span className="text-[10px] font-black uppercase tracking-widest">Co-founder</span>
-                                                            </button>
-                                                            <button
-                                                                onClick={() => setAgentMode('developer')}
-                                                                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl transition-all ${agentMode === 'developer' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                                                            >
-                                                                <span className="material-symbols-outlined text-[18px]">terminal</span>
-                                                                <span className="text-[10px] font-black uppercase tracking-widest">Developer</span>
-                                                            </button>
-                                                        </div>
+                                                            ))}
                                                     </div>
                                                 </div>
+                                            )}
+                                        </div>
+                                    </div>
 
-                                                {/* Chat/Messages Area */}
-                                                <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-white custom-scrollbar">
-                                                    <div className={`p-4 rounded-2xl ${agentMode === 'developer' ? 'bg-emerald-50 border border-emerald-100' : 'bg-indigo-50 border border-indigo-100'}`}>
-                                                        <p className={`text-[10px] font-bold ${agentMode === 'developer' ? 'text-emerald-700' : 'text-indigo-700'} uppercase tracking-widest mb-2 flex items-center justify-between`}>
-                                                            <span>{agentMode === 'developer' ? '[ DEV_LOG_ACTIVE ]' : 'Strategic Guidance'}</span>
-                                                            <span className="text-[7px] text-slate-400">ENGINE: {selectedModel.toUpperCase()}</span>
-                                                        </p>
-                                                        <p className="text-[11px] text-slate-700 leading-relaxed font-medium">
-                                                            {agentMode === 'developer'
-                                                                ? `[System] Using ${selectedModel.toUpperCase()} to monitor build logic. Neural parsing at 99%. All components optimized for rapid deployment.`
-                                                                : `Welcome back. I'm using ${selectedModel === 'gemini' ? 'Google Gemini' : selectedModel === 'claude' ? 'Anthropic Claude' : 'OpenAI'} to provide deep architectural insights for ${data?.name || 'your startup'}.`}
-                                                        </p>
-                                                    </div>
-
-                                                    {agentMode === 'developer' && (
-                                                        <div className="bg-slate-900 rounded-xl p-4 font-mono text-[9px] text-emerald-400 shadow-inner">
-                                                            <div className="flex gap-2 mb-1"><span className="text-slate-500">$</span> arkle --model {selectedModel}</div>
-                                                            <div className="text-white opacity-80">Configuring Engine: {selectedModel}... Done.</div>
-                                                            <div className="text-white opacity-80">Latency: 45ms</div>
-                                                            <div className="mt-2 text-emerald-300 animate-pulse">&gt; Ready for High-Fidelity Commands_</div>
-                                                        </div>
-                                                    )}
+                                    {/* Right Agent Sidebar */}
+                                    <div
+                                        className={`fixed top-24 bottom-24 right-8 z-50 transition-all duration-300 ease-in-out ${isAgentSidebarExpanded ? '' : 'w-14'}`}
+                                        style={{ width: isAgentSidebarExpanded ? `${agentSidebarWidth}px` : '56px' }}
+                                    >
+                                        <div className="h-full bg-white rounded-[2.5rem] border border-slate-200 shadow-2xl flex flex-col overflow-hidden relative group/sidebar">
+                                            {/* Resize Drag Handle (Left Edge) */}
+                                            {isAgentSidebarExpanded && (
+                                                <div
+                                                    onMouseDown={() => setIsResizing(true)}
+                                                    className="absolute top-1/4 bottom-1/4 left-0 w-1.5 cursor-ew-resize hover:bg-indigo-500/20 transition-colors z-30 group/handle flex items-center justify-center"
+                                                >
+                                                    <div className="w-0.5 h-8 bg-slate-200 group-hover/handle:bg-indigo-400 rounded-full transition-colors"></div>
                                                 </div>
+                                            )}
 
-                                                {/* Arkle Input Command Center */}
-                                                <div className="p-6 bg-white border-t border-slate-50">
-                                                    <div className="relative group/input bg-slate-50 rounded-[2rem] p-3 border-2 border-transparent focus-within:border-slate-200 transition-all shadow-lg overflow-hidden">
-                                                        <textarea
-                                                            value={businessDescription}
-                                                            onChange={(e) => setBusinessDescription(e.target.value)}
-                                                            placeholder={agentMode === 'developer' ? "Define technical logic..." : "Ask Arkle anything..."}
-                                                            className="w-full bg-transparent px-4 py-2 text-[13px] font-medium outline-none transition-all resize-none h-28 placeholder-slate-300"
-                                                        />
+                                            {/* Resize/Toggle Button */}
+                                            <button
+                                                onClick={() => setIsAgentSidebarExpanded(!isAgentSidebarExpanded)}
+                                                className="absolute top-1/2 -left-4 w-8 h-8 bg-slate-900 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-40"
+                                            >
+                                                <span className="material-symbols-outlined text-[16px]">
+                                                    {isAgentSidebarExpanded ? 'chevron_right' : 'chevron_left'}
+                                                </span>
+                                            </button>
 
-                                                        <div className="flex items-center justify-between px-2 pt-2 border-t border-slate-100/50 mt-2">
-                                                            <div className="flex items-center gap-1.5">
-                                                                {/* Utility Buttons */}
-                                                                <label className="w-9 h-9 rounded-xl hover:bg-slate-200/50 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all cursor-pointer group/util">
-                                                                    <input type="file" className="hidden" onChange={(e) => {
-                                                                        if (e.target.files?.[0]) {
-                                                                            setToast({ visible: true, message: "Asset Linked", sub: `${e.target.files[0].name} synchronized.` });
-                                                                        }
-                                                                    }} />
-                                                                    <span className="material-symbols-outlined text-[20px]">add</span>
-                                                                </label>
-
-                                                                {/* Agent Mode Dropdown (Co-founder / Developer) */}
-                                                                <button
-                                                                    className="flex items-center gap-2.5 px-3 py-2 hover:bg-slate-200/60 rounded-xl text-[9px] font-black uppercase tracking-widest text-slate-900 transition-all border border-transparent hover:border-slate-200 group/mode"
-                                                                    onClick={() => setAgentMode(agentMode === 'cofounder' ? 'developer' : 'cofounder')}
-                                                                >
-                                                                    <span className="material-symbols-outlined text-[16px] text-indigo-600 group-hover/mode:scale-110 transition-transform">
-                                                                        {agentMode === 'developer' ? 'terminal' : 'psychology'}
-                                                                    </span>
-                                                                    {agentMode === 'developer' ? 'Arkle Developer' : 'Arkle Co-founder'}
-                                                                    <span className="material-symbols-outlined text-[14px] opacity-30">expand_less</span>
-                                                                </button>
-
-                                                                {/* Model Selection Dropdown */}
-                                                                <button
-                                                                    className="flex items-center gap-2.5 px-3 py-2 hover:bg-slate-200/60 rounded-xl text-[9px] font-black uppercase tracking-widest text-slate-900 transition-all border border-transparent hover:border-slate-200 group/model"
-                                                                    onClick={() => {
-                                                                        const models: ('gemini' | 'claude' | 'gpt4o')[] = ['gemini', 'claude', 'gpt4o'];
-                                                                        const nextIdx = (models.indexOf(selectedModel) + 1) % models.length;
-                                                                        setSelectedModel(models[nextIdx]);
-                                                                    }}
-                                                                >
-                                                                    <span className={`w-1.5 h-1.5 rounded-full ${selectedModel === 'gemini' ? 'bg-blue-500' : selectedModel === 'claude' ? 'bg-orange-500' : 'bg-green-500'} animate-pulse`}></span>
-                                                                    {selectedModel === 'gemini' ? 'Gemini 3.5' : selectedModel === 'claude' ? 'Claude 3.5' : 'GPT-4o Mini'}
-                                                                    <span className="material-symbols-outlined text-[14px] opacity-30">expand_less</span>
-                                                                </button>
+                                            {isAgentSidebarExpanded ? (
+                                                <>
+                                                    {/* Sidebar Header */}
+                                                    <div className="border-b border-slate-100 bg-white sticky top-0 z-20">
+                                                        <div className="p-6">
+                                                            <div className="flex items-center justify-between mb-6">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center shadow-lg group-hover:rotate-12 transition-transform">
+                                                                        <span className="material-symbols-outlined text-xl">bolt</span>
+                                                                    </div>
+                                                                    <div>
+                                                                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tighter italic flex items-center gap-2">
+                                                                            Arkle <span className={`not-italic ${agentMode === 'developer' ? 'text-emerald-600' : 'text-indigo-600'}`}>
+                                                                                {agentMode === 'developer' ? 'Developer' : 'Co-founder'}
+                                                                            </span>
+                                                                            <span className="bg-slate-900 text-white text-[6px] px-1.5 py-0.5 rounded-full not-italic tracking-[0.2em] font-black uppercase">Plus</span>
+                                                                        </h3>
+                                                                        <div className="flex items-center gap-1">
+                                                                            <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                                                                            <span className="text-[8px] font-medium text-slate-400 uppercase tracking-widest">Neural Link Active</span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="flex items-center gap-2">
+                                                                    <button
+                                                                        onClick={() => setAgentSidebarWidth(prev => prev > 500 ? 400 : 700)}
+                                                                        className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${agentSidebarWidth > 500 ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}
+                                                                    >
+                                                                        <span className="material-symbols-outlined text-sm font-black">
+                                                                            {agentSidebarWidth > 500 ? 'close_fullscreen' : 'fullscreen'}
+                                                                        </span>
+                                                                    </button>
+                                                                    <button className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400">
+                                                                        <span className="material-symbols-outlined text-sm font-black">settings</span>
+                                                                    </button>
+                                                                </div>
                                                             </div>
 
-                                                            <div className="flex items-center gap-2">
+                                                            {/* Mode Switcher Tabs */}
+                                                            <div className="flex p-1 bg-slate-100 rounded-2xl gap-1">
                                                                 <button
-                                                                    className="w-9 h-9 rounded-xl hover:bg-rose-50 flex items-center justify-center text-slate-400 hover:text-rose-600 transition-all group/mic"
-                                                                    onClick={() => setToast({ visible: true, message: "Voice Activated", sub: "Listening for commands..." })}
+                                                                    onClick={() => setAgentMode('cofounder')}
+                                                                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl transition-all ${agentMode === 'cofounder' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                                                                 >
-                                                                    <span className="material-symbols-outlined text-[20px]">mic</span>
+                                                                    <span className="material-symbols-outlined text-[18px]">psychology</span>
+                                                                    <span className="text-[10px] font-black uppercase tracking-widest">Co-founder</span>
                                                                 </button>
-                                                                <button className="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-all">
-                                                                    <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                                                                <button
+                                                                    onClick={() => setAgentMode('developer')}
+                                                                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl transition-all ${agentMode === 'developer' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                                                >
+                                                                    <span className="material-symbols-outlined text-[18px]">terminal</span>
+                                                                    <span className="text-[10px] font-black uppercase tracking-widest">Developer</span>
                                                                 </button>
                                                             </div>
                                                         </div>
                                                     </div>
+
+                                                    {/* Chat/Messages Area */}
+                                                    <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-white custom-scrollbar">
+                                                        <div className={`p-4 rounded-2xl ${agentMode === 'developer' ? 'bg-emerald-50 border border-emerald-100' : 'bg-indigo-50 border border-indigo-100'}`}>
+                                                            <p className={`text-[10px] font-bold ${agentMode === 'developer' ? 'text-emerald-700' : 'text-indigo-700'} uppercase tracking-widest mb-2 flex items-center justify-between`}>
+                                                                <span>{agentMode === 'developer' ? '[ DEV_LOG_ACTIVE ]' : 'Strategic Guidance'}</span>
+                                                                <span className="text-[7px] text-slate-400">ENGINE: {selectedModel.toUpperCase()}</span>
+                                                            </p>
+                                                            <p className="text-[11px] text-slate-700 leading-relaxed font-medium">
+                                                                {agentMode === 'developer'
+                                                                    ? `[System] Using ${selectedModel.toUpperCase()} to monitor build logic. Neural parsing at 99%. All components optimized for rapid deployment.`
+                                                                    : `Welcome back. I'm using ${selectedModel === 'gemini' ? 'Google Gemini' : selectedModel === 'claude' ? 'Anthropic Claude' : 'OpenAI'} to provide deep architectural insights for ${data?.name || 'your startup'}.`}
+                                                            </p>
+                                                        </div>
+
+                                                        {agentMode === 'developer' && (
+                                                            <div className="bg-slate-900 rounded-xl p-4 font-mono text-[9px] text-emerald-400 shadow-inner">
+                                                                <div className="flex gap-2 mb-1"><span className="text-slate-500">$</span> arkle --model {selectedModel}</div>
+                                                                <div className="text-white opacity-80">Configuring Engine: {selectedModel}... Done.</div>
+                                                                <div className="text-white opacity-80">Latency: 45ms</div>
+                                                                <div className="mt-2 text-emerald-300 animate-pulse">&gt; Ready for High-Fidelity Commands_</div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Arkle Input Command Center */}
+                                                    <div className="p-6 bg-white border-t border-slate-50">
+                                                        <div className="relative group/input bg-slate-50 rounded-[2rem] p-3 border-2 border-transparent focus-within:border-slate-200 transition-all shadow-lg overflow-hidden">
+                                                            <textarea
+                                                                value={businessDescription}
+                                                                onChange={(e) => setBusinessDescription(e.target.value)}
+                                                                placeholder={agentMode === 'developer' ? "Define technical logic..." : "Ask Arkle anything..."}
+                                                                className="w-full bg-transparent px-4 py-2 text-[13px] font-medium outline-none transition-all resize-none h-28 placeholder-slate-300"
+                                                            />
+
+                                                            <div className="flex items-center justify-between px-2 pt-2 border-t border-slate-100/50 mt-2">
+                                                                <div className="flex items-center gap-1.5">
+                                                                    {/* Utility Buttons */}
+                                                                    <label className="w-9 h-9 rounded-xl hover:bg-slate-200/50 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all cursor-pointer group/util">
+                                                                        <input type="file" className="hidden" onChange={(e) => {
+                                                                            if (e.target.files?.[0]) {
+                                                                                setToast({ visible: true, message: "Asset Linked", sub: `${e.target.files[0].name} synchronized.` });
+                                                                            }
+                                                                        }} />
+                                                                        <span className="material-symbols-outlined text-[20px]">add</span>
+                                                                    </label>
+
+                                                                    {/* Agent Mode Dropdown (Co-founder / Developer) */}
+                                                                    <button
+                                                                        className="flex items-center gap-2.5 px-3 py-2 hover:bg-slate-200/60 rounded-xl text-[9px] font-black uppercase tracking-widest text-slate-900 transition-all border border-transparent hover:border-slate-200 group/mode"
+                                                                        onClick={() => setAgentMode(agentMode === 'cofounder' ? 'developer' : 'cofounder')}
+                                                                    >
+                                                                        <span className="material-symbols-outlined text-[16px] text-indigo-600 group-hover/mode:scale-110 transition-transform">
+                                                                            {agentMode === 'developer' ? 'terminal' : 'psychology'}
+                                                                        </span>
+                                                                        {agentMode === 'developer' ? 'Arkle Developer' : 'Arkle Co-founder'}
+                                                                        <span className="material-symbols-outlined text-[14px] opacity-30">expand_less</span>
+                                                                    </button>
+
+                                                                    {/* Model Selection Dropdown */}
+                                                                    <button
+                                                                        className="flex items-center gap-2.5 px-3 py-2 hover:bg-slate-200/60 rounded-xl text-[9px] font-black uppercase tracking-widest text-slate-900 transition-all border border-transparent hover:border-slate-200 group/model"
+                                                                        onClick={() => {
+                                                                            const models: ('gemini' | 'claude' | 'gpt4o')[] = ['gemini', 'claude', 'gpt4o'];
+                                                                            const nextIdx = (models.indexOf(selectedModel) + 1) % models.length;
+                                                                            setSelectedModel(models[nextIdx]);
+                                                                        }}
+                                                                    >
+                                                                        <span className={`w-1.5 h-1.5 rounded-full ${selectedModel === 'gemini' ? 'bg-blue-500' : selectedModel === 'claude' ? 'bg-orange-500' : 'bg-green-500'} animate-pulse`}></span>
+                                                                        {selectedModel === 'gemini' ? 'Gemini 3.5' : selectedModel === 'claude' ? 'Claude 3.5' : 'GPT-4o Mini'}
+                                                                        <span className="material-symbols-outlined text-[14px] opacity-30">expand_less</span>
+                                                                    </button>
+                                                                </div>
+
+                                                                <div className="flex items-center gap-2">
+                                                                    <button
+                                                                        className="w-9 h-9 rounded-xl hover:bg-rose-50 flex items-center justify-center text-slate-400 hover:text-rose-600 transition-all group/mic"
+                                                                        onClick={() => setToast({ visible: true, message: "Voice Activated", sub: "Listening for commands..." })}
+                                                                    >
+                                                                        <span className="material-symbols-outlined text-[20px]">mic</span>
+                                                                    </button>
+                                                                    <button className="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-all">
+                                                                        <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                /* Minimized View */
+                                                <div className="flex flex-col items-center py-8 gap-6 h-full">
+                                                    <div className="w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center shadow-lg cursor-pointer hover:rotate-12 transition-transform" onClick={() => setIsAgentSidebarExpanded(true)}>
+                                                        <span className="material-symbols-outlined text-xl">bolt</span>
+                                                    </div>
+                                                    <div className="h-full w-[1px] bg-slate-100"></div>
+                                                    <div className="rotate-90 origin-center whitespace-nowrap text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">
+                                                        ARKLE AI AGENT
+                                                    </div>
                                                 </div>
-                                            </>
-                                        ) : (
-                                            /* Minimized View */
-                                            <div className="flex flex-col items-center py-8 gap-6 h-full">
-                                                <div className="w-10 h-10 bg-indigo-600 text-white rounded-xl flex items-center justify-center shadow-lg cursor-pointer hover:rotate-12 transition-transform" onClick={() => setIsAgentSidebarExpanded(true)}>
-                                                    <span className="material-symbols-outlined text-xl">bolt</span>
-                                                </div>
-                                                <div className="h-full w-[1px] bg-slate-100"></div>
-                                                <div className="rotate-90 origin-center whitespace-nowrap text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">
-                                                    ARKLE AI AGENT
-                                                </div>
-                                            </div>
-                                        )}
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
 
-                        {activeTab === 'LearnerStudio' && (
-                            <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-                                <div className="text-center mb-8 bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-                                    <h2 className="text-xl font-bold font-serif text-slate-900 mb-2">Learner Studio</h2>
-                                    <p className="text-slate-500 text-sm font-sans">Skill upgradation, tech adoption, and master business operations.</p>
-                                </div>
+                            {activeTab === 'LearnerStudio' && (
+                                <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                    <div className="text-center mb-8 bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                                        <h2 className="text-xl font-bold font-serif text-slate-900 mb-2">Learner Studio</h2>
+                                        <p className="text-slate-500 text-sm font-sans">Skill upgradation, tech adoption, and master business operations.</p>
+                                    </div>
 
-                                {/* Glassmorphic Coming Soon Overlay for Learner Studio */}
-                                <div className="fixed bottom-24 right-8 z-30 max-w-sm w-full animate-in slide-in-from-bottom-10 duration-1000 delay-100">
-                                    <div className="backdrop-blur-xl bg-white/70 border border-white/50 shadow-2xl rounded-2xl p-5 relative overflow-hidden group hover:bg-white/90 transition-all cursor-pointer" onClick={() => handleServiceClick('Learner Studio Access', 'Coming Soon')}>
-                                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-500 via-green-500 to-emerald-500"></div>
-                                        <div className="flex items-start gap-4">
-                                            <div className="bg-teal-100 text-teal-600 p-2.5 rounded-xl shrink-0 group-hover:scale-110 transition-transform">
-                                                <span className="material-symbols-outlined text-2xl">school</span>
-                                            </div>
-                                            <div>
-                                                <h3 className="font-black text-slate-900 text-sm mb-1 uppercase tracking-wide">Academy Opening Soon</h3>
-                                                <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                                                    Detailed courses on GST, Funding, and Growth are in production.
-                                                </p>
-                                                <div className="mt-3 flex items-center gap-2 text-[10px] font-bold text-teal-600 uppercase tracking-wider">
-                                                    <span>Join Waitlist</span>
-                                                    <span className="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">notifications_active</span>
+                                    {/* Glassmorphic Coming Soon Overlay for Learner Studio */}
+                                    <div className="fixed bottom-24 right-8 z-30 max-w-sm w-full animate-in slide-in-from-bottom-10 duration-1000 delay-100">
+                                        <div className="backdrop-blur-xl bg-white/70 border border-white/50 shadow-2xl rounded-2xl p-5 relative overflow-hidden group hover:bg-white/90 transition-all cursor-pointer" onClick={() => handleServiceClick('Learner Studio Access', 'Coming Soon')}>
+                                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-500 via-green-500 to-emerald-500"></div>
+                                            <div className="flex items-start gap-4">
+                                                <div className="bg-teal-100 text-teal-600 p-2.5 rounded-xl shrink-0 group-hover:scale-110 transition-transform">
+                                                    <span className="material-symbols-outlined text-2xl">school</span>
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-black text-slate-900 text-sm mb-1 uppercase tracking-wide">Academy Opening Soon</h3>
+                                                    <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                                                        Detailed courses on GST, Funding, and Growth are in production.
+                                                    </p>
+                                                    <div className="mt-3 flex items-center gap-2 text-[10px] font-bold text-teal-600 uppercase tracking-wider">
+                                                        <span>Join Waitlist</span>
+                                                        <span className="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">notifications_active</span>
+                                                    </div>
                                                 </div>
                                             </div>
+                                            <div className="absolute -bottom-10 -right-10 w-24 h-24 bg-teal-500/10 rounded-full blur-xl group-hover:bg-teal-500/20 transition-all"></div>
                                         </div>
-                                        <div className="absolute -bottom-10 -right-10 w-24 h-24 bg-teal-500/10 rounded-full blur-xl group-hover:bg-teal-500/20 transition-all"></div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        {learnerStudioServices.map((service, i) => (
+                                            <div
+                                                key={i}
+                                                onClick={() => handleServiceClick(service.label, (service as any).badge)}
+                                                className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-all flex items-start gap-4 group cursor-pointer active:scale-95"
+                                            >
+                                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${service.bg} ${service.color}`}>
+                                                    <span className="material-symbols-outlined text-lg font-bold">{service.icon}</span>
+                                                </div>
+                                                <div className="flex-1">
+                                                    <h3 className="font-bold text-xs text-slate-900 uppercase tracking-tight mb-1">{service.label}</h3>
+                                                    <p className="text-[10px] text-slate-500 font-medium leading-relaxed">{service.desc}</p>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    {learnerStudioServices.map((service, i) => (
-                                        <div
-                                            key={i}
-                                            onClick={() => handleServiceClick(service.label, (service as any).badge)}
-                                            className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-all flex items-start gap-4 group cursor-pointer active:scale-95"
-                                        >
-                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${service.bg} ${service.color}`}>
-                                                <span className="material-symbols-outlined text-lg font-bold">{service.icon}</span>
-                                            </div>
-                                            <div className="flex-1">
-                                                <h3 className="font-bold text-xs text-slate-900 uppercase tracking-tight mb-1">{service.label}</h3>
-                                                <p className="text-[10px] text-slate-500 font-medium leading-relaxed">{service.desc}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                        <div className="h-8"></div>
-                    </div>
+                            )}
+                            <div className="h-8"></div>
+                        </div>
                     )}
                 </main>
 
@@ -1272,9 +1308,9 @@ const Dashboard: React.FC<DashboardProps> = ({ data, initialTab = 'A', onNavigat
             )}
             {/* AI Project Report (DPR) Tool */}
             {showDPRTool && (
-                <AIProjectReportTool 
-                    businessData={data} 
-                    onClose={() => setShowDPRTool(false)} 
+                <AIProjectReportTool
+                    businessData={data}
+                    onClose={() => setShowDPRTool(false)}
                 />
             )}
         </div>

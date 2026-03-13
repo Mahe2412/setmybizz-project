@@ -179,8 +179,6 @@ export default function IncorporationWidget({ onNavigate }: { onNavigate?: (tab:
         if (saved) {
             try {
                 const data: PurchaseData = JSON.parse(saved);
-                setPurchase(data);
-
                 // Initialize services status
                 const initServices: ServiceState[] = data.services
                     .filter(s => s.included)
@@ -198,11 +196,14 @@ export default function IncorporationWidget({ onNavigate }: { onNavigate?: (tab:
 
                 // Check previously saved status
                 const savedStatus = localStorage.getItem("smb_services_status");
-                if (savedStatus) {
-                    setServices(JSON.parse(savedStatus));
-                } else {
-                    setServices(initServices);
-                }
+                setTimeout(() => {
+                    setPurchase(data);
+                    if (savedStatus) {
+                        setServices(JSON.parse(savedStatus));
+                    } else {
+                        setServices(initServices);
+                    }
+                }, 0);
             } catch (e) {
                 console.error("Error parsing purchase data", e);
             }
@@ -221,7 +222,7 @@ export default function IncorporationWidget({ onNavigate }: { onNavigate?: (tab:
         try {
             // Upload the file
             const uploadTask = uploadBytesResumable(storageRef, file);
-            
+
             // Wait for upload to complete
             await new Promise<void>((resolve, reject) => {
                 uploadTask.on('state_changed',
@@ -246,14 +247,14 @@ export default function IncorporationWidget({ onNavigate }: { onNavigate?: (tab:
             const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
 
             const updated = services.map(s =>
-                s.name === uploadModal ? { 
-                    ...s, 
-                    status: "uploaded" as ServiceStatus, 
+                s.name === uploadModal ? {
+                    ...s,
+                    status: "uploaded" as ServiceStatus,
                     uploadedFile: file.name,
                     downloadUrl: downloadURL
                 } : s
             );
-            
+
             setServices(updated);
             localStorage.setItem("smb_services_status", JSON.stringify(updated));
             setUploadModal(null);
@@ -279,7 +280,7 @@ export default function IncorporationWidget({ onNavigate }: { onNavigate?: (tab:
                             </p>
                         </div>
                     </div>
-                     <button className="px-6 py-3 bg-white text-indigo-900 rounded-xl font-bold text-sm shadow-lg hover:shadow-white/20 transition-all flex items-center gap-2 group-hover:gap-3">
+                    <button className="px-6 py-3 bg-white text-indigo-900 rounded-xl font-bold text-sm shadow-lg hover:shadow-white/20 transition-all flex items-center gap-2 group-hover:gap-3">
                         Get Started <span className="material-icons text-sm">arrow_forward</span>
                     </button>
                 </div>
@@ -291,12 +292,12 @@ export default function IncorporationWidget({ onNavigate }: { onNavigate?: (tab:
         <div className="mb-8 animate-in fade-in slide-in-from-top-4 duration-700">
             <div className={`bg-gradient-to-r ${purchase.packageColor || 'from-indigo-600 to-purple-600'} rounded-t-3xl p-6 text-white relative overflow-hidden`}>
                 <div className="absolute top-0 right-0 opacity-10 transform translate-x-10 -translate-y-10">
-                   <span className="material-icons text-[150px]">rocket_launch</span>
+                    <span className="material-icons text-[150px]">rocket_launch</span>
                 </div>
-                
+
                 <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
-                         <div className="w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-3xl shadow-lg">
+                        <div className="w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-3xl shadow-lg">
                             {purchase.packageEmoji}
                         </div>
                         <div>
@@ -307,17 +308,17 @@ export default function IncorporationWidget({ onNavigate }: { onNavigate?: (tab:
                             </p>
                         </div>
                     </div>
-                    
+
                     <div className="bg-white/10 backdrop-blur-md rounded-xl p-3 border border-white/20 min-w-[200px]">
                         <p className="text-[10px] uppercase font-bold opacity-70 mb-1">Total Progress</p>
                         <div className="flex items-end justify-between mb-1">
-                             <span className="text-2xl font-black">{Math.round((services.filter(s=>s.status!=='pending').length / services.length) * 100)}%</span>
-                             <span className="text-xs font-medium opacity-80">{services.filter(s=>s.status!=='pending').length}/{services.length} Completed</span>
+                            <span className="text-2xl font-black">{Math.round((services.filter(s => s.status !== 'pending').length / services.length) * 100)}%</span>
+                            <span className="text-xs font-medium opacity-80">{services.filter(s => s.status !== 'pending').length}/{services.length} Completed</span>
                         </div>
                         <div className="w-full bg-black/20 rounded-full h-1.5 overflow-hidden">
-                             <div 
-                                className="bg-white h-full rounded-full transition-all duration-1000" 
-                                style={{ width: `${(services.filter(s=>s.status!=='pending').length / services.length) * 100}%` }}
+                            <div
+                                className="bg-white h-full rounded-full transition-all duration-1000"
+                                style={{ width: `${(services.filter(s => s.status !== 'pending').length / services.length) * 100}%` }}
                             />
                         </div>
                     </div>
@@ -325,15 +326,15 @@ export default function IncorporationWidget({ onNavigate }: { onNavigate?: (tab:
             </div>
 
             <div className="bg-white border border-slate-200 border-t-0 rounded-b-3xl p-6 shadow-sm">
-                 <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between mb-4">
                     <h3 className="font-black text-slate-800 text-sm uppercase tracking-wide">Included Services</h3>
                     <span className="text-xs font-bold text-slate-400">Status & Actions</span>
                 </div>
-                
+
                 <div className="space-y-3">
                     {services.map((service, idx) => (
                         <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl border border-slate-100 hover:border-indigo-100 hover:shadow-md transition-all group bg-slate-50/50 gap-4 sm:gap-0">
-                             <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3">
                                 <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${service.status === 'completed' ? 'bg-green-100 text-green-600' : 'bg-slate-200 text-slate-500'}`}>
                                     <span className="material-icons text-sm">
                                         {service.isAddon ? (service.addonEmoji || 'extension') : (service.status === 'completed' ? 'check' : 'business_center')}
@@ -348,7 +349,7 @@ export default function IncorporationWidget({ onNavigate }: { onNavigate?: (tab:
                             <div className="flex items-center gap-3 self-end sm:self-auto">
                                 <StatusBadge status={service.status} />
                                 {service.status === 'pending' && (
-                                    <button 
+                                    <button
                                         onClick={() => setUploadModal(service.name)}
                                         className="px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20 active:scale-95"
                                     >
@@ -358,10 +359,10 @@ export default function IncorporationWidget({ onNavigate }: { onNavigate?: (tab:
                                 {service.status === 'uploaded' && (
                                     <div className="flex items-center gap-3">
                                         {service.downloadUrl && (
-                                            <a 
-                                                href={service.downloadUrl} 
-                                                target="_blank" 
-                                                rel="noopener noreferrer" 
+                                            <a
+                                                href={service.downloadUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
                                                 className="text-xs font-extrabold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 bg-indigo-50 px-2 py-1 rounded-lg transition-colors"
                                                 title="View Document"
                                             >

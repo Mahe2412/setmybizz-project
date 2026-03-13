@@ -65,13 +65,13 @@ const AIStudioLayout: React.FC = () => {
         { id: '3', name: 'Finance & Accounting', icon: 'account_balance', color: 'green', chatCount: 2 },
     ]);
 
-    const [chats, setChats] = useState<Chat[]>([
+    const [chats, setChats] = useState<Chat[]>(() => [
         { id: '1', projectId: '1', title: 'Create sales strategy', lastMessage: 'Here\'s a comprehensive sales strategy...', timestamp: new Date(), pinned: true },
         { id: '2', projectId: '1', title: 'Marketing campaign ideas', lastMessage: 'I suggest a multi-channel approach...', timestamp: new Date(Date.now() - 3600000) },
         { id: '3', projectId: '2', title: 'Business plan for Q2', lastMessage: 'Let me help you outline Q2 goals...', timestamp: new Date(Date.now() - 7200000) },
     ]);
 
-    const [connectedApps, setConnectedApps] = useState<ConnectedApp[]>([
+    const [connectedApps, setConnectedApps] = useState<ConnectedApp[]>(() => [
         { id: 'sheets', name: 'Google Sheets', icon: 'table_chart', color: 'green', connected: true, category: 'google', lastUsed: new Date() },
         { id: 'docs', name: 'Google Docs', icon: 'description', color: 'blue', connected: true, category: 'google', lastUsed: new Date(Date.now() - 1800000) },
         { id: 'gmail', name: 'Gmail', icon: 'mail', color: 'red', connected: false, category: 'google' },

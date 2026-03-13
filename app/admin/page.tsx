@@ -22,8 +22,8 @@ function BusinessSetupDashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
                     <div className="flex justify-between items-center mb-6">
-                         <h3 className="font-bold text-slate-800">Recent Applications</h3>
-                         <button className="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg hover:bg-indigo-100">View All</button>
+                        <h3 className="font-bold text-slate-800">Recent Applications</h3>
+                        <button className="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg hover:bg-indigo-100">View All</button>
                     </div>
                     {/* Placeholder Table */}
                     <div className="space-y-3">
@@ -41,18 +41,18 @@ function BusinessSetupDashboard() {
                         ))}
                     </div>
                 </div>
-                
+
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
                     <h3 className="font-bold text-slate-800 mb-4">Team Activity</h3>
                     <div className="space-y-4">
-                         {/* Activity Items */}
-                         <div className="flex gap-3">
-                             <div className="w-2 h-2 mt-1.5 rounded-full bg-indigo-500" />
-                             <div>
-                                 <p className="text-xs text-slate-600"><span className="font-bold text-slate-900">Sarah</span> updated DSC status for <span className="font-bold text-slate-900">TechFlow Inc</span></p>
-                                 <p className="text-[10px] text-slate-400 mt-1">2 mins ago</p>
-                             </div>
-                         </div>
+                        {/* Activity Items */}
+                        <div className="flex gap-3">
+                            <div className="w-2 h-2 mt-1.5 rounded-full bg-indigo-500" />
+                            <div>
+                                <p className="text-xs text-slate-600"><span className="font-bold text-slate-900">Sarah</span> updated DSC status for <span className="font-bold text-slate-900">TechFlow Inc</span></p>
+                                <p className="text-[10px] text-slate-400 mt-1">2 mins ago</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -63,19 +63,19 @@ function BusinessSetupDashboard() {
 function LaunchPadDashboard() {
     return (
         <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
-             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <DashboardStat title="Total Service Revenue" value="₹4.2L" icon="payments" color="emerald" />
                 <DashboardStat title="Active Partners" value="18" icon="handshake" color="blue" />
                 <DashboardStat title="New Requests" value="34" icon="new_releases" color="purple" />
             </div>
 
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-                 <h3 className="font-bold text-slate-800 mb-6">Service Catalog Performance</h3>
-                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                     {['GST Registration', 'Trademark', 'FSSAI License', 'Web Development'].map((svc, i) => (
-                         <DashboardCard key={i} title={svc} value={`${Math.floor(Math.random() * 50)} Orders`} icon="shopping_bag" color="indigo" />
-                     ))}
-                 </div>
+                <h3 className="font-bold text-slate-800 mb-6">Service Catalog Performance</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {['GST Registration', 'Trademark', 'FSSAI License', 'Web Development'].map((svc, i) => (
+                        <DashboardCard key={i} title={svc} value={`${(i + 1) * 12 + 5} Orders`} icon="shopping_bag" color="indigo" />
+                    ))}
+                </div>
             </div>
         </div>
     );
@@ -84,19 +84,19 @@ function LaunchPadDashboard() {
 function LearnDashboard() {
     return (
         <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
-             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <DashboardStat title="Total Students" value="154" icon="school" color="orange" />
                 <DashboardStat title="Course Completions" value="85%" icon="emoji_events" color="yellow" />
                 <DashboardStat title="Content Views" value="1.2K" icon="visibility" color="cyan" />
             </div>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                 <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-                     <h3 className="font-bold text-slate-800 mb-4">Top Performing Courses</h3>
-                 </div>
-                 <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-                     <h3 className="font-bold text-slate-800 mb-4">Content Calendar</h3>
-                 </div>
-             </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                    <h3 className="font-bold text-slate-800 mb-4">Top Performing Courses</h3>
+                </div>
+                <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                    <h3 className="font-bold text-slate-800 mb-4">Content Calendar</h3>
+                </div>
+            </div>
         </div>
     );
 }
@@ -104,7 +104,7 @@ function LearnDashboard() {
 // 1. Workspace Dashboard (The Main CRM)
 function WorkspaceDashboard() {
     const [leads, setLeads] = useState<Lead[]>([]);
-    
+
     useEffect(() => {
         const q = query(
             collection(db, "leads"),
@@ -125,8 +125,8 @@ function WorkspaceDashboard() {
 
     return (
         <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500">
-             {/* CRM Stats */}
-             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* CRM Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <DashboardStat title="Total Leads" value={leads.length.toString()} icon="groups" color="indigo" />
                 <DashboardStat title="Hot Leads" value={leads.filter(l => l.status === 'new').length.toString()} icon="local_fire_department" color="rose" />
                 <DashboardStat title="Conversion Rate" value="12%" icon="trending_up" color="emerald" />
@@ -174,9 +174,8 @@ function WorkspaceDashboard() {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${
-                                            lead.status === 'new' ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-100 text-slate-500'
-                                        }`}>
+                                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${lead.status === 'new' ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-100 text-slate-500'
+                                            }`}>
                                             <span className={`w-1.5 h-1.5 rounded-full ${lead.status === 'new' ? 'bg-indigo-500' : 'bg-slate-400'}`} />
                                             {lead.status || 'New'}
                                         </span>
@@ -221,7 +220,7 @@ function AdminPageContent() {
 export default function AdminPage() {
     return (
         <Suspense fallback={<div className="flex items-center justify-center p-12"><span className="material-icons animate-spin text-slate-400">sync</span></div>}>
-             <AdminPageContent />
+            <AdminPageContent />
         </Suspense>
     );
 }
@@ -229,8 +228,8 @@ export default function AdminPage() {
 // ─── Helpers ───
 
 function DashboardStat({ title, value, icon, color }: { title: string, value: string, icon: string, color: string }) {
-     const colorMap: any = { indigo: 'text-indigo-600 bg-indigo-50', emerald: 'text-emerald-600 bg-emerald-50', amber: 'text-amber-600 bg-amber-50', rose: 'text-rose-600 bg-rose-50', blue: 'text-blue-600 bg-blue-50', purple: 'text-purple-600 bg-purple-50', orange: 'text-orange-600 bg-orange-50', yellow: 'text-yellow-600 bg-yellow-50', cyan: 'text-cyan-600 bg-cyan-50' };
-     const style = colorMap[color] || colorMap.indigo;
+    const colorMap: Record<string, string> = { indigo: 'text-indigo-600 bg-indigo-50', emerald: 'text-emerald-600 bg-emerald-50', amber: 'text-amber-600 bg-amber-50', rose: 'text-rose-600 bg-rose-50', blue: 'text-blue-600 bg-blue-50', purple: 'text-purple-600 bg-purple-50', orange: 'text-orange-600 bg-orange-50', yellow: 'text-yellow-600 bg-yellow-50', cyan: 'text-cyan-600 bg-cyan-50' };
+    const style = colorMap[color] || colorMap.indigo;
 
     return (
         <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 hover:scale-[1.02] transition-transform">
@@ -245,15 +244,15 @@ function DashboardStat({ title, value, icon, color }: { title: string, value: st
     );
 }
 
-function DashboardCard({ title, value, icon, color }: any) {
-    const colorMap: any = { indigo: 'text-indigo-600 bg-indigo-50' }; 
+function DashboardCard({ title, value, icon, color }: { title: string, value: string, icon: string, color?: string }) {
+    const colorMap: Record<string, string> = { indigo: 'text-indigo-600 bg-indigo-50' };
     return (
         <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 hover:bg-white hover:shadow-sm transition-all text-center">
-             <div className="w-10 h-10 mx-auto bg-white rounded-full flex items-center justify-center shadow-sm text-indigo-600 mb-2">
-                 <span className="material-icons">{icon}</span>
-             </div>
-             <p className="text-xs font-bold text-slate-400">{title}</p>
-             <p className="text-lg font-black text-slate-800">{value}</p>
+            <div className="w-10 h-10 mx-auto bg-white rounded-full flex items-center justify-center shadow-sm text-indigo-600 mb-2">
+                <span className="material-icons">{icon}</span>
+            </div>
+            <p className="text-xs font-bold text-slate-400">{title}</p>
+            <p className="text-lg font-black text-slate-800">{value}</p>
         </div>
     );
 }

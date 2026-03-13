@@ -158,7 +158,7 @@ function Step1_BusinessName({ value, onChange, onNext }: any) {
         <div className="space-y-6">
             <div>
                 <h2 className="text-3xl font-bold text-gray-900 mb-2">Welcome! 👋</h2>
-                <p className="text-gray-600">Let's set up your AI-powered workspace. First, what's your business name?</p>
+                <p className="text-gray-600">Let&apos;s set up your AI-powered workspace. First, what&apos;s your business name?</p>
             </div>
 
             <input
@@ -211,7 +211,7 @@ function Step2_Industry({ value, onChange, onNext, onBack }: any) {
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">What's your industry? 🏢</h2>
+                <h2 className="text-3xl font-bold text-gray-900 mb-2">What&apos;s your industry? 🏢</h2>
                 <p className="text-gray-600">This helps us recommend the right tools for your business</p>
             </div>
 
@@ -275,7 +275,7 @@ function Step3_BusinessSize({ value, teamSize, onChange, onNext, onBack }: any) 
         <div className="space-y-6">
             <div>
                 <h2 className="text-3xl font-bold text-gray-900 mb-2">How big is your team? 👥</h2>
-                <p className="text-gray-600">We'll suggest tools that fit your team size and budget</p>
+                <p className="text-gray-600">We&apos;ll suggest tools that fit your team size and budget</p>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">

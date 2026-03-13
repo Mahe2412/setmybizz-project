@@ -15,12 +15,15 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
     const searchParams = useSearchParams();
     const router = useRouter();
     const currentView = searchParams.get('view') as AdminModule || 'workspace';
-    
+
     // Sync state with URL
     const [activeModule, setActiveModule] = useState<AdminModule>(currentView);
 
     useEffect(() => {
-        if (currentView) setActiveModule(currentView);
+        const timer = setTimeout(() => {
+            if (currentView) setActiveModule(currentView);
+        }, 0);
+        return () => clearTimeout(timer);
     }, [currentView]);
 
     const handleTabChange = (moduleId: AdminModule) => {
@@ -97,11 +100,10 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
                                 <button
                                     key={mod.id}
                                     onClick={() => handleTabChange(mod.id)}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${
-                                        isActive 
-                                            ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30' 
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${isActive
+                                            ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
                                             : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                                    }`}
+                                        }`}
                                 >
                                     <span className="material-icons text-sm">{mod.icon}</span>
                                     {mod.label}
@@ -116,8 +118,8 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
                     {/* Role Switcher (For Demo/Design purposes) */}
                     <div className="hidden lg:flex items-center gap-2 bg-slate-800 rounded-lg p-1 pr-3 border border-slate-700">
                         <span className="bg-slate-900 text-[10px] font-bold text-slate-400 px-2 py-1 rounded uppercase tracking-wider">View As</span>
-                        <select 
-                            value={activeRole} 
+                        <select
+                            value={activeRole}
                             onChange={(e) => {
                                 const newRole = e.target.value as AdminRole;
                                 setActiveRole(newRole);
@@ -166,8 +168,8 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
 
                     <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
                         {sidebarItems.map((item) => (
-                            <Link 
-                                key={item.label} 
+                            <Link
+                                key={item.label}
                                 href={item.href}
                                 className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-indigo-600 transition-all group"
                             >
@@ -193,7 +195,7 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
                 <main className="flex-1 overflow-y-auto bg-slate-50/50 p-6 relative">
                     {/* Background decoration */}
                     <div className="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-white to-transparent pointer-events-none" />
-                    
+
                     {/* Render Children (Current Page) */}
                     <div className="relative z-10 max-w-7xl mx-auto">
                         {/* We can inject a breadcrumb here dynamically if needed */}
@@ -202,7 +204,7 @@ function AdminLayoutContent({ children }: AdminLayoutProps) {
                             <span className="material-icons text-[10px]">chevron_right</span>
                             <span className="text-indigo-600">{modules.find(m => m.id === activeModule)?.label}</span>
                         </div>
-                        
+
                         {children}
                     </div>
                 </main>

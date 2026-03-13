@@ -1,3 +1,4 @@
+"use client";
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
@@ -55,6 +56,9 @@ const AppContent: React.FC = () => {
     const { user, loading, leadId } = useAuth(); // Destructure leadId
     const [showProfileModal, setShowProfileModal] = useState(false);
 
+    // State for initial dashboard configuration from deep links
+    const [dashboardConfig, setDashboardConfig] = useState<{tab: 'A'|'B'|'Workspace'|'LearnerStudio', global?: boolean}>({tab: 'Workspace'});
+
     // Deep Link & Persistence Logic
     useEffect(() => {
         // 1. Load from LocalStorage
@@ -69,12 +73,27 @@ const AppContent: React.FC = () => {
         }
 
         // 2. Handle Search Params for Deep Linking
-        const businessName = searchParams?.get('businessName');
+        // Accept both ?name= (from home page quick-setup) and ?businessName= (legacy)
+        const nameFromHome = searchParams?.get('name') || searchParams?.get('businessName');
         const viewParam = searchParams?.get('view');
+        const flowParam = searchParams?.get('flow');
 
-        if (businessName) {
-            setData(prev => ({ ...prev, name: businessName }));
-            setCurrentStep(1);
+        if (nameFromHome) {
+            setData(prev => ({ ...prev, name: nameFromHome }));
+        }
+
+        if (flowParam === 'global') {
+            setView('dashboard');
+            setDashboardConfig({ tab: 'A', global: true });
+        } else if (flowParam === 'launchpad') {
+            setView('dashboard');
+            setDashboardConfig({ tab: 'B' });
+        } else if (flowParam === 'workspace') {
+            setView('dashboard');
+            setDashboardConfig({ tab: 'Workspace' });
+        } else if (nameFromHome && !flowParam) {
+            // Skip WelcomeStep (0) and NameStep (1) — go directly to IndustryOfferStep (2)
+            setCurrentStep(2);
         }
 
         if (viewParam === 'login') {
@@ -120,7 +139,7 @@ const AppContent: React.FC = () => {
 
     const nextStep = () => setCurrentStep(prev => prev + 1);
     const prevStep = () => setCurrentStep(prev => Math.max(0, prev - 1));
-    
+
     // Updated updateData to sync with Lead Engine
     const updateData = (newData: Partial<BusinessData>) => {
         setData(prev => {
@@ -219,7 +238,12 @@ const AppContent: React.FC = () => {
     if (view === 'dashboard') {
         return (
             <>
-                <Dashboard data={data} initialTab="Workspace" onNavigateToFlow={handleBackToFlow} />
+                <Dashboard 
+                    data={data} 
+                    initialTab={dashboardConfig.tab} 
+                    initialGlobal={dashboardConfig.global}
+                    onNavigateToFlow={handleBackToFlow} 
+                />
                 <ProfileCompletionModal
                     isOpen={showProfileModal}
                     onComplete={handleProfileComplete}

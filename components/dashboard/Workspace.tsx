@@ -55,7 +55,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
     // Check if user is new (no workspace profile)
     useEffect(() => {
         const hasProfile = localStorage.getItem('workspaceProfile');
-        setIsNewUser(!hasProfile);
+        setTimeout(() => setIsNewUser(!hasProfile), 0);
     }, []);
 
     // Show popup every 40 seconds for new users

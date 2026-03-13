@@ -1,16 +1,12 @@
-'use client';
-
-import React, { useState, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import React from 'react';
 import Dashboard from '@/components/Dashboard';
 import { BusinessData } from '@/types';
 
-function DashboardWithParams() {
-    const searchParams = useSearchParams();
-    const tab = searchParams.get('tab');
+export const dynamic = 'force-dynamic';
 
+export default function DashboardPage({ searchParams }: { searchParams: { tab?: string } }) {
     // Default mock data to satisfy type requirements
-    const [data] = useState<BusinessData>({
+    const data: BusinessData = {
         name: 'My Startup',
         offeringType: 'tech',
         offeringOther: '',
@@ -23,15 +19,7 @@ function DashboardWithParams() {
         stage: 'idea',
         existingAssets: [],
         focusAreas: ['formation']
-    });
+    };
 
-    return <Dashboard data={data} initialTab={(tab as 'A' | 'B' | 'Workspace') || 'A'} />;
-}
-
-export default function DashboardPage() {
-    return (
-        <Suspense fallback={<div className="flex h-screen items-center justify-center">Loading...</div>}>
-            <DashboardWithParams />
-        </Suspense>
-    );
+    return <Dashboard data={data} initialTab={(searchParams.tab as 'A' | 'B' | 'Workspace') || 'A'} />;
 }

@@ -27,7 +27,9 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
                 // Try to load data
                 try {
                     const saved = localStorage.getItem('setmybizz_data');
-                    if (saved) setData(JSON.parse(saved));
+                    if (saved) {
+                        setTimeout(() => setData(JSON.parse(saved)), 0);
+                    }
                 } catch (e) {
                     console.error("Failed to parse data", e);
                 }
