@@ -1,444 +1,347 @@
 'use client';
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { ARKLE_SYSTEM_PROMPT, BIZ } from '@/lib/mockBizData';
+import { motion, AnimatePresence } from 'framer-motion';
 
-// ── Types ──────────────────────────────────────────────────────────────────
-type Role = 'user' | 'assistant';
-
-interface ActionData {
-  type: 'invoice' | 'file-gst' | 'reminder' | 'draft-form';
-  [key: string]: string;
-}
-
-interface Message {
+type Message = {
   id: string;
-  role: Role;
+  role: 'user' | 'assistant';
   content: string;
-  actions?: ActionData[];
   timestamp: Date;
-  lang?: string;
-  fileRef?: string;
-}
+  actions?: { label: string; action: string }[];
+};
 
-interface Project {
+type Project = {
   id: string;
   title: string;
   lastMsg: string;
-  msgCount: number;
-}
+  date: string;
+  status: 'active' | 'archived';
+};
 
-// ── Parse operator action tags from Arkle response ──────────────────────────
-function parseActions(text: string): { clean: string; actions: ActionData[] } {
-  const actions: ActionData[] = [];
-  const clean = text.replace(/\[\[ACTION:([^\]]+)\]\]/g, (_, params) => {
-    const obj: Record<string, string> = {};
-    params.split(',').forEach((p: string) => {
-      const [k, ...v] = p.split('=');
-      obj[k.trim()] = v.join('=').trim();
-    });
-    actions.push(obj as ActionData);
+type ArkleFile = {
+  id: string;
+  name: string;
+  type: 'PDF' | 'DOC' | 'FUNNEL' | 'IMAGE';
+  date: string;
+};
+
+const NEURAL_COMMANDS = [
+  "GST Compliance", "Sell on Amazon", "Sales Tax Setup", "Manage Bills", 
+  "Financial Strategy", "Track Expenses", "TM & FSSAI Filing", 
+  "Draft Agreements", "Legal Opinion", "CA/CS Support", "Marketing Plan", "Banking Sync"
+];
+
+const QUICK_TRAY_APPS = [
+  { id: 'gmail', icon: 'mail', label: 'Gmail', count: 4, color: 'text-red-500' },
+  { id: 'docs', icon: 'description', label: 'Documents', color: 'text-blue-500' },
+  { id: 'drive', icon: 'add_to_drive', label: 'Drive', color: 'text-green-500' },
+  { id: 'notes', icon: 'note_alt', label: 'Notes', color: 'text-amber-500' },
+  { id: 'tasks', icon: 'task_alt', label: 'Tasks', count: 12, color: 'text-indigo-500' },
+  { id: 'marketing', icon: 'campaign', label: 'Marketing', color: 'text-pink-500' },
+  { id: 'schedules', icon: 'calendar_month', label: 'Schedules', color: 'text-sky-500' },
+  { id: 'notifs', icon: 'notifications', label: 'Alerts', count: 2, color: 'text-orange-500' },
+];
+
+const ARKLE_SYSTEM_PROMPT = `You are Arkle, the World's First Super Human AI Co-Founder. 
+Your goal is to build and manage the business. You are proactive, strategic, and highly technical.
+Current Context: User is viewing their BizDesk Business Command Center.`;
+
+const parseActions = (text: string) => {
+  const actions: { label: string; action: string }[] = [];
+  const clean = text.replace(/\[\[(.*?)\]\]/g, (_, p1) => {
+    const [label, action] = p1.split('|');
+    actions.push({ label: label.trim(), action: (action || label).trim() });
     return '';
   }).trim();
   return { clean, actions };
-}
-
-// ── Render markdown-lite ───────────────────────────────────────────────────
-function renderMd(text: string) {
-  return text
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/⚠️|🔴|🔵|✅|📅|💡|🚀|🌍|💰|📊/g, m => `<span>${m}</span>`)
-    .replace(/\n/g, '<br/>');
-}
-
-// ── Quick Suggestion Pills ─────────────────────────────────────────────────
-const SUGGESTIONS = [
-  { icon: '🧾', label: 'File my GSTR-1',       sub: 'Feb 2026 — Overdue!' },
-  { icon: '🇺🇸', label: 'Set up US LLC',         sub: 'Delaware Incorporation' },
-  { icon: '📊', label: 'Business health report', sub: 'Full Analysis' },
-  { icon: '💰', label: 'Create an invoice',      sub: 'Operator Task' },
-  { icon: '🌍', label: 'How to export to UK?',  sub: 'Global Expansion' },
-  { icon: '📅', label: 'What is due this month?', sub: 'Compliance Check' },
-];
-
-const LANG_OPTIONS = ['English', 'Telugu', 'Hindi', 'Tamil', 'Kannada', 'Marathi'];
-
-const DEFAULT_PROJECTS: Project[] = [
-  { id: 'p1', title: 'US Expansion Plan', lastMsg: '2 days ago', msgCount: 12 },
-  { id: 'p2', title: 'GST Filing Feb 2026', lastMsg: 'Yesterday', msgCount: 5 },
-  { id: 'p3', title: 'Trademark Strategy', lastMsg: '3h ago', msgCount: 8 },
-];
+};
 
 export default function HomeTab() {
   const [msgs, setMsgs]             = useState<Message[]>([]);
   const [input, setInput]           = useState('');
   const [loading, setLoading]       = useState(false);
-  const [projects, setProjects]     = useState<Project[]>(DEFAULT_PROJECTS);
-  const [activeProject, setActiveProject] = useState<string | null>(null);
-  const [lang, setLang]             = useState('English');
-  const [showLang, setShowLang]     = useState(false);
-  const [executedActions, setExecutedActions] = useState<Set<string>>(new Set());
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isVoiceActive, setIsVoiceActive] = useState(false);
+  const [isSpeechEnabled, setIsSpeechEnabled] = useState(false);
+  
+  const [projects, setProjects] = useState<Project[]>([
+    { id: 'p1', title: 'TechNova Scaling Strategy', lastMsg: 'Market analysis complete', date: 'Mar 21', status: 'active' },
+    { id: 'p2', title: 'Q4 GSTR Filings Plan', lastMsg: 'Tax optimization suggested', date: 'Mar 20', status: 'active' }
+  ]);
+  
+  const [files, setFiles] = useState<ArkleFile[]>([
+    { id: 'f1', name: 'Incorporation_Cert.pdf', type: 'PDF', date: 'Mar 10' },
+    { id: 'f2', name: 'Sales_Funnel_v1.doc', type: 'FUNNEL', date: 'Mar 15' },
+    { id: 'f3', name: 'Brand_Kit_Preview.png', type: 'IMAGE', date: 'Mar 18' }
+  ]);
+  
   const scrollRef  = useRef<HTMLDivElement>(null);
   const inputRef   = useRef<HTMLTextAreaElement>(null);
   const fileRef    = useRef<HTMLInputElement>(null);
+  const recognitionRef = useRef<any>(null);
 
-  // Welcome message
+  const bName = "TechNova Solutions Pvt Ltd";
+
+  /* ── Voice Synthesis (Neural) ── */
+  const speak = (text: string, lang = 'en-IN') => {
+    if (!isSpeechEnabled) return;
+    if (typeof window === 'undefined' || !window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = lang;
+    const voices = window.speechSynthesis.getVoices();
+    const voice = voices.find(v => v.lang === lang && v.name.includes('Neural')) || voices[0];
+    if (voice) utterance.voice = voice;
+    utterance.rate = 1.0;
+    utterance.onstart = () => { if (recognitionRef.current) recognitionRef.current.stop(); };
+    utterance.onend = () => { if (isVoiceActive) startRecognition(); };
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const startRecognition = () => {
+    if (recognitionRef.current) { try { recognitionRef.current.start(); } catch (e) {} }
+  };
+
+  const stopRecognition = () => {
+    if (recognitionRef.current) { recognitionRef.current.stop(); }
+  };
+
   useEffect(() => {
-    setMsgs([{
-      id: 'welcome',
-      role: 'assistant',
-      content: `Hello Mahendra! I am **Arkle** — your AI Co-Founder. 🤝\n\nI have studied **${BIZ.name}** completely. I know your CIN, GST records, MCA filings, Trademark status, and business goals.\n\n**⚠️ 2 urgent items right now:**\n- **GSTR-1 (Feb)** is OVERDUE — penalty ₹50/day accumulating\n- **Advance Tax Q4** due Mar 15\n\nTell me what to do. I can file, plan, analyse, or execute any business task.`,
-      timestamp: new Date(),
-      actions: [],
-    }]);
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-IN';
+        recognition.onresult = (event: any) => {
+          let transcript = '';
+          for (let i = event.resultIndex; i < event.results.length; i++) { transcript += event.results[i][0].transcript; }
+          setInput(transcript);
+          if (event.results[event.results.length - 1].isFinal) {
+             const final = transcript;
+             setTimeout(() => { if (final.length > 2) sendMessage(final); }, 1000);
+          }
+        };
+        recognitionRef.current = recognition;
+      }
+    }
   }, []);
 
+  const toggleVoiceMode = () => {
+    if (isVoiceActive) { setIsVoiceActive(false); stopRecognition(); }
+    else { setIsVoiceActive(true); setIsSpeechEnabled(true); startRecognition(); }
+  };
+
   useEffect(() => {
-    scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [msgs, loading]);
+    const timer1 = setTimeout(() => {
+      setMsgs([{
+        id: 'welcome-1',
+        role: 'assistant',
+        content: `Hi, I'm **Arkle**, your Co-founder and personal Business advisor. I can manage your entire business.\n\nI have studied **${bName}** completely. I know your CIN, GST records, MCA filings, Trademark status, and business goals.`,
+        timestamp: new Date(),
+      }]);
+    }, 500);
+    return () => clearTimeout(timer1);
+  }, []);
+
+  useEffect(() => { scrollRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [msgs, loading]);
 
   const sendMessage = useCallback(async (text = input) => {
     const q = text.trim();
     if (!q || loading) return;
     setInput('');
-
-    const userMsg: Message = {
-      id: Date.now().toString(),
-      role: 'user',
-      content: q,
-      timestamp: new Date(),
-    };
+    const userMsg: Message = { id: Date.now().toString(), role: 'user', content: q, timestamp: new Date() };
     setMsgs(prev => [...prev, userMsg]);
     setLoading(true);
-
     try {
-      const history = msgs
-        .slice(-6) // last 3 exchanges for context
-        .map(m => `${m.role === 'user' ? 'Founder' : 'Arkle'}: ${m.content}`)
-        .join('\n\n');
-
-      const prompt = `${ARKLE_SYSTEM_PROMPT}\n\n## CONVERSATION HISTORY\n${history}\n\n## CURRENT MESSAGE\nFounder: ${q}\n\nArkle:`;
-
-      const res  = await fetch('/api/gemini', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt }),
-      });
+      const res = await fetch('/api/gemini', { method: 'POST', body: JSON.stringify({ prompt: `${ARKLE_SYSTEM_PROMPT}\nUser: ${q}\nArkle:` }) });
       const data = await res.json();
-      const raw  = data.text ?? 'I could not process that. Please try again.';
+      const raw = data.text ?? 'Processed.';
       const { clean, actions } = parseActions(raw);
-
-      const aiMsg: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: clean,
-        actions,
-        timestamp: new Date(),
-      };
-      setMsgs(prev => [...prev, aiMsg]);
+      setMsgs(prev => [...prev, { id: (Date.now()+1).toString(), role: 'assistant', content: clean, actions, timestamp: new Date() }]);
+      speak(clean);
     } catch {
-      setMsgs(prev => [...prev, {
-        id: Date.now().toString(),
-        role: 'assistant',
-        content: 'Network error. Please check your connection and try again.',
-        timestamp: new Date(),
-      }]);
+      setMsgs(prev => [...prev, { id: 'err', role: 'assistant', content: 'Network error.', timestamp: new Date() }]);
     }
     setLoading(false);
-    inputRef.current?.focus();
-  }, [input, loading, msgs]);
+  }, [input, loading, msgs, isSpeechEnabled]);
 
-  const newChat = () => {
-    const title = `Session ${projects.length + 1}`;
-    setProjects(prev => [{ id: Date.now().toString(), title, lastMsg: 'Just now', msgCount: 0 }, ...prev]);
-    setMsgs([{
-      id: 'welcome-new',
-      role: 'assistant',
-      content: `New session started. What business task shall we work on today?`,
-      timestamp: new Date(),
-    }]);
-    setActiveProject(null);
-  };
-
-  const executeAction = (actionId: string, action: ActionData) => {
-    setExecutedActions(prev => new Set([...prev, actionId]));
-    const confirms: Record<string, string> = {
-      'invoice'   : `✅ Invoice drafted for ${action.client} — ${action.amount}. Sending now via email.`,
-      'file-gst'  : `✅ Initiating GSTR-1 filing for ${action.period}. Logging in to GST portal...`,
-      'reminder'  : `✅ Reminder set: "${action.task}" on ${action.date}. You will get notified.`,
-      'draft-form': `✅ Form ${action.form} drafted. Download it to review and sign.`,
-    };
-    const msg: Message = {
-      id: Date.now().toString(),
-      role: 'assistant',
-      content: confirms[action.type] ?? '✅ Task executed successfully.',
-      timestamp: new Date(),
-    };
-    setMsgs(prev => [...prev, msg]);
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) sendMessage(`Analysing: ${file.name}`);
   };
 
   return (
-    <div className="flex h-[calc(100vh-98px)] gap-4 font-[DM_Sans,sans-serif]">
-      <style>{`
-        .no-scrollbar::-webkit-scrollbar{display:none}
-        .no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}
-        .msg-enter{animation:msgIn .3s ease}
-        @keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-      `}</style>
-
-      {/* ── LEFT SIDEBAR: Projects ── */}
-      <aside className="w-60 hidden xl:flex flex-col gap-3 flex-shrink-0">
-        {/* New Chat */}
-        <button
-          onClick={newChat}
-          className="w-full py-3 px-4 rounded-2xl border-2 border-dashed border-blue-300 text-blue-600 font-black text-sm hover:bg-blue-50 transition-all flex items-center justify-center gap-2"
-        >
-          <span className="text-lg">+</span> New Chat
-        </button>
-
-        {/* Projects list */}
-        <div className="flex-1 bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-4 py-3 border-b border-slate-100">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Projects & History</p>
-          </div>
-          <div className="overflow-y-auto no-scrollbar">
-            {projects.map(p => (
-              <button
-                key={p.id}
-                onClick={() => setActiveProject(p.id)}
-                className={`w-full text-left px-4 py-3 border-b border-slate-50 hover:bg-slate-50 transition-all ${activeProject === p.id ? 'bg-blue-50' : ''}`}
-              >
-                <p className={`text-xs font-bold truncate ${activeProject === p.id ? 'text-blue-600' : 'text-slate-700'}`}>{p.title}</p>
-                <div className="flex items-center justify-between mt-0.5">
-                  <p className="text-[10px] text-slate-400">{p.lastMsg}</p>
-                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500">{p.msgCount}</span>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Memory status */}
-        <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-3xl p-4 text-white shadow-lg shadow-blue-200">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-            <p className="text-[10px] font-black uppercase tracking-widest text-blue-200">Memory Active</p>
-          </div>
-          <p className="text-sm font-bold leading-tight">Synced with {BIZ.name}</p>
-          <p className="text-[10px] text-blue-200 mt-1">GST · MCA · Trademark · Directors · Compliance</p>
-        </div>
-      </aside>
-
-      {/* ── MAIN CHAT AREA ── */}
-      <div className="flex-1 flex flex-col bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
-
-        {/* Chat Header */}
-        <div className="px-5 py-3 bg-white border-b border-slate-100 flex items-center justify-between flex-shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black text-lg shadow-md shadow-blue-200">A</div>
+    <div className="flex h-full bg-[#f8fafc] overflow-hidden">
+      {/* Strategic Sidebar - Lite */}
+      <motion.div 
+        animate={{ width: isSidebarOpen ? 260 : 0, opacity: isSidebarOpen ? 1 : 0 }}
+        className="h-full bg-slate-50 border-r border-slate-200 overflow-hidden flex flex-col shrink-0 relative z-20"
+      >
+        <div className="p-6 h-full flex flex-col">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center">
+               <span className="material-symbols-outlined text-white text-[18px]">hub</span>
+            </div>
             <div>
-              <h2 className="font-black text-slate-900 text-sm leading-none">Arkle AI Co-Founder</h2>
-              <div className="flex items-center gap-1.5 mt-0.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                <span className="text-[10px] font-bold text-green-600">Business Context Loaded · Operator Layer Active</span>
-              </div>
+               <h1 className="text-slate-900 font-black text-[11px] uppercase tracking-widest leading-none">Arkle OS</h1>
+               <p className="text-slate-400 text-[6px] font-black uppercase tracking-[0.2em] mt-1 italic">Neural Loop</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            {/* Language Selector */}
-            <div className="relative">
-              <button
-                onClick={() => setShowLang(!showLang)}
-                className="flex items-center gap-1.5 text-[10px] font-black px-2.5 py-1.5 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all uppercase tracking-wide"
-              >
-                🌐 {lang} <span className="text-slate-400">▼</span>
-              </button>
-              {showLang && (
-                <div className="absolute right-0 top-full mt-1 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden min-w-[130px]">
-                  {LANG_OPTIONS.map(l => (
-                    <button key={l} onClick={() => { setLang(l); setShowLang(false); }}
-                      className={`w-full text-left px-4 py-2 text-xs font-bold hover:bg-blue-50 ${lang === l ? 'text-blue-600 bg-blue-50' : 'text-slate-700'}`}>
-                      {l}
-                    </button>
-                  ))}
+
+          <div className="space-y-2 mb-8">
+             <button onClick={() => setMsgs([])} className="w-full flex items-center gap-2 bg-white hover:bg-slate-100 border border-slate-200 p-3 rounded-xl transition-all shadow-sm">
+               <span className="material-symbols-outlined text-slate-400 text-[14px]">add_comment</span>
+               <span className="text-slate-900 font-bold text-[8px] uppercase tracking-widest">New Session</span>
+             </button>
+             <button onClick={() => setProjects([{ id: 'n', title: 'New Unit', lastMsg: '', date: 'Now', status: 'active' }, ...projects])} className="w-full flex items-center gap-2 bg-slate-900 hover:bg-slate-800 p-3 rounded-xl transition-all shadow-xl">
+               <span className="material-symbols-outlined text-white/50 text-[14px]">create_new_folder</span>
+               <span className="text-white font-bold text-[8px] uppercase tracking-widest">Create Unit</span>
+             </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto space-y-8 no-scrollbar pr-1">
+             <div className="space-y-4">
+                <header className="px-1"><h3 className="text-slate-400 text-[7px] font-black uppercase tracking-[0.3em]">Business Threads</h3></header>
+                <div className="space-y-1.5">
+                   {projects.map(p => (
+                      <button key={p.id} className="w-full group p-3 rounded-xl bg-white border border-slate-100 hover:border-sky-500 hover:bg-sky-50 transition-all text-left shadow-sm">
+                         <p className="text-slate-700 font-bold text-[9px] truncate transition-all leading-none">{p.title}</p>
+                         <p className="text-slate-300 text-[6px] font-black uppercase mt-1.5 italic">{p.date}</p>
+                      </button>
+                   ))}
                 </div>
-              )}
-            </div>
-            <button onClick={newChat} className="text-[10px] font-black px-2.5 py-1.5 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center gap-1">
-              + New
-            </button>
-          </div>
-        </div>
-
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto px-5 py-6 space-y-5 no-scrollbar">
-          {msgs.map((m) => (
-            <div key={m.id} className={`flex gap-3 msg-enter ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              {m.role === 'assistant' && (
-                <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex-shrink-0 flex items-center justify-center font-black text-xs shadow-sm mt-0.5">A</div>
-              )}
-              <div className={`flex flex-col gap-2 max-w-[82%]`}>
-                {/* Message bubble */}
-                <div
-                  className={`px-5 py-4 rounded-2xl text-[14px] leading-relaxed ${
-                    m.role === 'user'
-                      ? 'bg-blue-600 text-white ml-auto'
-                      : 'bg-slate-50 text-slate-800 border border-slate-200'
-                  }`}
-                  dangerouslySetInnerHTML={{ __html: renderMd(m.content) }}
-                />
-
-                {/* Operator Action Cards */}
-                {m.actions && m.actions.length > 0 && m.actions.map((action, i) => {
-                  const actionId = `${m.id}-${i}`;
-                  const done = executedActions.has(actionId);
-                  const cfg: Record<string, { icon: string; title: string; color: string }> = {
-                    'invoice'   : { icon: '🧾', title: 'Invoice Ready to Send',      color: '#2563eb' },
-                    'file-gst'  : { icon: '📋', title: 'GST Filing Ready to Submit', color: '#16a34a' },
-                    'reminder'  : { icon: '📅', title: 'Reminder Set',               color: '#7c3aed' },
-                    'draft-form': { icon: '📄', title: 'Form Draft Ready',            color: '#d97706' },
-                  };
-                  const c = cfg[action.type] ?? { icon: '⚡', title: 'Task Ready', color: '#2563eb' };
-                  return (
-                    <div
-                      key={i}
-                      className={`rounded-2xl border-2 p-4 transition-all ${done ? 'opacity-60' : ''}`}
-                      style={{ borderColor: c.color + '40', background: c.color + '08' }}
-                    >
-                      <div className="flex items-center gap-3 mb-3">
-                        <span className="text-3xl">{c.icon}</span>
-                        <div className="flex-1">
-                          <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: c.color }}>Operator Action</p>
-                          <p className="font-black text-slate-900 text-sm">{c.title}</p>
-                          <p className="text-xs text-slate-500">
-                            {action.client && `Client: ${action.client}`}
-                            {action.amount && ` · ${action.amount}`}
-                            {action.period && `Period: ${action.period}`}
-                            {action.task   && action.task}
-                            {action.form   && `Form: ${action.form}`}
-                          </p>
-                        </div>
+             </div>
+             <div className="space-y-4 pb-8">
+                <header className="px-1"><h3 className="text-slate-400 text-[7px] font-black uppercase tracking-[0.3em]">Neural Assets</h3></header>
+                <div className="space-y-1.5">
+                   {files.map(f => (
+                      <div key={f.id} className="flex items-center gap-2.5 p-3 rounded-xl bg-white border border-slate-100 hover:border-amber-400 hover:bg-amber-50 cursor-pointer group transition-all">
+                         <div className="w-7 h-7 rounded-lg bg-slate-50 flex items-center justify-center text-slate-300 group-hover:text-amber-500">
+                            <span className="material-symbols-outlined text-[14px]">{f.type === 'PDF' ? 'picture_as_pdf' : 'description'}</span>
+                         </div>
+                         <div className="flex-1">
+                            <p className="text-slate-600 font-bold text-[8px] truncate leading-none">{f.name}</p>
+                            <p className="text-slate-300 text-[6px] font-black uppercase mt-1 italic">{f.type}</p>
+                         </div>
                       </div>
-                      {done ? (
-                        <div className="py-2 text-center text-xs font-black text-green-600">✅ Task Executed</div>
-                      ) : (
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => executeAction(actionId, action)}
-                            className="flex-1 py-2.5 rounded-xl text-white text-xs font-black transition-all hover:opacity-90 active:scale-95"
-                            style={{ background: c.color }}
-                          >
-                            EXECUTE NOW →
-                          </button>
-                          <button className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-black hover:bg-slate-50">
-                            Edit
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                   ))}
+                </div>
+             </div>
+          </div>
+        </div>
+      </motion.div>
 
-                {/* Timestamp */}
-                <p className={`text-[10px] text-slate-400 ${m.role === 'user' ? 'text-right' : ''}`}>
-                  {m.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </p>
-              </div>
-              {m.role === 'user' && (
-                <div className="w-8 h-8 rounded-xl bg-slate-800 text-white flex-shrink-0 flex items-center justify-center font-black text-xs shadow-sm mt-0.5">MK</div>
-              )}
-            </div>
-          ))}
-
-          {/* Typing indicator */}
-          {loading && (
-            <div className="flex gap-3 msg-enter">
-              <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex-shrink-0 flex items-center justify-center font-black text-xs animate-pulse">A</div>
-              <div className="px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl flex items-center gap-1.5">
-                {[0, 1, 2].map(i => (
-                  <div key={i} className="w-2.5 h-2.5 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: `${i * 0.18}s` }} />
-                ))}
-              </div>
-            </div>
-          )}
-          <div ref={scrollRef} />
+      {/* Main Console Center */}
+      <div className="flex-1 flex flex-col min-w-0 relative bg-white">
+        <div className="h-16 border-b border-slate-100 px-8 flex items-center justify-between bg-white shrink-0 sticky top-0 z-50">
+          <div className="flex items-center gap-6">
+            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all">
+               <span className="material-symbols-outlined text-[20px]">{isSidebarOpen ? 'menu_open' : 'menu'}</span>
+            </button>
+            <h2 className="text-slate-900 font-black text-[10px] tracking-widest uppercase">{bName}</h2>
+          </div>
+          <div className="flex items-center gap-3">
+             <button onClick={() => setIsSpeechEnabled(!isSpeechEnabled)} className={`h-8 px-4 rounded-full flex items-center gap-2 transition-all ${isSpeechEnabled ? 'bg-sky-50 text-sky-600' : 'bg-slate-50 text-slate-400'}`}>
+                <span className="material-symbols-outlined text-[16px]">{isSpeechEnabled ? 'volume_up' : 'volume_off'}</span>
+                <span className="text-[8px] font-black uppercase tracking-widest">{isSpeechEnabled ? 'On' : 'Off'}</span>
+             </button>
+          </div>
         </div>
 
-        {/* Quick Suggestions (shown at start) */}
-        {msgs.length <= 1 && (
-          <div className="px-5 pb-3 flex gap-2 overflow-x-auto no-scrollbar flex-shrink-0">
-            {SUGGESTIONS.map((s, i) => (
-              <button
-                key={i}
-                onClick={() => sendMessage(s.label)}
-                className="flex-shrink-0 bg-slate-50 border border-slate-200 hover:border-blue-400 hover:bg-blue-50 hover:shadow-md rounded-2xl p-3 text-left transition-all group min-w-[150px]"
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-lg">{s.icon}</span>
-                  <p className="text-xs font-black text-slate-800 leading-tight group-hover:text-blue-700">{s.label}</p>
+        <div className="flex-1 overflow-y-auto px-12 py-12 space-y-10 no-scrollbar bg-slate-50/5">
+          <AnimatePresence mode="popLayout">
+            {msgs.map((msg) => (
+              <motion.div key={msg.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div className={`flex gap-5 max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                  <div className={`w-10 h-10 shrink-0 rounded-xl flex items-center justify-center bg-white border border-slate-100 ${msg.role === 'user' ? 'bg-slate-900 text-white' : 'text-slate-400'}`}>
+                    <span className="material-symbols-outlined text-[18px]">{msg.role === 'user' ? 'person' : 'psychology'}</span>
+                  </div>
+                  <div className={`space-y-3 ${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
+                    <div className={`p-6 rounded-[28px] text-[12px] leading-relaxed font-medium shadow-sm border ${
+                      msg.role === 'user' ? 'bg-slate-900 text-white' : 'bg-white text-slate-700 border-slate-100'
+                    }`}>
+                      <div dangerouslySetInnerHTML={{ __html: msg.content.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br/>') }} />
+                    </div>
+                  </div>
                 </div>
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">{s.sub}</p>
-              </button>
+              </motion.div>
             ))}
-          </div>
-        )}
+          </AnimatePresence>
+          {loading && <div className="text-slate-300 text-[8px] font-black uppercase tracking-[0.4em] ml-2 animate-pulse">Strategizing...</div>}
+          <div ref={scrollRef} className="h-10" />
+        </div>
 
-        {/* Input Area */}
-        <div className="p-4 pt-2 bg-white border-t border-slate-100 flex-shrink-0">
-          <div className="relative bg-slate-50 border border-slate-200 rounded-2xl focus-within:border-blue-400 focus-within:shadow-lg focus-within:shadow-blue-100 transition-all">
-            <textarea
-              ref={inputRef}
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  sendMessage();
-                }
-              }}
-              placeholder={`Ask Arkle in ${lang}... "File my GST", "Create invoice", "Set up US LLC", "Marketing strategy"...`}
-              className="w-full bg-transparent outline-none text-[14px] text-slate-800 placeholder-slate-400 resize-none px-5 py-4 pr-32 min-h-[60px] max-h-40"
-              rows={1}
-            />
-            {/* Right buttons */}
-            <div className="absolute right-3 bottom-3 flex items-center gap-1.5">
-              <input ref={fileRef} type="file" className="hidden" accept="image/*,application/pdf" />
-              <button
-                onClick={() => fileRef.current?.click()}
-                className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all text-lg"
-                title="Attach file"
-              >
-                📎
-              </button>
-              <button
-                className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all text-lg"
-                title="Voice input"
-              >
-                🎙️
-              </button>
-              <button
-                onClick={() => sendMessage()}
-                disabled={!input.trim() || loading}
-                className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-200 hover:scale-105 active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:scale-100"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="22" y1="2" x2="11" y2="13"/>
-                  <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-                </svg>
-              </button>
-            </div>
-          </div>
+        <div className="px-10 py-3 bg-white shrink-0 border-t border-slate-100">
+           <div className="flex items-center gap-3 overflow-x-auto no-scrollbar">
+              {NEURAL_COMMANDS.map((cmd, i) => (
+                 <button key={i} onClick={() => sendMessage(cmd)} className="px-4 py-2 rounded-full border border-slate-100 bg-white text-[8px] font-black uppercase tracking-widest text-slate-400 hover:text-sky-600 hover:bg-sky-50 transition-all shrink-0">
+                    {cmd}
+                 </button>
+              ))}
+           </div>
+        </div>
 
-          {/* Status bar */}
-          <div className="flex items-center justify-between mt-2.5 px-1">
-            <div className="flex items-center gap-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-green-500" />Operator Layer Active</span>
-              <span>⚡ Gemini 1.5 Flash</span>
-              <span>🔒 Secure</span>
+        <div className="p-8 pt-2 bg-transparent shrink-0">
+          <div className="relative group max-w-4xl mx-auto">
+            <div className="flex items-center gap-4 bg-white p-3 pl-8 rounded-full border border-slate-200 shadow-xl focus-within:border-slate-900 transition-all">
+              <button onClick={() => fileRef.current?.click()} className="text-slate-300 hover:text-slate-900 shrink-0"><span className="material-symbols-outlined text-[24px]">add_circle</span></button>
+              <textarea
+                ref={inputRef}
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+                placeholder={isVoiceActive ? "Listening..." : "Message Arkle..."}
+                className="flex-1 bg-transparent text-slate-800 text-[13px] font-semibold outline-none placeholder-slate-300 py-3 h-[50px] resize-none no-scrollbar"
+                rows={1}
+              />
+              <button onClick={toggleVoiceMode} className={`w-10 h-10 rounded-full flex items-center justify-center ${isVoiceActive ? 'bg-sky-50 text-sky-600 animate-pulse' : 'text-slate-300 hover:text-slate-900'}`}><span className="material-symbols-outlined text-[22px]">graphic_eq</span></button>
+              <button onClick={() => sendMessage()} disabled={!input.trim()} className="w-12 h-12 bg-slate-900 text-white rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all"><span className="material-symbols-outlined text-[20px] font-bold">arrow_upward</span></button>
             </div>
-            <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">↵ Send · Shift+↵ New Line</span>
+            <input ref={fileRef} type="file" className="hidden" onChange={handleFileUpload} />
           </div>
         </div>
       </div>
+
+      {/* QUICK TRAY - RIGHT SIDEBANNER (Lite Theme) */}
+      <motion.div 
+        className="h-full w-[70px] bg-slate-50 border-l border-slate-200 flex flex-col items-center py-8 shrink-0 relative z-30"
+      >
+        <div className="flex flex-col gap-6 items-center">
+           {QUICK_TRAY_APPS.map(app => (
+              <div key={app.id} className="relative group flex flex-col items-center">
+                 <button 
+                  className={`w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center transition-all hover:scale-110 active:scale-90 shadow-sm hover:shadow-md ${app.color}`}
+                  title={app.label}
+                 >
+                    <span className="material-symbols-outlined text-[24px]">{app.icon}</span>
+                    {app.count && (
+                       <span className="absolute -top-1 -right-1 bg-sky-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full border-2 border-slate-50">
+                          {app.count}
+                       </span>
+                    )}
+                 </button>
+                 <span className="absolute left-[-100px] bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all pointer-events-none whitespace-nowrap shadow-xl">
+                    {app.label}
+                 </span>
+              </div>
+           ))}
+
+           <div className="w-8 h-[1px] bg-slate-200 mt-4 mb-4" />
+
+           <button className="w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-slate-300 hover:text-slate-900 transition-all hover:bg-slate-100">
+              <span className="material-symbols-outlined text-[24px]">apps</span>
+           </button>
+        </div>
+
+        <div className="mt-auto flex flex-col gap-4 items-center">
+           <button className="w-10 h-10 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center animate-bounce">
+              <span className="material-symbols-outlined text-[20px]">flash_on</span>
+           </button>
+           <div className="w-2 h-2 rounded-full bg-green-500" />
+        </div>
+      </motion.div>
     </div>
   );
 }

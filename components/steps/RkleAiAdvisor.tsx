@@ -15,7 +15,44 @@ export default function RkleAiAdvisor({ onLeadCapture }: ArkleAiAdvisorProps) {
     const [input, setInput] = useState('');
     const [isOpen, setIsOpen] = useState(false);
     const [leadPrompted, setLeadPrompted] = useState(false);
+    const [isRecording, setIsRecording] = useState(false);
+    const recognitionRef = useRef<any>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                const recognition = new SpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = 'en-US';
+
+                recognition.onresult = (event: any) => {
+                    let transcript = '';
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        transcript += event.results[i][0].transcript;
+                    }
+                    setInput(transcript);
+                };
+
+                recognition.onerror = () => setIsRecording(false);
+                recognition.onend = () => setIsRecording(false);
+                recognitionRef.current = recognition;
+            }
+        }
+    }, []);
+
+    const toggleVoice = () => {
+        if (!recognitionRef.current) return alert("Browser does not support Live Voice Mode.");
+        if (isRecording) {
+            recognitionRef.current.stop();
+            setIsRecording(false);
+        } else {
+            recognitionRef.current.start();
+            setIsRecording(true);
+        }
+    };
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -197,9 +234,16 @@ export default function RkleAiAdvisor({ onLeadCapture }: ArkleAiAdvisorProps) {
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                        placeholder={mode === 'advice' ? "Ask Arkle for advice..." : "Ask about global setup..."}
+                        placeholder={isRecording ? "Listening... Speak now" : (mode === 'advice' ? "Ask Arkle for advice..." : "Ask about global setup...")}
                         className="flex-1 bg-transparent px-4 py-3 text-[13px] font-medium text-white placeholder:text-slate-500 outline-none min-w-0"
                     />
+                    <button 
+                        onClick={toggleVoice}
+                        className={`w-10 h-10 shrink-0 rounded-xl flex items-center justify-center transition-all mr-1 ${isRecording ? 'text-red-400 bg-red-500/10 animate-pulse' : 'text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/10'}`}
+                        title="Voice Input (Live Voice Support)"
+                    >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
+                    </button>
                     <button 
                         id="arkle-send-btn"
                         onClick={handleSend}

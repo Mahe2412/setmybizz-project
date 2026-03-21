@@ -32,6 +32,31 @@ const AiCoFounderChat: React.FC<AiCoFounderChatProps> = ({ defaultMinimized = fa
     const [isRecording, setIsRecording] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const recognitionRef = useRef<any>(null);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                const recognition = new SpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = 'en-IN'; // Based on the UI suggesting Indian languages
+
+                recognition.onresult = (event: any) => {
+                    let transcript = '';
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        transcript += event.results[i][0].transcript;
+                    }
+                    setInputValue(transcript);
+                };
+
+                recognition.onerror = () => setIsRecording(false);
+                recognition.onend = () => setIsRecording(false);
+                recognitionRef.current = recognition;
+            }
+        }
+    }, []);
 
     // Auto-scroll
     useEffect(() => {
@@ -62,10 +87,13 @@ const AiCoFounderChat: React.FC<AiCoFounderChatProps> = ({ defaultMinimized = fa
     };
 
     const handleVoiceInput = () => {
-        setIsRecording(!isRecording);
-        // Voice recording logic would go here
-        if (!isRecording) {
-            setTimeout(() => setIsRecording(false), 3000);
+        if (!recognitionRef.current) return alert("Browser does not support Live Voice Mode.");
+        if (isRecording) {
+            recognitionRef.current.stop();
+            setIsRecording(false);
+        } else {
+            recognitionRef.current.start();
+            setIsRecording(true);
         }
     };
 
@@ -160,21 +188,21 @@ const AiCoFounderChat: React.FC<AiCoFounderChatProps> = ({ defaultMinimized = fa
     ];
 
     return (
-        <div className="w-full h-full bg-gradient-to-br from-white via-indigo-50 to-purple-50 rounded-2xl shadow-2xl border border-indigo-200 flex flex-col overflow-hidden relative">
+        <div className="w-full h-full bg-linear-to-br from-white via-indigo-50 to-purple-50 rounded-2xl shadow-2xl border border-indigo-200 flex flex-col overflow-hidden relative">
             {/* Background Animation */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(99,102,241,0.1),transparent_50%)]"></div>
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent animate-pulse"></div>
+                <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-indigo-500 to-transparent animate-pulse"></div>
             </div>
 
             {/* AI Brain Hub Section */}
-            <div className="relative p-8 border-b border-indigo-200 bg-gradient-to-b from-indigo-100/30 to-transparent">
+            <div className="relative p-8 border-b border-indigo-200 bg-linear-to-b from-indigo-100/30 to-transparent">
                 {/* Central Brain Container */}
                 <div className="relative w-48 h-48 mx-auto mb-6">
                     {/* Animated Pulse Rings */}
                     <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="absolute w-32 h-32 rounded-full bg-gradient-to-r from-cyan-500 to-indigo-500 opacity-20 animate-ping"></div>
-                        <div className="absolute w-40 h-40 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 opacity-10 animate-pulse"></div>
+                        <div className="absolute w-32 h-32 rounded-full bg-linear-to-r from-cyan-500 to-indigo-500 opacity-20 animate-ping"></div>
+                        <div className="absolute w-40 h-40 rounded-full bg-linear-to-r from-purple-500 to-pink-500 opacity-10 animate-pulse"></div>
                     </div>
 
                     {/* Tool Connections */}
@@ -186,7 +214,7 @@ const AiCoFounderChat: React.FC<AiCoFounderChatProps> = ({ defaultMinimized = fa
                         return (
                             <div key={idx}>
                                 {/* Connection Line */}
-                                <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 1 }}>
+                                <svg className="absolute inset-0 w-full h-full pointer-events-none z-0">
                                     <line
                                         x1="50%"
                                         y1="50%"
@@ -208,11 +236,10 @@ const AiCoFounderChat: React.FC<AiCoFounderChatProps> = ({ defaultMinimized = fa
 
                                 {/* Tool Icon */}
                                 <div
-                                    className="absolute w-10 h-10 -ml-5 -mt-5 flex items-center justify-center bg-white backdrop-blur-md rounded-lg border border-indigo-300 shadow-lg hover:scale-110 transition-transform cursor-pointer group"
+                                    className="absolute w-10 h-10 -ml-5 -mt-5 flex items-center justify-center bg-white backdrop-blur-md rounded-lg border border-indigo-300 shadow-lg hover:scale-110 transition-transform cursor-pointer group z-10"
                                     style={{
                                         left: `calc(50% + ${x}px)`,
                                         top: `calc(50% + ${y}px)`,
-                                        zIndex: 10,
                                     }}
                                 >
                                     <span className={`material-icons text-sm ${tool.color} group-hover:scale-125 transition-transform`}>
@@ -227,10 +254,10 @@ const AiCoFounderChat: React.FC<AiCoFounderChatProps> = ({ defaultMinimized = fa
                     })}
 
                     {/* Central Brain Icon */}
-                    <div className="absolute inset-0 flex items-center justify-center" style={{ zIndex: 20 }}>
-                        <div className="relative w-24 h-24 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-2xl shadow-indigo-500/50 animate-pulse">
+                    <div className="absolute inset-0 flex items-center justify-center z-20">
+                        <div className="relative w-24 h-24 bg-linear-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-2xl shadow-indigo-500/50 animate-pulse">
                             <div className="absolute inset-1 bg-white rounded-full flex items-center justify-center">
-                                <span className="material-icons text-5xl bg-gradient-to-br from-cyan-400 via-indigo-400 to-pink-400 bg-clip-text text-transparent">
+                                <span className="material-icons text-5xl bg-linear-to-br from-cyan-400 via-indigo-400 to-pink-400 bg-clip-text text-transparent">
                                     psychology
                                 </span>
                             </div>
@@ -240,7 +267,7 @@ const AiCoFounderChat: React.FC<AiCoFounderChatProps> = ({ defaultMinimized = fa
 
                 {/* Title */}
                 <div className="text-center">
-                    <h2 className="text-2xl font-black bg-gradient-to-r from-cyan-400 via-indigo-400 to-pink-400 bg-clip-text text-transparent mb-2">
+                    <h2 className="text-2xl font-black bg-linear-to-r from-cyan-400 via-indigo-400 to-pink-400 bg-clip-text text-transparent mb-2">
                         AI Co-Founder
                     </h2>
                     <p className="text-indigo-700 text-sm font-medium">
@@ -250,17 +277,17 @@ const AiCoFounderChat: React.FC<AiCoFounderChatProps> = ({ defaultMinimized = fa
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-4 relative z-10" style={{ scrollbarWidth: 'thin', scrollbarColor: '#4f46e5 transparent' }}>
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 relative z-10 custom-scrollbar">
                 {messages.map((msg, idx) => (
                     <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
                         {msg.role === 'ai' && (
-                            <div className="w-8 h-8 mr-3 rounded-full bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center flex-shrink-0 mt-1 shadow-lg">
+                            <div className="w-8 h-8 mr-3 rounded-full bg-linear-to-br from-indigo-500 to-pink-500 flex items-center justify-center shrink-0 mt-1 shadow-lg">
                                 <span className="material-icons text-white text-sm">psychology</span>
                             </div>
                         )}
 
                         <div className={`max-w-[80%] rounded-2xl shadow-lg backdrop-blur-md ${msg.role === 'user'
-                            ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white rounded-tr-none'
+                            ? 'bg-linear-to-br from-indigo-600 to-purple-600 text-white rounded-tr-none'
                             : 'bg-white border-2 border-indigo-200 text-slate-800 rounded-tl-none'
                             }`}>
                             <div className="px-4 py-3">
@@ -291,7 +318,7 @@ const AiCoFounderChat: React.FC<AiCoFounderChatProps> = ({ defaultMinimized = fa
                         </div>
 
                         {msg.role === 'user' && (
-                            <div className="w-8 h-8 ml-3 rounded-full bg-gradient-to-br from-slate-700 to-slate-600 flex items-center justify-center flex-shrink-0 mt-1">
+                            <div className="w-8 h-8 ml-3 rounded-full bg-linear-to-br from-slate-700 to-slate-600 flex items-center justify-center shrink-0 mt-1">
                                 <span className="material-icons text-slate-300 text-sm">person</span>
                             </div>
                         )}
@@ -300,7 +327,7 @@ const AiCoFounderChat: React.FC<AiCoFounderChatProps> = ({ defaultMinimized = fa
 
                 {isLoading && (
                     <div className="flex justify-start animate-in fade-in">
-                        <div className="w-8 h-8 mr-3 rounded-full bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center shadow-lg">
+                        <div className="w-8 h-8 mr-3 rounded-full bg-linear-to-br from-indigo-500 to-pink-500 flex items-center justify-center shadow-lg">
                             <span className="material-icons text-white text-sm animate-spin">psychology</span>
                         </div>
                         <div className="bg-white border-2 border-indigo-200 rounded-2xl rounded-tl-none px-4 py-3 shadow-lg">
@@ -320,12 +347,12 @@ const AiCoFounderChat: React.FC<AiCoFounderChatProps> = ({ defaultMinimized = fa
 
             {/* Quick Actions */}
             <div className="px-6 py-3 border-t border-indigo-200 bg-white/80 backdrop-blur-sm">
-                <div className="flex gap-2 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
+                <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
                     {quickActions.map((action, idx) => (
                         <button
                             key={idx}
                             onClick={() => handleQuickAction(action.label)}
-                            className={`flex-shrink-0 px-4 py-2 rounded-xl bg-gradient-to-r ${action.gradient} text-white text-xs font-bold shadow-lg hover:scale-105 transition-all flex items-center gap-2 hover:shadow-xl`}
+                            className={`shrink-0 px-4 py-2 rounded-xl bg-linear-to-r ${action.gradient.replace('from-', 'from-').replace('to-', 'to-')} text-white text-xs font-bold shadow-lg hover:scale-105 transition-all flex items-center gap-2 hover:shadow-xl`}
                         >
                             <span className="material-icons text-sm">{action.icon}</span>
                             {action.label}
@@ -362,7 +389,7 @@ const AiCoFounderChat: React.FC<AiCoFounderChatProps> = ({ defaultMinimized = fa
                 <div className="flex items-end gap-2 bg-white border-2 border-indigo-300 rounded-xl p-2 focus-within:ring-2 focus-within:ring-indigo-400 focus-within:border-indigo-500 transition-all shadow-lg">
                     {/* Left Icons: Upload & Voice */}
                     <div className="flex gap-1 pb-1 pl-1">
-                        <input ref={fileInputRef} type="file" multiple className="hidden" onChange={(e) => handleFileSelect(e.target.files)} />
+                        <input ref={fileInputRef} type="file" multiple className="hidden" title="Upload files" onChange={(e) => handleFileSelect(e.target.files)} />
                         <button
                             onClick={() => fileInputRef.current?.click()}
                             className="p-2 text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/10 rounded-lg transition-all"
@@ -407,7 +434,7 @@ const AiCoFounderChat: React.FC<AiCoFounderChatProps> = ({ defaultMinimized = fa
                         disabled={(!inputValue.trim() && attachments.length === 0) || isLoading}
                         className={`p-3 rounded-xl transition-all flex items-center justify-center mb-0.5 shadow-lg ${(!inputValue.trim() && attachments.length === 0) || isLoading
                             ? 'bg-slate-300 text-slate-400 cursor-not-allowed'
-                            : 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 hover:shadow-indigo-500/50 hover:scale-105'
+                            : 'bg-linear-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 hover:shadow-indigo-500/50 hover:scale-105'
                             }`}
                     >
                         {isLoading ? (

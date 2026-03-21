@@ -9,7 +9,7 @@ interface ToolCardProps {
     label: string;
     icon: string;
     color: string;
-    onContextMenu: (e: React.MouseEvent, id: string, label: string) => void;
+    onContextMenu: (e: React.MouseEvent, label: string) => void;
     onClick: () => void;
 }
 
@@ -31,22 +31,10 @@ const colorVariants: Record<string, { bg: string, text: string, hoverBg: string,
     red: { bg: 'bg-red-50', text: 'text-red-600', hoverBg: 'group-hover:bg-red-600', hoverText: 'group-hover:text-white', from: 'from-red-50' },
 };
 
-export default function SortableToolCard({ id, label, icon, color, onContextMenu, onClick }: ToolCardProps) {
-    const {
-        attributes,
-        listeners,
-        setNodeRef,
-        transform,
-        transition,
-        isDragging
-    } = useSortable({ id });
+export default React.memo(function SortableToolCard({ id, label, icon, color, onContextMenu, onClick }: ToolCardProps) {
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
 
-    const style = {
-        transform: CSS.Transform.toString(transform),
-        transition,
-        zIndex: isDragging ? 50 : 1,
-    };
-
+    const style = { transform: CSS.Transform.toString(transform), transition, zIndex: isDragging ? 50 : 1 };
     const colors = colorVariants[color] || colorVariants['blue'];
 
     return (
@@ -55,18 +43,15 @@ export default function SortableToolCard({ id, label, icon, color, onContextMenu
             style={style}
             {...attributes}
             {...listeners}
-            onContextMenu={(e) => onContextMenu(e, id, label)}
+            onContextMenu={(e) => onContextMenu(e, label)}
             onClick={onClick}
-            className={`bg-white/80 backdrop-blur-md p-5 rounded-2xl border border-white/50 shadow-sm flex flex-col items-center justify-center gap-3 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group cursor-pointer h-full relative overflow-hidden select-none touch-none ${isDragging ? 'opacity-50 scale-105 shadow-2xl ring-2 ring-blue-500' : ''}`}
+            className={`bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center justify-center gap-3 hover:shadow-xl hover:-translate-y-1 transition-all group h-full relative overflow-hidden select-none cursor-grab active:cursor-grabbing ${isDragging ? 'opacity-50 scale-105 shadow-2xl ring-2 ring-indigo-500 z-50' : ''}`}
         >
-            <div className={`absolute inset-0 bg-gradient-to-br ${colors.from} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
-            <div className={`p-3 ${colors.bg} rounded-2xl ${colors.text} ${colors.hoverBg} ${colors.hoverText} transition-all duration-300 shadow-sm z-10 group-hover:scale-110`}>
-                <span className="material-icons text-2xl">{icon}</span>
+            <div className={`p-3 ${colors.bg} rounded-2xl ${colors.text} transition-transform group-hover:scale-110 shadow-sm`}>
+                <span className="material-icons text-xl">{icon}</span>
             </div>
-            <span className="font-bold text-sm text-slate-700 group-hover:text-slate-900 z-10">{label}</span>
-
-            {/* Visual Grip Handle Hint */}
-            <span className="absolute top-2 right-2 text-slate-200 opacity-0 group-hover:opacity-100 transition-opacity material-icons text-xs">drag_indicator</span>
+            <span className="font-black text-[8px] text-slate-700 uppercase tracking-widest group-hover:text-slate-900">{label}</span>
+            <span className="absolute top-2 right-2 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity material-icons text-xs">drag_indicator</span>
         </div>
     );
-}
+});

@@ -61,6 +61,7 @@ const AdvancedAiCoFounder: React.FC = () => {
     const [replyingTo, setReplyingTo] = useState<string | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const nodeRef = useRef(null);
 
     // Auto-scroll
     useEffect(() => {
@@ -147,25 +148,62 @@ const AdvancedAiCoFounder: React.FC = () => {
         }
     };
 
+    const [isRecording, setIsRecording] = useState(false);
+    const recognitionRef = useRef<any>(null);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                const recognition = new SpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = 'en-US';
+
+                recognition.onresult = (event: any) => {
+                    let transcript = '';
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        transcript += event.results[i][0].transcript;
+                    }
+                    setInputValue(transcript);
+                };
+
+                recognition.onerror = () => setIsRecording(false);
+                recognition.onend = () => setIsRecording(false);
+                recognitionRef.current = recognition;
+            }
+        }
+    }, []);
+
+    const toggleVoice = () => {
+        if (!recognitionRef.current) return alert("Browser does not support Live Voice Mode.");
+        if (isRecording) {
+            recognitionRef.current.stop();
+            setIsRecording(false);
+        } else {
+            recognitionRef.current.start();
+            setIsRecording(true);
+        }
+    };
+
     const handleCopy = (content: string) => {
         navigator.clipboard.writeText(content);
-        // Show toast notification
+        // Show local toast or feedback
     };
 
     const handleShare = async (content: string) => {
         if (navigator.share) {
             await navigator.share({
-                title: 'AI Co-Founder Response',
+                title: 'Arkle AI Intelligence',
                 text: content
             });
         }
     };
 
     const handleSave = (message: Message) => {
-        // Save to local storage or database
-        const savedChats = JSON.parse(localStorage.getItem('saved-ai-responses') || '[]');
-        savedChats.push(message);
-        localStorage.setItem('saved-ai-responses', JSON.stringify(savedChats));
+        const saved = JSON.parse(localStorage.getItem('saved-arkle-insights') || '[]');
+        saved.push(message);
+        localStorage.setItem('saved-arkle-insights', JSON.stringify(saved));
     };
 
     const handleDownload = (url: string, name: string) => {
@@ -176,7 +214,6 @@ const AdvancedAiCoFounder: React.FC = () => {
     };
 
     const handleExportToDrive = async (url: string, name: string) => {
-        // Integration with Google Drive API
         try {
             await fetch('/api/export-to-drive', {
                 method: 'POST',
@@ -191,233 +228,171 @@ const AdvancedAiCoFounder: React.FC = () => {
     const renderMessage = (msg: Message) => (
         <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300 group`}>
             {msg.role === 'ai' && (
-                <div className="w-8 h-8 mr-3 rounded-full bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center flex-shrink-0 mt-1 shadow-lg">
-                    <span className="material-icons text-white text-sm">psychology</span>
+                <div className="w-8 h-8 mr-3 rounded-full bg-slate-900 flex items-center justify-center flex-shrink-0 mt-1 shadow-lg ring-2 ring-indigo-100">
+                    <span className="material-icons text-white text-xs">bolt</span>
                 </div>
             )}
 
-            <div className="flex flex-col max-w-[80%]">
-                <div className={`rounded-2xl shadow-lg backdrop-blur-md ${msg.role === 'user'
-                    ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white rounded-tr-none'
-                    : 'bg-white border-2 border-indigo-200 text-slate-800 rounded-tl-none'
+            <div className="flex flex-col max-w-[85%]">
+                <div className={`rounded-3xl shadow-sm border ${msg.role === 'user'
+                    ? 'bg-slate-900 text-white border-slate-800 rounded-tr-none'
+                    : 'bg-white border-slate-100 text-slate-800 rounded-tl-none'
                     }`}>
-                    <div className="px-4 py-3">
-                        <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+                    <div className="px-5 py-4">
+                        <p className="text-[13px] whitespace-pre-wrap leading-relaxed font-medium">{msg.content}</p>
                     </div>
 
                     {msg.generatedContent && (
-                        <div className="px-4 pb-3 border-t border-indigo-200 pt-3 space-y-2">
-                            <div className="flex items-center justify-between bg-indigo-50 p-3 rounded-lg">
-                                <div className="flex items-center gap-2">
-                                    <span className="material-icons text-indigo-600">
-                                        {msg.generatedContent.type === 'image' ? 'image' : 'description'}
-                                    </span>
-                                    <span className="text-xs font-bold text-slate-700">{msg.generatedContent.name}</span>
+                        <div className="px-5 pb-4 border-t border-slate-50 pt-4 space-y-2">
+                            <div className="flex items-center justify-between bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 bg-white rounded-xl flex items-center justify-center shadow-sm">
+                                        <span className="material-icons text-indigo-600 text-sm">
+                                            {msg.generatedContent.type === 'image' ? 'image' : 'description'}
+                                        </span>
+                                    </div>
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{msg.generatedContent.name}</span>
                                 </div>
-                                <div className="flex gap-1">
+                                <div className="flex gap-2">
                                     <button
                                         onClick={() => handleDownload(msg.generatedContent!.url, msg.generatedContent!.name)}
-                                        className="p-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 transition-all"
-                                        title="Save to PC"
+                                        className="w-8 h-8 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg flex items-center justify-center transition-all shadow-md active:scale-95"
+                                        title="Download"
                                     >
                                         <span className="material-icons text-sm">download</span>
-                                        PC
                                     </button>
                                     <button
                                         onClick={() => handleExportToDrive(msg.generatedContent!.url, msg.generatedContent!.name)}
-                                        className="p-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 transition-all"
-                                        title="Export to Google Drive"
+                                        className="w-8 h-8 bg-slate-900 hover:bg-black text-white rounded-lg flex items-center justify-center transition-all shadow-md active:scale-95"
+                                        title="Export to Drive"
                                     >
                                         <span className="material-icons text-sm">cloud_upload</span>
-                                        Drive
                                     </button>
                                 </div>
                             </div>
                         </div>
                     )}
-
-                    <div className="px-4 pb-2 text-[10px] text-right opacity-60 font-medium flex items-center justify-between">
-                        <span>{msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                    </div>
                 </div>
 
-                {/* Message Action Buttons */}
-                <div className="flex items-center gap-1 mt-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                        onClick={() => handleCopy(msg.content)}
-                        className="p-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg transition-all flex items-center gap-1"
-                        title="Copy"
-                    >
-                        <span className="material-icons text-xs text-slate-600">content_copy</span>
-                        <span className="text-[10px] font-bold text-slate-600">Copy</span>
+                <div className="flex items-center gap-4 mt-2 px-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => handleCopy(msg.content)} className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 transition-colors">
+                        <span className="material-icons text-[12px]">content_copy</span> Copy
                     </button>
-                    <button
-                        onClick={() => handleShare(msg.content)}
-                        className="p-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg transition-all flex items-center gap-1"
-                        title="Share"
-                    >
-                        <span className="material-icons text-xs text-slate-600">share</span>
-                        <span className="text-[10px] font-bold text-slate-600">Share</span>
+                    <button onClick={() => handleSave(msg)} className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 transition-colors">
+                        <span className="material-icons text-[12px]">bookmark</span> Save
                     </button>
-                    <button
-                        onClick={() => handleSave(msg)}
-                        className="p-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg transition-all flex items-center gap-1"
-                        title="Save"
-                    >
-                        <span className="material-icons text-xs text-slate-600">bookmark</span>
-                        <span className="text-[10px] font-bold text-slate-600">Save</span>
-                    </button>
-                    <button
-                        onClick={() => setReplyingTo(msg.id)}
-                        className="p-1.5 bg-indigo-100 hover:bg-indigo-200 rounded-lg transition-all flex items-center gap-1"
-                        title="Reply"
-                    >
-                        <span className="material-icons text-xs text-indigo-600">reply</span>
-                        <span className="text-[10px] font-bold text-indigo-600">Reply</span>
+                    <button onClick={() => setReplyingTo(msg.id)} className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 transition-colors">
+                        <span className="material-icons text-[12px]">reply</span> Reply
                     </button>
                 </div>
             </div>
 
             {msg.role === 'user' && (
-                <div className="w-8 h-8 ml-3 rounded-full bg-gradient-to-br from-slate-700 to-slate-600 flex items-center justify-center flex-shrink-0 mt-1">
-                    <span className="material-icons text-slate-300 text-sm">person</span>
+                <div className="w-8 h-8 ml-3 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0 mt-1 border border-slate-200">
+                    <span className="material-icons text-slate-400 text-xs">person</span>
                 </div>
             )}
         </div>
     );
 
-    // Quick Chat Widget (Draggable & Resizable)
     if (mode === 'quick') {
         return (
-            <Draggable handle=".drag-handle" bounds="parent">
-                <div className="fixed bottom-6 right-6 z-50 w-[400px] h-[600px] bg-white rounded-2xl shadow-2xl border-2 border-indigo-300 flex flex-col overflow-hidden resize animate-in slide-in-from-right duration-500 fade-in" style={{ resize: 'both', minWidth: '350px', minHeight: '400px', maxWidth: '600px', maxHeight: '800px' }}>
-                    {/* Header */}
-                    <div className="drag-handle cursor-move bg-gradient-to-r from-indigo-600 to-purple-600 p-3 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <span className="material-icons text-white">psychology</span>
+            // @ts-ignore
+            <Draggable nodeRef={nodeRef} handle=".drag-handle" bounds="parent">
+                <div ref={nodeRef} className="fixed bottom-6 right-6 z-50 w-[420px] h-[640px] bg-white rounded-[3rem] shadow-2xl border border-slate-100 flex flex-col overflow-hidden animate-in slide-in-from-right duration-500 fade-in" style={{ resize: 'both', minWidth: '380px', minHeight: '500px', maxWidth: '600px', maxHeight: '850px' }}>
+                    <div className="drag-handle cursor-move bg-slate-900 p-5 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-white/10 rounded-2xl flex items-center justify-center text-white">
+                                <span className="material-icons">bolt</span>
+                            </div>
                             <div>
-                                <h3 className="text-white font-bold text-sm">AI Co-Founder</h3>
-                                <p className="text-indigo-200 text-[10px]">Quick Chat • Gemini 1.5 Flash</p>
+                                <h3 className="text-white font-black text-xs italic tracking-tighter uppercase">Arkle <span className="text-indigo-400 not-italic">Intelligence</span></h3>
+                                <div className="flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                                    <p className="text-slate-400 text-[8px] font-black uppercase tracking-[0.2em]">Neural Link Active</p>
+                                </div>
                             </div>
                         </div>
-                        <div className="flex items-center gap-1">
-                            <button
-                                onClick={() => setMode('deep')}
-                                className="p-1.5 hover:bg-white/10 rounded-lg transition-all"
-                                title="Switch to Deep Mode"
-                            >
-                                <span className="material-icons text-white text-lg">open_in_full</span>
+                        <div className="flex items-center gap-2">
+                            <button onClick={() => setMode('deep')} className="w-8 h-8 hover:bg-white/10 rounded-xl transition-all flex items-center justify-center text-white">
+                                <span className="material-icons text-lg">open_in_full</span>
                             </button>
-                            <button
-                                onClick={() => setMode('minimized')}
-                                className="p-1.5 hover:bg-white/10 rounded-lg transition-all"
-                                title="Minimize"
-                            >
-                                <span className="material-icons text-white text-lg">minimize</span>
+                            <button onClick={() => setMode('minimized')} className="w-8 h-8 hover:bg-white/10 rounded-xl transition-all flex items-center justify-center text-white">
+                                <span className="material-icons text-lg">close</span>
                             </button>
                         </div>
                     </div>
 
-                    {/* Chat Selector */}
-                    <div className="border-b border-indigo-200 bg-indigo-50/50 p-2 flex items-center justify-between">
-                        <button
-                            onClick={() => setShowChatList(!showChatList)}
-                            className="flex items-center gap-2 px-3 py-1.5 bg-white border border-indigo-300 rounded-lg hover:bg-indigo-50 transition-all"
-                        >
-                            <span className="text-sm font-bold text-slate-700 truncate max-w-[150px]">{currentChat?.name}</span>
+                    <div className="bg-slate-50/50 p-3 flex items-center justify-between border-b border-slate-100">
+                        <button onClick={() => setShowChatList(!showChatList)} className="flex items-center gap-2 px-4 py-2 bg-white rounded-2xl border border-slate-200 hover:border-indigo-300 transition-all shadow-sm">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-700 truncate max-w-[150px]">{currentChat?.name}</span>
                             <span className="material-icons text-sm text-indigo-600">expand_more</span>
                         </button>
-                        <button
-                            onClick={() => setShowNewChatModal(true)}
-                            className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-bold hover:bg-indigo-700 transition-all flex items-center gap-1"
-                        >
-                            <span className="material-icons text-sm">add</span>
-                            New Chat
+                        <button onClick={() => setShowNewChatModal(true)} className="w-10 h-10 bg-indigo-600 text-white rounded-2xl flex items-center justify-center hover:bg-indigo-700 hover:scale-105 transition-all shadow-lg active:scale-95">
+                            <span className="material-icons">add</span>
                         </button>
                     </div>
 
-                    {/* Chat List Dropdown */}
                     {showChatList && (
-                        <div className="absolute top-24 left-2 right-2 bg-white border-2 border-indigo-300 rounded-lg shadow-xl z-10 max-h-[200px] overflow-y-auto animate-in slide-in-from-top-2 fade-in duration-300">
+                        <div className="absolute top-32 left-4 right-4 bg-white border border-slate-100 rounded-[2rem] shadow-2xl z-20 max-h-[300px] overflow-y-auto p-2 animate-in slide-in-from-top-4 fade-in duration-300">
                             {chats.map(chat => (
-                                <button
-                                    key={chat.id}
-                                    onClick={() => {
-                                        setCurrentChatId(chat.id);
-                                        setShowChatList(false);
-                                    }}
-                                    className={`w-full text-left px-4 py-2 hover:bg-indigo-50 transition-all border-b border-indigo-100 ${chat.id === currentChatId ? 'bg-indigo-100' : ''}`}
-                                >
-                                    <div className="font-bold text-sm text-slate-800">{chat.name}</div>
-                                    <div className="text-[10px] text-slate-500">{chat.messageCount} messages • {chat.lastMessageAt.toLocaleDateString()}</div>
+                                <button key={chat.id} onClick={() => { setCurrentChatId(chat.id); setShowChatList(false); }} className={`w-full text-left px-5 py-4 hover:bg-slate-50 rounded-2xl transition-all ${chat.id === currentChatId ? 'bg-indigo-50/50 text-indigo-600' : 'text-slate-600'}`}>
+                                    <div className="font-black text-[10px] uppercase tracking-widest">{chat.name}</div>
+                                    <div className="text-[8px] font-bold text-slate-400 mt-1">{chat.messageCount} interactions • {chat.lastMessageAt.toLocaleDateString()}</div>
                                 </button>
                             ))}
                         </div>
                     )}
 
-                    {/* Messages */}
-                    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-br from-white via-indigo-50/30 to-purple-50/30">
+                    <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-white custom-scrollbar">
                         {currentMessages.map(msg => renderMessage(msg))}
                         {isLoading && (
-                            <div className="flex justify-start animate-in fade-in">
-                                <div className="bg-white border-2 border-indigo-200 rounded-2xl px-4 py-3 shadow-lg">
-                                    <div className="flex items-center gap-2">
-                                        <span className="flex gap-1">
-                                            <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                                            <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                                            <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"></span>
-                                        </span>
-                                        <span className="text-xs text-indigo-700 font-medium ml-2">Thinking...</span>
+                            <div className="flex justify-start">
+                                <div className="bg-slate-50 border border-slate-100 rounded-[2rem] px-6 py-4 flex items-center gap-4">
+                                    <div className="flex gap-1.5">
+                                        <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                                        <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                                        <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce"></span>
                                     </div>
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600">Arkle Thinking...</span>
                                 </div>
                             </div>
                         )}
                         <div ref={messagesEndRef} />
                     </div>
 
-                    {/* Replying To Indicator */}
-                    {replyingTo && (
-                        <div className="px-4 py-2 bg-indigo-100 border-t border-indigo-200 flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <span className="material-icons text-sm text-indigo-600">reply</span>
-                                <span className="text-xs font-bold text-indigo-700">Replying to message</span>
-                            </div>
-                            <button
-                                onClick={() => setReplyingTo(null)}
-                                className="text-indigo-600 hover:text-indigo-800"
-                            >
-                                <span className="material-icons text-sm">close</span>
-                            </button>
-                        </div>
-                    )}
-
-                    {/* Input */}
-                    <div className="p-3 bg-white border-t border-indigo-200">
-                        <div className="flex items-end gap-2 bg-white border-2 border-indigo-300 rounded-xl p-2 focus-within:ring-2 focus-within:ring-indigo-400">
+                    <div className="p-4 bg-white border-t border-slate-50">
+                        <div className="relative group/input bg-slate-50 rounded-[2.5rem] p-3 border border-transparent focus-within:bg-white focus-within:border-slate-100 transition-all shadow-sm">
                             <textarea
                                 value={inputValue}
                                 onChange={(e) => setInputValue(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' && !e.shiftKey) {
-                                        e.preventDefault();
-                                        handleSubmit();
-                                    }
-                                }}
-                                placeholder="Ask anything..."
+                                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(); } }}
+                                placeholder={isRecording ? "Listening... Speak naturally" : "Ask Arkle for guidance..."}
                                 disabled={isLoading}
                                 rows={1}
-                                className="flex-1 bg-transparent border-none outline-none text-slate-800 placeholder:text-indigo-400/60 text-sm py-2 px-2 resize-none max-h-24"
+                                className="w-full bg-transparent border-none outline-none text-slate-800 placeholder:text-slate-300 text-sm py-2 px-3 resize-none max-h-32 font-medium"
                             />
-                            <button
-                                onClick={handleSubmit}
-                                disabled={!inputValue.trim() || isLoading}
-                                className={`p-2 rounded-lg transition-all ${!inputValue.trim() || isLoading
-                                    ? 'bg-slate-300 text-slate-400 cursor-not-allowed'
-                                    : 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:scale-105'
-                                    }`}
-                            >
-                                <span className="material-icons text-lg">send</span>
-                            </button>
+                            <div className="flex items-center justify-between mt-2 px-1 border-t border-slate-100 pt-3">
+                                <div className="flex items-center gap-2">
+                                    <button 
+                                        onClick={toggleVoice}
+                                        className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${isRecording ? 'bg-rose-100 text-rose-600 shadow-lg shadow-rose-200 scale-110' : 'bg-white text-slate-400 hover:text-indigo-600 shadow-sm'}`}
+                                        title="Live Voice Mode"
+                                    >
+                                        <span className="material-icons text-lg">{isRecording ? 'mic' : 'mic_none'}</span>
+                                    </button>
+                                </div>
+                                <button
+                                    onClick={handleSubmit}
+                                    disabled={!inputValue.trim() || isLoading}
+                                    className={`w-10 h-10 rounded-2xl transition-all flex items-center justify-center shadow-xl ${!inputValue.trim() || isLoading
+                                        ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                                        : 'bg-slate-900 text-white hover:scale-105 active:scale-95'
+                                        }`}
+                                >
+                                    <span className="material-icons">send</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
 

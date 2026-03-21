@@ -5,144 +5,152 @@ import { DCard, StatusBadge, ActionBtn, GhostBtn, T } from '@/components/os/shar
 
 type Section = 'details' | 'directors' | 'compliance' | 'startup' | null;
 
+const AccordionItem = ({
+  id, icon, title, badge, children, isOpen, onToggle,
+}: { id: Section; icon: string; title: string; badge?: React.ReactNode; children: React.ReactNode; isOpen: boolean; onToggle: () => void }) => (
+  <div className="rounded-3xl border overflow-hidden transition-all duration-300" style={{ borderColor: isOpen ? '#e2e8f0' : '#f1f5f9', boxShadow: isOpen ? '0 20px 40px -20px rgba(0,0,0,0.05)' : 'none' }}>
+    <button
+      onClick={onToggle}
+      className="w-full flex items-center gap-4 p-5 text-left transition-all"
+      style={{ background: isOpen ? 'white' : 'white' }}
+    >
+      <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${isOpen ? 'bg-slate-900 text-white shadow-lg' : 'bg-slate-50 text-slate-400'}`}>
+        <span className="material-symbols-outlined text-xl">{icon}</span>
+      </div>
+      <span className="flex-1 text-[13px] font-black uppercase tracking-widest text-slate-900">{title}</span>
+      {badge}
+      <span className={`material-symbols-outlined text-slate-300 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>expand_more</span>
+    </button>
+    {isOpen && <div className="p-6 pt-2 bg-white border-t border-slate-50 animate-in slide-in-from-top-2 duration-300">{children}</div>}
+  </div>
+);
+
 export default function CompanyTab() {
   const [open, setOpen] = useState<Section>('details');
   const toggle = (s: Section) => setOpen(o => o === s ? null : s);
 
-  const AccordionItem = ({
-    id, emoji, title, badge, children,
-  }: { id: Section; emoji: string; title: string; badge?: React.ReactNode; children: React.ReactNode }) => (
-    <div className="rounded-2xl border overflow-hidden" style={{ borderColor: open === id ? '#bfdbfe' : '#e2e8f0' }}>
-      <button
-        onClick={() => toggle(id)}
-        className="w-full flex items-center gap-3 p-4 text-left hover:bg-blue-50 transition-all"
-        style={{ background: open === id ? '#eff6ff' : 'white' }}
-      >
-        <span className="text-2xl">{emoji}</span>
-        <span className="flex-1 text-base font-bold text-slate-800">{title}</span>
-        {badge}
-        <span className="text-slate-400 text-lg ml-2">{open === id ? '▲' : '▼'}</span>
-      </button>
-      {open === id && <div className="p-4 pt-2 bg-white border-t border-slate-100">{children}</div>}
-    </div>
-  );
-
   return (
-    <div className="max-w-2xl mx-auto space-y-4">
-      {/* Big Welcome Card */}
-      <div className="rounded-3xl p-6 text-white text-center" style={{ background: 'linear-gradient(135deg,#1a56db,#0284c7)' }}>
-        <div className="text-5xl mb-3">🏢</div>
-        <h1 className="text-2xl font-black mb-1">{BIZ.name}</h1>
-        <p className="text-blue-100 text-sm">{BIZ.structure} · Visakhapatnam, AP</p>
-        <div className="flex justify-center gap-4 mt-4">
-          <div className="bg-white/20 rounded-2xl px-4 py-2 text-center">
-            <p className="text-xs text-blue-100">Registered</p>
-            <p className="font-black text-sm">{BIZ.regDate}</p>
+    <div className="max-w-3xl mx-auto space-y-6 pb-20">
+      {/* Neural Entity Pulse */}
+      <div className="rounded-[3rem] p-10 text-slate-900 border border-slate-100 bg-white shadow-[0_32px_80px_-20px_rgba(0,0,0,0.04)] relative overflow-hidden group">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50/30 rounded-full blur-3xl -z-10 animate-pulse" />
+        <div className="flex flex-col md:flex-row items-center gap-8 relative z-10">
+          <div className="w-24 h-24 rounded-[2rem] bg-slate-900 shadow-2xl flex items-center justify-center font-black text-4xl text-white group-hover:rotate-6 transition-transform">
+             {BIZ.name[0]}
           </div>
-          <div className="bg-white/20 rounded-2xl px-4 py-2 text-center">
-            <p className="text-xs text-blue-100">Health Score</p>
-            <p className="font-black text-sm">72 / 100 ⭐</p>
+          <div className="text-center md:text-left flex-1">
+             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-100 mb-4">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest leading-none">Entity Live & Synced</p>
+             </div>
+             <h1 className="text-3xl font-black mb-1 tracking-tight italic">{BIZ.name}</h1>
+             <p className="text-slate-400 text-[11px] font-black uppercase tracking-[0.2em]">{BIZ.structure} · {BIZ.roc}</p>
           </div>
-          <div className="bg-white/20 rounded-2xl px-4 py-2 text-center">
-            <p className="text-xs text-blue-100">Status</p>
-            <p className="font-black text-sm">✅ Active</p>
+          <div className="flex flex-col gap-2">
+             <div className="bg-slate-50 rounded-2xl px-6 py-3 border border-slate-100">
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Health</p>
+                <p className="font-black text-lg text-slate-900">{BIZ.healthScore}<span className="text-slate-300 text-xs">/100</span></p>
+             </div>
           </div>
         </div>
       </div>
 
-      {/* Accordion A: Company Details */}
-      <AccordionItem id="details" emoji="📋" title="Company Details">
-        <div className="grid grid-cols-2 gap-3 mt-2">
-          {[
-            { label: '🪪 Company Number (CIN)', value: BIZ.cin },
-            { label: '🧾 GST Number',           value: BIZ.gstin },
-            { label: '📄 PAN Number',            value: BIZ.pan },
-            { label: '🏛️ ROC Office',             value: BIZ.roc },
-            { label: '📅 Registered On',         value: BIZ.regDate },
-            { label: '💰 Share Capital',          value: BIZ.paidUpCapital },
-          ].map(d => (
-            <div key={d.label} className="bg-slate-50 rounded-xl p-3 border border-slate-100">
-              <p className="text-[10px] text-slate-400 mb-0.5">{d.label}</p>
-              <p className="text-sm font-bold text-slate-800 break-all">{d.value}</p>
-            </div>
-          ))}
-        </div>
-        <div className="mt-3 bg-slate-50 rounded-xl p-3 border border-slate-100">
-          <p className="text-[10px] text-slate-400 mb-0.5">🏠 Registered Address</p>
-          <p className="text-sm font-medium text-slate-800">{BIZ.address}</p>
-        </div>
-        <div className="flex gap-2 mt-3">
-          <ActionBtn label="📄 Download Company Certificate" color={T.blue} />
-        </div>
-      </AccordionItem>
-
-      {/* Accordion B: Directors */}
-      <AccordionItem id="directors" emoji="👥" title="Directors & Owners">
-        <div className="space-y-3 mt-2">
-          {BIZ.directors.map((d, i) => (
-            <div key={i} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
-              <div className="w-11 h-11 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-black text-sm">
-                {d.name.split(' ').map(w => w[0]).join('')}
-              </div>
-              <div className="flex-1">
-                <p className="font-bold text-slate-800">{d.name}</p>
-                <p className="text-xs text-slate-400">{d.designation} · DIN: {d.din}</p>
-              </div>
-              <span className="text-xs font-bold px-2 py-1 rounded-full bg-green-100 text-green-700">✅ KYC Done</span>
-            </div>
-          ))}
-        </div>
-      </AccordionItem>
-
-      {/* Accordion C: Compliance */}
-      <AccordionItem
-        id="compliance"
-        emoji="✅"
-        title="Compliance Checklist"
-        badge={<span className="text-xs font-bold px-2 py-1 rounded-full bg-red-100 text-red-600">2 Pending</span>}
-      >
-        <div className="space-y-2 mt-2">
-          {MCA_FILINGS.map((f, i) => (
-            <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
-              <span className="text-xl">{f.status === 'filed' || f.status === 'ok' ? '✅' : '📅'}</span>
-              <div className="flex-1">
-                <p className="text-sm font-bold text-slate-800">{f.desc}</p>
-                <p className="text-xs text-slate-400">{f.form} · Due: {f.due}</p>
-              </div>
-              <StatusBadge status={f.status} />
-            </div>
-          ))}
-        </div>
-        <div className="mt-3 p-3 rounded-xl bg-amber-50 border border-amber-200">
-          <p className="text-sm font-bold text-amber-800">⚠️ Annual filings (AOC-4 and MGT-7) due by October. We will remind you!</p>
-        </div>
-      </AccordionItem>
-
-      {/* Accordion D: Startup India */}
-      <AccordionItem
-        id="startup"
-        emoji="🚀"
-        title="Startup India (DPIIT)"
-        badge={<span className="text-xs font-bold px-2 py-1 rounded-full bg-blue-100 text-blue-600">Not Applied</span>}
-      >
-        <div className="mt-2 space-y-3">
-          <p className="text-slate-600 text-sm">Apply for <strong>Startup India recognition</strong> from the Government of India. It is <strong>free</strong> and gives you big benefits.</p>
-          <div className="grid grid-cols-3 gap-2">
+      <div className="space-y-3">
+        {/* Accordion A: Company Details */}
+        <AccordionItem id="details" icon="dataset" title="Neural Identity Data" isOpen={open === 'details'} onToggle={() => toggle('details')}>
+          <div className="grid grid-cols-2 gap-4 mt-2">
             {[
-              { icon: '💰', title: 'No Tax for 3 Years', sub: '80-IAC Benefit' },
-              { icon: '🏛️', title: 'Govt Grants', sub: 'SIDBI Seed Fund' },
-              { icon: '⚡', title: 'IP at Low Cost', sub: 'Patent fee discount' },
-            ].map(b => (
-              <div key={b.title} className="bg-green-50 rounded-xl p-3 text-center border border-green-100">
-                <p className="text-2xl mb-1">{b.icon}</p>
-                <p className="text-xs font-bold text-slate-800">{b.title}</p>
-                <p className="text-[10px] text-slate-400">{b.sub}</p>
+              { label: 'Company Number (CIN)', value: BIZ.cin, icon: 'qr_code_2' },
+              { label: 'GST Alignment',           value: BIZ.gstin, icon: 'receipt_long' },
+              { label: 'PAN Identity',            value: BIZ.pan, icon: 'badge' },
+              { label: 'ROC Command Office',     value: BIZ.roc, icon: 'account_balance' },
+              { label: 'Neural Inception',         value: BIZ.regDate, icon: 'calendar_today' },
+              { label: 'Deployment Capital',          value: BIZ.paidUpCapital, icon: 'payments' },
+            ].map(d => (
+              <div key={d.label} className="bg-slate-50 rounded-2xl p-4 border border-slate-100/50 hover:bg-white hover:shadow-lg transition-all group">
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 group-hover:text-blue-600 transition-colors">{d.label}</p>
+                <div className="flex items-center gap-2">
+                   <p className="text-[13px] font-black text-slate-900 break-all">{d.value}</p>
+                </div>
               </div>
             ))}
           </div>
-          <ActionBtn label="🚀 Apply Free — Takes Only 7 Days" color={T.green} full />
-        </div>
-      </AccordionItem>
+          <div className="mt-4 bg-slate-50 rounded-2xl p-4 border border-slate-100/50">
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Registered Neural Nexus (Address)</p>
+            <p className="text-[13px] font-medium text-slate-900 leading-relaxed italic">{BIZ.address}</p>
+          </div>
+          <button className="mt-6 w-full py-4 rounded-2xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-xl hover:scale-105 transition-all active:scale-95">Download Neural Certificate</button>
+        </AccordionItem>
+
+        {/* Accordion B: Directors */}
+        <AccordionItem id="directors" icon="groups" title="Primary Operators" isOpen={open === 'directors'} onToggle={() => toggle('directors')}>
+          <div className="space-y-3 mt-2">
+            {BIZ.directors?.map((d, i) => (
+              <div key={i} className="flex items-center gap-4 p-4 bg-slate-50 rounded-[1.8rem] border border-slate-100/50 hover:bg-white hover:shadow-xl transition-all group">
+                <div className="w-14 h-14 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black text-lg shadow-lg group-hover:rotate-6 transition-transform">
+                  {d.name.split(' ').map(w => w[0]).join('')}
+                </div>
+                <div className="flex-1">
+                  <p className="font-black text-slate-900 tracking-tight">{d.name}</p>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">{d.designation} · DIN: {d.din}</p>
+                </div>
+                <span className="text-[9px] font-black px-4 py-1.5 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 uppercase tracking-widest">KYC Synced</span>
+              </div>
+            ))}
+          </div>
+        </AccordionItem>
+
+        {/* Accordion C: Compliance */}
+        <AccordionItem
+          id="compliance"
+          icon="verified"
+          title="Compliance Sequence"
+          isOpen={open === 'compliance'} onToggle={() => toggle('compliance')}
+          badge={<span className="text-[10px] font-black px-3 py-1 rounded-lg bg-red-50 text-red-600 uppercase tracking-widest animate-pulse">2 Critical</span>}
+        >
+          <div className="space-y-2 mt-2">
+            {MCA_FILINGS.map((f, i) => (
+              <div key={i} className="flex items-center gap-4 p-4 rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all">
+                <div className={`w-2 h-8 rounded-full ${f.status === 'filed' || f.status === 'ok' ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                <div className="flex-1">
+                  <p className="text-[13px] font-black text-slate-900">{f.desc}</p>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">{f.form} · Sequence: {f.due}</p>
+                </div>
+                <StatusBadge status={f.status} />
+              </div>
+            ))}
+          </div>
+        </AccordionItem>
+
+        {/* Accordion D: Startup India */}
+        <AccordionItem
+          id="startup"
+          icon="rocket_launch"
+          title="Neural Accelerator (DPIIT)"
+          isOpen={open === 'startup'} onToggle={() => toggle('startup')}
+          badge={<span className="text-[10px] font-black px-3 py-1 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 uppercase tracking-widest">Loop Pending</span>}
+        >
+          <div className="mt-2 space-y-6">
+            <p className="text-slate-500 text-sm font-medium italic">Apply for Startup India recognition to unlock autonomous fiscal benefits and high-impact government loops.</p>
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { icon: 'monetization_on', title: 'Fiscal Exemption', sub: '80-IAC Loop' },
+                { icon: 'account_balance_wallet', title: 'Govt Liquidity', sub: 'Seed Fund Sync' },
+                { icon: 'copyright', title: 'IP Protection', sub: 'Neural Patent Discount' },
+              ].map(b => (
+                <div key={b.title} className="bg-slate-50 rounded-[2rem] p-5 text-center border border-slate-100 hover:bg-white hover:shadow-xl transition-all group">
+                  <div className="w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                     <span className="material-symbols-outlined text-indigo-600">{b.icon}</span>
+                  </div>
+                  <p className="text-[11px] font-black text-slate-900 uppercase tracking-tight mb-1">{b.title}</p>
+                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{b.sub}</p>
+                </div>
+              ))}
+            </div>
+            <button className="w-full py-4 rounded-2xl bg-indigo-600 text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-95">Initiate Application Loop (7 Days Sync)</button>
+          </div>
+        </AccordionItem>
+      </div>
     </div>
   );
 }

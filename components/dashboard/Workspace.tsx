@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect } from 'react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
@@ -11,7 +11,6 @@ import GoogleWorkspaceDashboard, { GoogleApp } from './GoogleWorkspaceDashboard'
 import AiCoFounderChat from './AiCoFounderChat';
 import AdvancedOnboarding from '../AdvancedOnboarding';
 import CenterChat from '../ai-studio/CenterChat';
-import IncorporationWidget from './IncorporationWidget';
 
 interface WorkspaceProps {
     onNavigate: (tab: 'A' | 'B' | 'LearnerStudio' | 'Workspace') => void;
@@ -55,7 +54,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
     // Check if user is new (no workspace profile)
     useEffect(() => {
         const hasProfile = localStorage.getItem('workspaceProfile');
-        setTimeout(() => setIsNewUser(!hasProfile), 0);
+        setIsNewUser(!hasProfile);
     }, []);
 
     // Show popup every 40 seconds for new users
@@ -152,7 +151,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
 
 
     return (
-        <div className="flex min-h-full w-full bg-slate-50/30 font-sans text-slate-900 transition-colors duration-200">
+        <div className="flex h-screen overflow-hidden bg-white font-sans text-slate-900 transition-colors duration-200">
             {/* Google Workspace Dashboard Overlay */}
             {showGoogleDashboard && (
                 <GoogleWorkspaceDashboard
@@ -161,13 +160,148 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
                 />
             )}
 
+            {/* Mobile Sidebar Backdrop */}
+            {mobileLeftSidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 lg:hidden"
+                    onClick={() => setMobileLeftSidebarOpen(false)}
+                />
+            )}
 
+            {/* Mobile Sidebar */}
+            <aside
+                className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 flex flex-col transition-transform duration-300 transform lg:hidden ${mobileLeftSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
+            >
+                <div className="h-16 flex items-center justify-between px-6 border-b border-transparent flex-shrink-0">
+                    <div className="flex items-center gap-2">
+                        <img src="/images/logo.png" alt="SetMyBizz Logo" className="h-14 w-auto object-contain" />
+                    </div>
+                    <button onClick={() => setMobileLeftSidebarOpen(false)} className="text-slate-500 hover:text-slate-800">
+                        <span className="material-icons-outlined">close</span>
+                    </button>
+                </div>
+                <div className="flex-1 overflow-y-auto px-3 space-y-6 py-4">
+                    {/* Navigation removed as per user request */}
+                </div>
+            </aside>
 
+            {/* Desktop Left Sidebar */}
+            <aside className={`hidden lg:flex flex-col h-full flex-shrink-0 z-30 transition-all duration-300 ${leftSidebarOpen ? 'w-64' : 'w-0'}`}>
+                <div className={`bg-slate-50 border-r border-slate-200 flex flex-col h-full w-64 overflow-hidden`}>
+                    <div className="h-16 flex items-center px-6 border-b border-slate-100 flex-shrink-0 bg-white">
+                        <div className="flex items-center gap-2">
+                            <span className="font-serif font-black text-xl text-slate-900 tracking-tighter">SetMyBizz<span className="text-blue-600">.</span></span>
+                        </div>
+                    </div>
+                    <div className="flex-1 overflow-y-auto py-4 px-3 space-y-8 scrollbar-hide">
+                        {/* Navigation removed as per user request */}
+                        {/* Google Workspace Quick Access */}
+                        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-2.5 border border-blue-100">
+                            <div className="flex items-center gap-1.5 mb-1.5">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google" className="w-3 h-3" />
+                                <span className="text-[9px] font-black text-slate-700 uppercase tracking-wider">Workspace</span>
+                                <button
+                                    onClick={() => setShowGoogleDashboard(true)}
+                                    className="ml-auto p-0.5 hover:bg-white/50 rounded transition-colors"
+                                    title="Open Full Dashboard"
+                                >
+                                    <span className="material-icons text-[10px] text-slate-500">open_in_new</span>
+                                </button>
+                            </div>
+                            <div className="flex flex-wrap gap-1">
+                                {pinnedApps.slice(0, 6).map((app) => (
+                                    <button
+                                        key={app.id}
+                                        onClick={() => handleOpenApp(app)}
+                                        className={`flex items-center gap-1 px-1.5 py-1 bg-white hover:bg-${app.color}-50 rounded-md transition-colors group text-left flex-1 min-w-[45%]`}
+                                        title={app.label}
+                                    >
+                                        <span className={`material-icons text-sm text-${app.color}-600`}>{app.icon}</span>
+                                        <span className="text-[9px] font-bold text-slate-600 truncate">{app.label}</span>
+                                    </button>
+                                ))}
+                                <button
+                                    onClick={() => setShowAppSelector(true)}
+                                    className="flex items-center justify-center px-1.5 py-1 border border-dashed border-slate-300 hover:border-blue-400 hover:bg-blue-50 rounded-md transition-colors group flex-1"
+                                    title="Add App"
+                                >
+                                    <span className="material-icons text-sm text-slate-400 group-hover:text-blue-500">add</span>
+                                </button>
+                            </div>
+                        </div>
 
+                        {/* Operations */}
+                        <div>
+                            <h3 className="px-3 text-[9px] font-black text-slate-400 mb-2 uppercase tracking-[0.2em]">Operations</h3>
+                            <nav className="space-y-0.5">
+                                {[
+                                    { label: 'Website Management', icon: 'language', color: 'blue' },
+                                    { label: 'Store', icon: 'storefront', color: 'indigo' },
+                                    { label: 'Orders', icon: 'receipt_long', color: 'orange' },
+                                    { label: 'Inventory', icon: 'inventory_2', color: 'emerald' },
+                                    { label: 'Stock Management', icon: 'warehouse', color: 'teal' },
+                                    { label: 'Suppliers', icon: 'local_shipping', color: 'cyan' }
+                                ].map((item, idx) => (
+                                    <a key={idx} className="flex items-center gap-2 px-3 py-1.5 text-slate-500 hover:text-slate-900 hover:bg-white hover:shadow-sm rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 group" href="#">
+                                        <div className={`p-1 rounded-md ${colorVariants[item.color]?.bg || colorVariants.blue.bg} ${colorVariants[item.color]?.text || colorVariants.blue.text} group-hover:scale-105 transition-transform duration-300`}>
+                                            <span className="material-icons text-base">{item.icon}</span>
+                                        </div>
+                                        {item.label}
+                                    </a>
+                                ))}
+                            </nav>
+                        </div>
+                        {/* Finance & Accounting */}
+                        <div>
+                            <h3 className="px-3 text-[9px] font-black text-slate-400 mb-2 uppercase tracking-[0.2em]">Finance</h3>
+                            <nav className="space-y-0.5">
+                                {[
+                                    { label: 'Invoices', icon: 'description', color: 'blue' },
+                                    { label: 'Quotations', icon: 'request_quote', color: 'indigo' },
+                                    { label: 'Bills', icon: 'receipt', color: 'violet' },
+                                    { label: 'Expenses', icon: 'payments', color: 'fuchsia' }
+                                ].map((item, idx) => (
+                                    <a key={idx} className="flex items-center gap-2 px-3 py-1.5 text-slate-500 hover:text-slate-900 hover:bg-white hover:shadow-sm rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 group" href="#">
+                                        <div className={`p-1 rounded-md ${colorVariants[item.color]?.bg || colorVariants.blue.bg} ${colorVariants[item.color]?.text || colorVariants.blue.text} group-hover:scale-105 transition-transform duration-300`}>
+                                            <span className="material-icons text-base">{item.icon}</span>
+                                        </div>
+                                        {item.label}
+                                    </a>
+                                ))}
+                            </nav>
+                        </div>
+                        {/* Sales & CRM */}
+                        <div>
+                            <h3 className="px-3 text-[9px] font-black text-slate-400 mb-2 uppercase tracking-[0.2em]">Sales & CRM</h3>
+                            <nav className="space-y-0.5">
+                                {[
+                                    { label: 'Leads', icon: 'leaderboard', color: 'rose' },
+                                    { label: 'CRM', icon: 'people', color: 'pink' }
+                                ].map((item, idx) => (
+                                    <a key={idx} className="flex items-center gap-2 px-3 py-1.5 text-slate-500 hover:text-slate-900 hover:bg-white hover:shadow-sm rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 group" href="#">
+                                        <div className={`p-1 rounded-md ${colorVariants[item.color]?.bg || colorVariants.blue.bg} ${colorVariants[item.color]?.text || colorVariants.blue.text} group-hover:scale-105 transition-transform duration-300`}>
+                                            <span className="material-icons text-base">{item.icon}</span>
+                                        </div>
+                                        {item.label}
+                                    </a>
+                                ))}
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </aside>
 
             {/* Main Content Area */}
-            <div className="flex-1 flex flex-col h-full relative min-w-0">
-                <div className="h-16 flex items-center justify-end px-4 lg:px-8 relative z-10 border-b border-slate-200/50 backdrop-blur-sm flex-shrink-0 bg-white/50">
+            <main className="flex-1 flex flex-col h-full overflow-hidden relative min-w-0">
+                <header className="h-16 flex items-center justify-between px-4 lg:px-8 relative z-10 border-b border-slate-200/50 backdrop-blur-sm flex-shrink-0 bg-white/50">
+                    <div className="flex items-center gap-4">
+                        <button onClick={() => setLeftSidebarOpen(!leftSidebarOpen)} className="hidden lg:flex p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors">
+                            <span className="material-icons-outlined">{leftSidebarOpen ? 'menu_open' : 'menu'}</span>
+                        </button>
+                        <button onClick={() => setMobileLeftSidebarOpen(true)} className="lg:hidden p-2 hover:bg-slate-100 rounded-lg text-slate-500">
+                            <span className="material-icons-outlined">menu</span>
+                        </button>
+                    </div>
                     <div className="flex items-center gap-3">
                         <button
                             onClick={() => setRightSidebarOpen(!rightSidebarOpen)}
@@ -178,21 +312,23 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
                             <span className="hidden xl:inline">AI Tools</span>
                             <span className="material-icons-outlined text-sm">{rightSidebarOpen ? 'chevron_right' : 'chevron_left'}</span>
                         </button>
+                        <button
+                            onClick={() => setMobileAiAssistantsOpen(true)}
+                            className="lg:hidden text-slate-600 hover:bg-slate-100 p-2 rounded-lg"
+                            title="Open AI Assistants"
+                        >
+                            <span className="material-icons-outlined text-xl">smart_toy</span>
+                        </button>
                     </div>
-                </div>
+                </header>
 
-                <div className="flex-1 relative z-10 w-full" id="main-scroll-container">
+                <div className="flex-1 overflow-y-auto overflow-x-hidden relative z-10 w-full" id="main-scroll-container">
                     <div className="absolute top-0 left-0 w-full h-full bg-white z-0"></div>
 
                     {/* Content Section 1: AI Co-Founder (Top View) */}
-                    <div className="relative z-10 p-4 lg:p-8 flex flex-col items-center justify-start lg:justify-center min-w-0 transition-all duration-300">
-                        {/* Incorporation Widget */}
-                        <div className="w-full max-w-6xl">
-                            <IncorporationWidget onNavigate={onNavigate} />
-                        </div>
-
+                    <div className="relative z-10 p-4 lg:p-6 flex flex-col items-center justify-start lg:justify-center min-w-0 transition-all duration-300">
                         {/* Oracle AI Studio Chat - Hero Section */}
-                        <div className="w-full h-[600px] bg-white rounded-2xl border border-slate-200 shadow-lg overflow-hidden">
+                        <div className="w-full h-[450px] bg-white rounded-2xl border border-slate-200 shadow-lg overflow-hidden">
                             <CenterChat
                                 chatId="workspace-main"
                                 leftSidebarOpen={leftSidebarOpen}
@@ -204,13 +340,13 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
                     </div>
 
                     {/* Interactive Operations Grid */}
-                    <section className="mb-12">
-                        <div className="flex items-center justify-between mb-4 px-2">
-                            <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest">Operations</h2>
+                    <section className="mb-8 px-4 lg:px-8">
+                        <div className="flex items-center justify-between mb-3 px-2">
+                            <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Operations</h2>
                         </div>
                         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                             <SortableContext items={tools} strategy={rectSortingStrategy}>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6 p-2">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                                     {tools.map((tool) => (
                                         <SortableToolCard
                                             key={tool.id}
@@ -230,12 +366,12 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
 
 
                     {/* Add Iterations Section */}
-                    <section className="mb-12">
+                    <section className="mb-12 px-8">
                         <div className="flex items-center justify-between mb-4 px-2">
                             <h2 className="text-sm font-bold text-slate-900 font-serif">Add Iterations</h2>
                             <span className="material-icons-outlined text-blue-600 text-lg cursor-pointer">arrow_forward</span>
                         </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6 p-2">
+                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
                             {[
                                 { label: 'Website', icon: 'language', color: 'blue' },
                                 { label: 'Store', icon: 'storefront', color: 'indigo' },
@@ -257,34 +393,34 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
                     </section>
 
                     {/* Add Integrations Section */}
-                    <section className="mb-24">
+                    <section className="mb-24 px-8">
                         <div className="flex items-center justify-between mb-4 px-2">
                             <h2 className="text-sm font-bold text-slate-900 font-serif">Add Integrations</h2>
                             <span className="material-icons-outlined text-blue-600 text-lg cursor-pointer">arrow_forward</span>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 p-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                             {[
                                 { label: 'Bank Account', icon: 'account_balance', color: 'blue' },
                                 { label: 'Ecommerce', icon: 'shopping_bag', color: 'green' },
                                 { label: 'Shopify', icon: 'store', color: 'emerald', img: 'https://cdn.worldvectorlogo.com/logos/shopify.svg' }
                             ].map((item, i) => (
-                                <div key={i} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center justify-center gap-4 hover:shadow-md transition-all">
-                                    <div className={`w-10 h-10 rounded-lg ${colorVariants[item.color]?.bg || colorVariants.blue.bg} flex items-center justify-center ${item.color === 'emerald' ? 'text-emerald-600' : `text-${item.color}-600`}`}>
+                                <div key={i} className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex flex-col items-center justify-center gap-3 hover:shadow-md transition-all">
+                                    <div className={`w-8 h-8 rounded-lg ${colorVariants[item.color]?.bg || colorVariants.blue.bg} flex items-center justify-center ${item.color === 'emerald' ? 'text-emerald-600' : `text-${item.color}-600`}`}>
                                         {item.img ? (
-                                            <img src={item.img} className="w-6 h-6" alt={item.label} />
+                                            <img src={item.img} className="w-5 h-5" alt={item.label} />
                                         ) : (
-                                            <span className="material-icons text-xl">{item.icon}</span>
+                                            <span className="material-icons text-lg">{item.icon}</span>
                                         )}
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <span className="font-bold text-xs text-slate-700">{item.label}</span>
+                                        <span className="font-bold text-[9px] text-slate-700 uppercase tracking-tight">{item.label}</span>
                                     </div>
                                     <button
                                         onClick={() => {
                                             setSelectedToolForIntegration(item.label);
                                             setIntegrationModalOpen(true);
                                         }}
-                                        className="text-[10px] font-bold text-slate-400 uppercase tracking-widest hover:text-blue-600"
+                                        className="text-[8px] font-black text-slate-400 uppercase tracking-widest hover:text-blue-600 transition-colors"
                                     >
                                         CONNECT
                                     </button>
@@ -295,25 +431,25 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
 
 
                 </div>
-            </div>
+            </main>
 
             {/* Right Sidebar - AI Assistant */}
-            <aside className={`fixed lg:sticky top-0 right-0 h-[calc(100vh-64px)] border-l border-slate-200 z-50 transition-all duration-300 transform bg-white flex flex-col flex-shrink-0 ${rightSidebarOpen ? 'w-80 translate-x-0' : 'w-0 translate-x-full lg:translate-x-0 lg:w-0 overflow-hidden'} ${mobileAiAssistantsOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}`}>
+            <aside className={`fixed lg:static inset-y-0 right-0 h-full border-l border-slate-200 z-50 transition-all duration-300 transform bg-white flex flex-col ${rightSidebarOpen ? 'w-80 translate-x-0' : 'w-0 translate-x-full lg:translate-x-0 lg:w-0 overflow-hidden'} ${mobileAiAssistantsOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}`}>
                 <div className="flex flex-col h-full bg-slate-50/50">
                     <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-white flex-shrink-0">
-                        <h2 className="font-bold text-slate-800 text-sm flex items-center gap-2">
-                            <span className="material-icons-outlined text-blue-500">smart_toy</span> AI Co-Founder
+                        <h2 className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                            <span className="material-icons-outlined text-blue-500 text-sm">smart_toy</span> AI Co-Founder
                         </h2>
                         <button onClick={() => setMobileAiAssistantsOpen(false)} className="lg:hidden text-slate-400">
                             <span className="material-icons">close</span>
                         </button>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto custom-scroll p-4 space-y-6">
+                    <div className="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-hide">
                         {/* AI Tools List */}
                         <div className="space-y-3">
                             <div className="px-1 py-2">
-                                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-widest mb-4">AI Assistants & Tools</h3>
+                                <h3 className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">AI Assistants & Tools</h3>
                                 <div className="space-y-3">
                                     {[
                                         { label: 'AI Email Assistant', desc: 'Drafts, replies & management', icon: 'email', color: 'blue' },
@@ -325,15 +461,15 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
                                         { label: 'Stock', desc: 'Inventory tracking', icon: 'inventory_2', color: 'cyan' },
                                         { label: 'Tasks', desc: 'Team & project tasks', icon: 'task_alt', color: 'amber' }
                                     ].map((tool, i) => (
-                                        <div key={i} className="bg-white p-3 rounded-xl border border-slate-100 hover:shadow-md cursor-pointer transition-all flex items-center gap-3 group">
-                                            <div className={`w-10 h-10 rounded-lg ${colorVariants[tool.color]?.bg || colorVariants.blue.bg} flex items-center justify-center ${colorVariants[tool.color]?.text || colorVariants.blue.text} group-hover:scale-110 transition-transform`}>
-                                                <span className="material-icons-outlined">{tool.icon}</span>
+                                        <div key={i} className="flex items-center gap-2 px-3 py-1.5 text-slate-500 hover:text-slate-900 hover:bg-white hover:shadow-sm rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 group cursor-pointer">
+                                            <div className={`p-1.5 rounded-md ${colorVariants[tool.color]?.bg || colorVariants.blue.bg} ${colorVariants[tool.color]?.text || colorVariants.blue.text} group-hover:scale-105 transition-transform duration-300`}>
+                                                <span className="material-icons-outlined text-base">{tool.icon}</span>
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <h4 className="font-bold text-xs text-slate-800 truncate">{tool.label}</h4>
-                                                <p className="text-[10px] text-slate-500 truncate">{tool.desc}</p>
+                                                <h4 className="truncate">{tool.label}</h4>
+                                                <p className="text-[7px] text-slate-400 truncate opacity-0 group-hover:opacity-100 transition-opacity font-black tracking-widest leading-none">{tool.desc}</p>
                                             </div>
-                                            <span className="material-icons-outlined text-slate-300 text-sm group-hover:text-blue-600">chevron_right</span>
+                                            <span className="material-icons-outlined text-slate-300 text-xs group-hover:text-blue-600 transition-colors">chevron_right</span>
                                         </div>
                                     ))}
                                 </div>
@@ -342,7 +478,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
 
                         {/* Marketplace */}
                         <div>
-                            <h2 className="font-bold text-slate-800 text-sm mb-4 font-serif">Marketplace</h2>
+                            <h2 className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 font-sans">Marketplace</h2>
                             <div className="space-y-3">
                                 <div
                                     onClick={() => {
@@ -358,18 +494,18 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
                                         <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google" className="w-5 h-5" />
                                     </div>
                                     <div className="flex-1">
-                                        <span className="text-xs font-bold text-slate-700 block group-hover:text-red-600 transition-colors">Google Workspace</span>
-                                        <span className="text-[10px] text-slate-400">Mail, Drive & Docs</span>
+                                        <span className="text-[10px] font-black text-slate-700 uppercase tracking-wider block group-hover:text-red-600 transition-colors">Google Workspace</span>
+                                        <span className="text-[8px] font-bold text-slate-400 uppercase tracking-tight">Mail, Drive & Docs</span>
                                     </div>
                                     <span className="material-icons-outlined text-slate-300 text-sm group-hover:text-red-500">chevron_right</span>
                                 </div>
                                 <div className="flex items-center gap-3 p-3 bg-white border border-slate-100 rounded-xl hover:shadow-md cursor-pointer transition-all group">
                                     <div className="w-10 h-10 rounded-lg bg-yellow-50 flex items-center justify-center group-hover:scale-110 transition-transform"><span className="material-icons text-yellow-600 text-lg">store</span></div>
-                                    <span className="text-xs font-bold text-slate-700 group-hover:text-yellow-700 transition-colors">Zoho Marketplace</span>
+                                    <span className="text-[10px] font-black text-slate-700 uppercase tracking-wider group-hover:text-yellow-700 transition-colors">Zoho Marketplace</span>
                                 </div>
                                 <div className="flex items-center gap-3 p-3 bg-white border border-slate-100 rounded-xl hover:shadow-md cursor-pointer transition-all group">
                                     <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center group-hover:scale-110 transition-transform"><span className="material-icons text-blue-600 text-lg">extension</span></div>
-                                    <span className="text-xs font-bold text-slate-700 group-hover:text-blue-700 transition-colors">Explore Plugins</span>
+                                    <span className="text-[10px] font-black text-slate-700 uppercase tracking-wider group-hover:text-blue-700 transition-colors">Explore Plugins</span>
                                 </div>
                             </div>
                         </div>
@@ -382,7 +518,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
                             className="flex items-center gap-3 p-4 bg-indigo-50 border border-indigo-100 rounded-xl hover:shadow-md cursor-pointer transition-all group"
                         >
                             <span className="material-icons-outlined text-indigo-600 group-hover:scale-110 transition-transform">add_link</span>
-                            <span className="text-xs font-bold text-indigo-700">Connect App & Integrate</span>
+                            <span className="text-[10px] font-black text-indigo-700 uppercase tracking-widest">Connect App & Integrate</span>
                         </div>
                         <button className="w-full text-center text-xs text-blue-600 font-bold hover:underline">Browse All Tools</button>
                     </div>

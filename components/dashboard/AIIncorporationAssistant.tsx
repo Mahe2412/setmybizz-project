@@ -396,7 +396,7 @@ export default function AIIncorporationAssistant({ onComplete }: AIIncorporation
                             {currentStep.type === 'text' && (
                                 <input
                                     type="text"
-                                    value={businessData[currentStep.id as keyof BusinessData] || ''}
+                                    value={(businessData[currentStep.id as keyof BusinessData] as string) || ''}
                                     onChange={(e) => handleFlowAnswer(e.target.value)}
                                     placeholder={currentStep.placeholder}
                                     className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-lg focus:border-purple-500 focus:outline-none text-slate-900"
@@ -406,7 +406,7 @@ export default function AIIncorporationAssistant({ onComplete }: AIIncorporation
 
                             {currentStep.type === 'textarea' && (
                                 <textarea
-                                    value={businessData[currentStep.id as keyof BusinessData] || ''}
+                                    value={(businessData[currentStep.id as keyof BusinessData] as string) || ''}
                                     onChange={(e) => handleFlowAnswer(e.target.value)}
                                     placeholder={currentStep.placeholder}
                                     rows={3}

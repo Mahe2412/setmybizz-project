@@ -132,171 +132,84 @@ export default function HomePage() {
                 )}
             </header>
 
-            <main>
-                {/* ══ HERO ══ */}
-                <section className="relative pt-20 pb-20 lg:pt-32 lg:pb-32 overflow-hidden bg-[#C6D2FF]">
-                    {/* BG decor */}
-                    <div className="absolute inset-0 -z-10 pointer-events-none opacity-40">
-                        <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] bg-blue-100 rounded-full blur-3xl" />
-                        <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-indigo-50 rounded-full blur-3xl" />
-                    </div>
+            <main className="neural-bg min-h-screen">
+                {/* ══ NEURAL IGNITION HERO ══ */}
+                <section className="relative pt-24 pb-32 lg:pt-40 lg:pb-48 overflow-hidden">
+                    {/* Floating Orbs for Premium Vibe */}
+                    <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[120px] animate-pulse" />
+                    <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[150px] animate-pulse" style={{ animationDelay: '2s' }} />
 
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="grid lg:grid-cols-2 gap-12 items-center">
-                            {/* Left */}
-                            <div className="flex flex-col gap-6 text-center lg:text-left">
-                                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-[1.12]">
-                                    Build, Launch &amp; Run Your Business —{' '}
-                                    <span style={{ background: 'linear-gradient(135deg,#0052FF,#3B82F6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-                                        From One AI Platform
-                                    </span>
-                                </h1>
-                                <p className="text-lg text-slate-600 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-                                    Go from napkin idea to global expansion with the all-in-one AI operating system designed specifically for MSMEs and fast-growing startups.
-                                </p>
-
-                                {/* Search input */}
-                                <form onSubmit={handleStart} className="w-full max-w-2xl mx-auto lg:mx-0 mt-8 flex flex-col sm:flex-row gap-4 relative z-10 transition-all">
-                                    <div className="flex-1 relative">
-                                        <input
-                                            value={bizName}
-                                            onChange={e => setBizName(e.target.value)}
-                                            className="w-full bg-white border-2 border-slate-200 focus:border-[#2653EB] focus:ring-4 focus:ring-[#2653EB]/10 text-slate-900 placeholder-slate-400 h-16 sm:h-20 px-8 rounded-2xl outline-none text-lg sm:text-xl font-bold shadow-xl transition-all"
-                                            placeholder={modeProps.placeholder}
-                                            type="text"
-                                        />
-                                    </div>
-                                    <button type="submit" className="bg-[#2653EB] hover:bg-[#1A3CB3] text-white px-10 py-4 sm:py-0 rounded-2xl font-black text-lg transition-all whitespace-nowrap shadow-2xl shadow-blue-500/30 flex items-center justify-center gap-2 h-16 sm:h-20 w-full sm:w-auto hover:scale-[1.02] active:scale-[0.98]">
-                                        {modeProps.btnText} <span className="text-2xl">{modeProps.btnIcon}</span>
-                                    </button>
-                                </form>
-
-                                {/* Pills */}
-                                <div className="flex flex-wrap justify-center lg:justify-start gap-2.5 pt-4">
-                                    {[
-                                        { 
-                                            id: 'setup', 
-                                            label: 'Business Setup', 
-                                            icon: Building2, 
-                                            color: 'text-blue-700 border-blue-200', 
-                                            activeBg: 'bg-blue-100', 
-                                            defaultBg: 'bg-blue-50/70',
-                                            desc: 'Quick, tailor-made setup with 365 days of free 360° business advice and support for your startup journey.'
-                                        },
-                                        { 
-                                            id: 'global', 
-                                            label: 'Global Access', 
-                                            icon: Globe2, 
-                                            color: 'text-indigo-700 border-indigo-200', 
-                                            activeBg: 'bg-indigo-100', 
-                                            defaultBg: 'bg-indigo-50/70',
-                                            desc: 'Start your business anywhere. Simple, affordable global market access and export solutions — simplifying expansion.'
-                                        },
-                                        { 
-                                            id: 'launchpad', 
-                                            label: 'LaunchPad', 
-                                            icon: Rocket, 
-                                            color: 'text-purple-700 border-purple-200', 
-                                            activeBg: 'bg-purple-100', 
-                                            defaultBg: 'bg-purple-50/70',
-                                            desc: 'Build your entire startup in minutes. No heavy fees. Build brand presence, website, store, and social media simply.'
-                                        },
-                                        { 
-                                            id: 'workspace', 
-                                            label: 'AI Workspace', 
-                                            icon: Bot, 
-                                            color: 'text-emerald-700 border-emerald-200', 
-                                            activeBg: 'bg-emerald-100', 
-                                            defaultBg: 'bg-emerald-50/70',
-                                            desc: 'Operate your MSME solo. Manage sales, runs, and ops with your personal AI co-founder and agents easily.'
-                                        },
-                                    ].map(({ id, label, icon: Icon, color, activeBg, defaultBg, desc }) => (
-                                        <div key={id} className="relative group shrink-0">
-                                            <button
-                                                onClick={() => setActiveMode(id as any)}
-                                                className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[13px] font-bold border transition-all cursor-pointer ${color} ${activeMode === id ? `${activeBg} ring-2 ring-offset-2 ring-blue-500/30 scale-[1.02]` : `${defaultBg} hover:scale-[1.02] hover:bg-white`}`}
-                                            >
-                                                <Icon className={`w-3.5 h-3.5 transition-transform ${activeMode === id ? 'animate-bounce' : ''}`} /> {label}
-                                            </button>
-                                            
-                                            {/* Hover Tooltip Popup */}
-                                            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-64 bg-white/80 backdrop-blur-xl border border-white/50 p-3.5 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] opacity-0 invisible group-hover:visible group-hover:opacity-100 transition-all duration-300 z-50 pointer-events-none transform translate-y-2 group-hover:translate-y-0 text-left">
-                                                <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-white/80 backdrop-blur-xl rotate-45 border-t border-l border-white/50"></div>
-                                                <p className="text-[11px] text-slate-700 font-medium leading-relaxed relative z-10">{desc}</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                {/* Social proof */}
-                                <div className="flex items-center gap-5 justify-center lg:justify-start text-sm text-slate-400 flex-wrap pt-2">
-                                    <div className="flex items-center gap-1">
-                                        {[1, 2, 3, 4, 5].map(i => <Star key={i} className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />)}
-                                        <span className="ml-1 font-semibold text-slate-600">4.9</span>
-                                    </div>
-                                    <div className="w-px h-4 bg-slate-200" /><span><strong className="text-slate-700">500+</strong> Businesses</span>
-                                    <div className="w-px h-4 bg-slate-200" /><span><strong className="text-slate-700">₹0</strong> to start</span>
-                                </div>
+                    <div className="max-w-7xl mx-auto px-6 relative z-10">
+                        <div className="max-w-4xl mx-auto text-center mb-16">
+                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/50 backdrop-blur-md border border-white/20 mb-8 animate-in fade-in slide-in-from-top-4 duration-700">
+                                <span className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse" />
+                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Neural Startup OS v2.0</span>
                             </div>
+                            
+                            <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-slate-900 leading-[0.95] tracking-tighter italic mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
+                                Ignite Your Vision <br />
+                                <span className="monday-gradient-border bg-clip-text text-transparent italic" style={{ WebkitTextFillColor: 'transparent', backgroundImage: 'linear-gradient(90deg, #6366f1, #3b82f6, #8b5cf6)' }}>In 60 Seconds.</span>
+                            </h1>
+                            
+                            <p className="text-xl md:text-2xl text-slate-500 max-w-2xl mx-auto font-medium leading-relaxed mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
+                                Input your idea. Our Neural Engine builds your 30-day roadmap, legal entity, and brand identity autonomously.
+                            </p>
 
-                            {/* Right — Dashboard Mockup */}
-                            <div className="relative hidden lg:flex items-center justify-center">
-                                <div className="relative w-full max-w-lg">
-                                    {/* Main card */}
-                                    <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
-                                        {/* Titlebar */}
-                                        <div className="h-10 bg-slate-50 border-b border-slate-100 flex items-center px-4 gap-1.5">
-                                            <div className="w-3 h-3 rounded-full bg-red-400" />
-                                            <div className="w-3 h-3 rounded-full bg-yellow-400" />
-                                            <div className="w-3 h-3 rounded-full bg-green-400" />
+                            {/* THE IGNITION LAUNCHER (Main Input) */}
+                            <div className="max-w-3xl mx-auto relative animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">
+                                <div className="monday-gradient-border monday-vibe-glow p-0.5 rounded-[2.5rem] group hover:scale-[1.01] transition-all">
+                                    <form onSubmit={handleStart} className="bg-white/95 backdrop-blur-3xl rounded-[2.4rem] p-4 flex flex-col md:flex-row items-center gap-4">
+                                        <div className="flex-1 w-full flex items-center gap-4 px-6 h-16 sm:h-20">
+                                            <span className="material-symbols-outlined text-slate-300 text-3xl">psychology</span>
+                                            <input
+                                                value={bizName}
+                                                onChange={e => setBizName(e.target.value)}
+                                                className="bg-transparent border-none outline-none w-full text-xl sm:text-2xl font-black text-slate-900 placeholder-slate-200 italic"
+                                                placeholder="I want to build a..."
+                                                type="text"
+                                            />
                                         </div>
-                                        {/* Body */}
-                                        <div className="p-6 bg-slate-50/50">
-                                            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4">Your Business Dashboard</div>
-                                            <div className="grid grid-cols-2 gap-3 mb-4">
-                                                {[
-                                                    { e: '🏢', t: 'Pvt Ltd', s: 'Active', c: 'emerald' },
-                                                    { e: '📋', t: 'GST Filed', s: '✓ Done', c: 'blue' },
-                                                    { e: '🌐', t: 'Website', s: 'Live', c: 'violet' },
-                                                    { e: '🤖', t: 'AI Agent', s: 'Running', c: 'amber' },
-                                                ].map(item => (
-                                                    <div key={item.t} className={`bg-${item.c}-50 border border-${item.c}-100 rounded-xl p-3.5`}>
-                                                        <div className="text-xl mb-1.5">{item.e}</div>
-                                                        <div className="text-xs font-bold text-slate-700">{item.t}</div>
-                                                        <div className={`text-xs font-semibold text-${item.c}-600 mt-0.5`}>{item.s}</div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                            <div className="bg-white rounded-xl p-3.5 border border-slate-200">
-                                                <div className="flex justify-between text-xs mb-1.5">
-                                                    <span className="font-semibold text-slate-600">Setup Progress</span>
-                                                    <span className="font-bold text-[#0052FF]">75%</span>
-                                                </div>
-                                                <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                                                    <div className="h-full w-3/4 rounded-full bg-[#0052FF]" />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Glass floating badges */}
-                                    <div className="absolute -top-5 -right-6 bg-white/70 backdrop-blur-md border border-white/50 shadow-lg px-3.5 py-2 rounded-xl flex items-center gap-2 text-xs font-bold text-slate-800 animate-bounce" style={{ animationDuration: '3s' }}>
-                                        <div className="bg-green-100 p-1 rounded-md text-green-600"><CheckCircle className="w-3.5 h-3.5" /></div>
-                                        Company Registered
-                                    </div>
-                                    <div className="absolute bottom-16 -left-10 bg-white/70 backdrop-blur-md border border-white/50 shadow-lg px-3.5 py-2 rounded-xl flex items-center gap-2 text-xs font-bold text-slate-800 animate-pulse">
-                                        <div className="bg-blue-100 p-1 rounded-md text-[#0052FF]"><Bot className="w-3.5 h-3.5" /></div>
-                                        AI Co-Founder Active
-                                    </div>
-
-                                    {/* BG glow */}
-                                    <div className="absolute inset-0 -z-10 rounded-3xl" style={{ background: 'radial-gradient(circle at 50% 50%,rgba(0,82,255,0.1) 0%,transparent 70%)', transform: 'scale(1.4)' }} />
+                                        <button type="submit" className="w-full md:w-auto bg-slate-900 hover:bg-black text-white px-12 py-6 rounded-[2rem] font-black text-lg transition-all shadow-2xl flex items-center justify-center gap-3 group/btn">
+                                            IGNITE VISION
+                                            <span className="material-symbols-outlined group-hover:translate-x-2 transition-transform italic">bolt</span>
+                                        </button>
+                                    </form>
+                                </div>
+                                
+                                {/* Floating Neural Status */}
+                                <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-8 text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">
+                                   <div className="flex items-center gap-2">
+                                      <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+                                      AI Co-founder Ready
+                                   </div>
+                                   <div className="flex items-center gap-2">
+                                      <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full" />
+                                      Neural Roadmap Engine Sync
+                                   </div>
                                 </div>
                             </div>
                         </div>
+
+                        {/* Quick Start Categories */}
+                        <div className="flex flex-wrap justify-center gap-4 pt-12 animate-in fade-in duration-1000 delay-500">
+                            {[
+                                { id: 'setup', label: 'Setup', icon: 'account_balance', color: 'bg-indigo-50 text-indigo-600' },
+                                { id: 'global', label: 'Global', icon: 'public', color: 'bg-emerald-50 text-emerald-600' },
+                                { id: 'launchpad', label: 'LaunchPad', icon: 'auto_awesome', color: 'bg-purple-50 text-purple-600' },
+                                { id: 'workspace', label: 'Workspace', icon: 'token', color: 'bg-blue-50 text-blue-600' }
+                            ].map((mode) => (
+                                <button
+                                    key={mode.id}
+                                    onClick={() => setActiveMode(mode.id as any)}
+                                    className={`flex items-center gap-3 px-8 py-4 rounded-3xl text-[11px] font-black uppercase tracking-[0.2em] transition-all border ${activeMode === mode.id ? 'bg-white border-slate-200 shadow-xl scale-105 select-none' : 'bg-transparent border-transparent text-slate-400 hover:text-slate-900 hover:bg-white/50'}`}
+                                >
+                                    <span className={`material-symbols-outlined text-xl ${activeMode === mode.id ? mode.color.split(' ')[1] : ''}`}>{mode.icon}</span>
+                                    {mode.label}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </section>
-
                 {/* ══ SERVICES ══ */}
                 <HomepageServices />
 

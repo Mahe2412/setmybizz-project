@@ -2,7 +2,7 @@
 import React from 'react';
 
 // ── Shared Types ────────────────────────────────────────────────────────────
-export type OsTab = 'home' | 'company' | 'banking' | 'gst' | 'experts' | 'records' | 'global';
+export type OsTab = 'home' | 'company' | 'banking' | 'gst' | 'experts' | 'records' | 'global' | 'networking' | 'bharat-support' | 'market-access' | 'user-profile' | 'settings' | 'sell-commerce' | 'suppliers' | 'retailer' | 'learn' | 'launchpad';
 
 // ── Light Theme Constants ────────────────────────────────────────────────────
 export const T = {

@@ -96,123 +96,87 @@ export default function LaunchPadAIOnboarding({ businessData, onComplete }: Laun
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-500">
             <div className="w-full max-w-xl animate-in zoom-in-95 slide-in-from-bottom-10 duration-700">
-                {/* Phase 1: Popup 1 - High Energy Start */}
+                {/* Phase 1: Popup 1 */}
                 {phase === 'POPUP1' && (
-                    <div className="bg-white rounded-[3rem] p-12 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] border border-slate-100 relative overflow-hidden text-left">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2"></div>
-                        <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-500/5 rounded-full blur-[60px] translate-y-1/2 -translate-x-1/2"></div>
-
-                        <div className="relative z-10">
-                            <div className="flex items-center gap-4 mb-8">
-                                <div className="w-16 h-16 bg-slate-900 text-white rounded-3xl flex items-center justify-center shadow-2xl group-hover:rotate-12 transition-transform">
-                                    <span className="material-symbols-outlined text-3xl font-black">rocket_launch</span>
-                                </div>
-                                <div>
-                                    <h2 className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">
-                                        Neural <span className="not-italic text-indigo-600">Ignition</span>
-                                    </h2>
-                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mt-2">Scale or Fail? Choose Scale.</p>
-                                </div>
+                    <div className="bg-white rounded-[3rem] p-10 shadow-2xl border border-slate-100 relative overflow-hidden text-left">
+                        <div className="absolute top-0 left-0 w-full h-3 bg-gradient-to-r from-[#2b59ff] via-[#4d47ff] to-[#9c42ff]"></div>
+                        <div className="flex items-start gap-8 mb-8">
+                            <div className="w-20 h-20 bg-blue-50 rounded-3xl flex items-center justify-center text-[#4d47ff] shrink-0 shadow-inner">
+                                <span className="material-symbols-outlined text-4xl font-black">rocket_launch</span>
                             </div>
-
-                            <div className="space-y-6 mb-10">
-                                <h3 className="text-4xl font-black text-slate-900 tracking-tightest leading-[0.9]">
-                                    BUILD YOUR BRAND <br />
-                                    <span className="text-indigo-600 italic">FOR FREE.</span>
-                                </h3>
-                                <p className="text-slate-500 text-sm font-medium leading-relaxed max-w-sm">
-                                    Why wait weeks? Our AI Engine generates your <span className="text-slate-900 font-black">Logo, Website, and Brand Kits</span> in minutes. Fully automated. Zero friction.
-                                </p>
+                            <div className="text-left">
+                                <h2 className="text-3xl font-black text-slate-900 leading-tight">Build Brands for Free</h2>
+                                <p className="text-[#4d47ff] text-sm mt-1 font-black uppercase tracking-[0.2em]">Everything Ready in Seconds</p>
                             </div>
-
+                        </div>
+                        <p className="text-slate-600 text-sm mb-8 leading-relaxed font-medium">
+                            Stop spending months building assets. Get your Logo, Website, Social Kits, and Business Assets built by our AI Factory in just hours. **Bootstrapped & Free** to start.
+                        </p>
+                        <div className="flex gap-4">
                             <button
                                 onClick={() => setPhase('POPUP2')}
-                                className="w-full py-5 bg-slate-900 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-900/40 hover:bg-black hover:scale-[1.02] transition-all active:scale-95 flex items-center justify-center gap-3"
+                                className="flex-1 py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-slate-900/20 hover:bg-slate-800 transition-all active:scale-95"
                             >
                                 Start Building Now
-                                <span className="material-symbols-outlined text-sm font-black">arrow_forward</span>
                             </button>
-
-                            <p className="text-center text-[8px] font-black text-slate-300 uppercase tracking-[0.2em] mt-6">
-                                Powered by Arkle AI Factory • 256-bit Secure
-                            </p>
                         </div>
                     </div>
                 )}
 
-                {/* Phase 2: Popup 2 - Feature Spotlight */}
+                {/* Phase 2: Popup 2 */}
                 {phase === 'POPUP2' && (
-                    <div className="bg-white rounded-[3rem] p-10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] border border-slate-100 relative overflow-hidden text-left animate-in slide-in-from-right-8 duration-500">
-                        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600"></div>
-
-                        <div className="flex items-center justify-between mb-8">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center">
-                                    <span className="material-symbols-outlined text-xl font-black">auto_awesome</span>
-                                </div>
-                                <h2 className="text-xl font-black text-slate-900 uppercase tracking-tighter">Factory Output</h2>
+                    <div className="bg-white rounded-3xl p-6 shadow-2xl border border-slate-100 relative overflow-hidden text-left">
+                        <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600"></div>
+                        <div className="flex items-start gap-4 mb-4">
+                            <div className="w-12 h-12 bg-pink-50 rounded-xl flex items-center justify-center text-pink-600 shrink-0">
+                                <span className="material-symbols-outlined text-2xl">auto_awesome</span>
                             </div>
-                            <span className="px-3 py-1 bg-slate-100 text-slate-400 rounded-lg text-[7px] font-black uppercase tracking-widest">v2.4 Active</span>
+                            <div className="text-left">
+                                <h2 className="text-xl font-black text-slate-900 leading-tight">Everything, One Click.</h2>
+                                <p className="text-slate-500 text-[10px] mt-1 font-medium tracking-widest uppercase">Full Creative Suite</p>
+                            </div>
                         </div>
-
-                        <div className="grid grid-cols-2 gap-3 mb-10">
-                            {[
-                                { label: 'Logo Design', icon: 'brush', active: true },
-                                { label: 'Web Architecture', icon: 'web', active: true },
-                                { label: 'Neural Copy', icon: 'edit_note', active: true },
-                                { label: 'Social Matrix', icon: 'share', active: true },
-                                { label: 'Brand Guidelines', icon: 'category', active: false },
-                                { label: 'E-Store Hub', icon: 'shopping_cart', active: false }
-                            ].map((f, i) => (
-                                <div key={i} className={`p-4 rounded-2xl border ${f.active ? 'bg-indigo-50/50 border-indigo-100 text-indigo-900' : 'bg-slate-50 border-slate-100 text-slate-400'} flex items-center gap-3 transition-all hover:scale-105`}>
-                                    <span className={`material-symbols-outlined text-sm ${f.active ? 'text-indigo-600' : 'text-slate-300'}`}>{f.icon}</span>
-                                    <span className="text-[8px] font-black uppercase tracking-widest">{f.label}</span>
-                                </div>
-                            ))}
+                        <div className="bg-slate-50 p-3 rounded-xl mb-4 text-[10px] grid grid-cols-2 gap-y-1.5 font-bold text-slate-600">
+                            <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[10px] text-indigo-500">check</span> Logo</span>
+                            <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[10px] text-indigo-500">check</span> Website</span>
+                            <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[10px] text-indigo-500">check</span> Content</span>
+                            <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[10px] text-indigo-500">check</span> E-Store</span>
+                            <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[10px] text-indigo-500">check</span> Pitch Deck</span>
+                            <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[10px] text-indigo-500">check</span> Brand Kit</span>
                         </div>
-
                         <button
                             onClick={() => setPhase('QUIZ')}
-                            className="w-full py-5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-widest shadow-2xl shadow-indigo-600/30 hover:shadow-indigo-600/50 transition-all active:scale-95"
+                            className="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-xl shadow-indigo-600/30 hover:scale-[1.02] transition-all active:scale-95"
                         >
-                            Initialize Factory
+                            Build Now
                         </button>
                     </div>
                 )}
 
-                {/* Phase 3: The Quiz - Interactive Onboarding */}
+                {/* Phase 3: The Quiz */}
                 {phase === 'QUIZ' && (
-                    <div className="bg-white rounded-[2.5rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] overflow-hidden flex flex-col border border-slate-100 animate-in slide-in-from-right-8 duration-500 text-left">
-                        <div className="bg-slate-50/50 backdrop-blur-md border-b border-slate-100 p-8">
-                            <div className="flex items-center justify-between gap-4">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center text-white shadow-xl rotate-3">
-                                        <span className="material-symbols-outlined text-xl">psychology</span>
+                    <div className="bg-white rounded-[2rem] shadow-2xl overflow-hidden flex flex-col border border-slate-100 animate-in slide-in-from-right-4 duration-500 text-left">
+                        <div className="bg-slate-50 border-b border-slate-100 p-6">
+                            <div className="flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg">
+                                        <span className="material-symbols-outlined text-lg">smart_toy</span>
                                     </div>
                                     <div>
-                                        <h3 className="text-[12px] font-black text-slate-900 uppercase tracking-[0.2em] leading-none mb-2">Neural Input Phase</h3>
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Question {step + 1} of {quizSteps.length}</p>
-                                        </div>
+                                        <h3 className="text-[11px] font-black text-slate-900 uppercase tracking-widest leading-none mb-1">Brand AI Factory</h3>
+                                        <p className="text-[9px] font-bold text-indigo-500">Question {step + 1} of {quizSteps.length}</p>
                                     </div>
                                 </div>
-                                <div className="flex-1 max-w-[140px]">
-                                    <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
-                                        <div className="h-full bg-slate-900 transition-all duration-700 ease-out" style={{ width: `${((step + 1) / quizSteps.length) * 100}%` }}></div>
-                                    </div>
+                                <div className="flex-1 max-w-[120px] h-2 bg-slate-200 rounded-full overflow-hidden">
+                                    <div className="h-full bg-indigo-600 transition-all duration-500 shadow-[0_0_10px_rgba(79,70,229,0.5)]" style={{ width: `${((step + 1) / quizSteps.length) * 100}%` }}></div>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="p-10 max-h-[480px] overflow-y-auto custom-scroll space-y-8">
-                            <div className="space-y-2">
-                                <h2 className="text-3xl font-black text-slate-900 tracking-tight leading-tight">{quizSteps[step].title}</h2>
-                                <p className="text-slate-400 text-xs font-medium uppercase tracking-widest">Provide data for neural mapping</p>
-                            </div>
-
+                        <div className="p-8 max-h-[450px] overflow-y-auto custom-scroll">
+                            <h2 className="text-xl font-black text-slate-900 mb-6">{quizSteps[step].title}</h2>
                             {quizSteps[step].type === 'select' && (
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-2 gap-3">
                                     {quizSteps[step].options?.map((opt) => (
                                         <button
                                             key={opt}
@@ -220,9 +184,9 @@ export default function LaunchPadAIOnboarding({ businessData, onComplete }: Laun
                                                 setFormData({ ...formData, [quizSteps[step].id]: opt });
                                                 handleNextQuiz();
                                             }}
-                                            className={`p-6 rounded-2xl border-2 text-[10px] font-black transition-all text-left uppercase tracking-[0.2em] ${formData[quizSteps[step].id as keyof typeof formData] === opt
-                                                ? 'border-indigo-600 bg-indigo-50/50 text-indigo-700 shadow-lg scale-[1.02]'
-                                                : 'border-slate-50 hover:border-slate-200 text-slate-400 hover:bg-slate-50'
+                                            className={`p-4 rounded-2xl border-2 text-xs font-black transition-all text-left uppercase tracking-widest ${formData[quizSteps[step].id as keyof typeof formData] === opt
+                                                ? 'border-indigo-600 bg-indigo-50 text-indigo-700 shadow-md transform scale-[1.02]'
+                                                : 'border-slate-50 hover:border-indigo-100 text-slate-500 hover:bg-slate-50'
                                                 }`}
                                         >
                                             {opt}
@@ -232,29 +196,26 @@ export default function LaunchPadAIOnboarding({ businessData, onComplete }: Laun
                             )}
 
                             {quizSteps[step].type === 'multi-text' && (
-                                <div className="space-y-6">
+                                <div className="space-y-5">
                                     {quizSteps[step].fields?.map((field: any) => (
-                                        <div key={field.id} className="relative group">
-                                            <label className="block text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 ml-2 group-focus-within:text-indigo-600 transition-colors">{field.label}</label>
+                                        <div key={field.id}>
+                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">{field.label}</label>
                                             {field.type === 'select' ? (
-                                                <div className="relative">
-                                                    <select
-                                                        value={formData[field.id as keyof typeof formData] as string}
-                                                        onChange={(e) => setFormData({ ...formData, [field.id]: e.target.value })}
-                                                        className="w-full p-5 rounded-2xl border-2 border-slate-50 focus:border-indigo-100 focus:bg-white outline-none font-black text-xs text-slate-900 bg-slate-50 transition-all appearance-none"
-                                                    >
-                                                        <option value="">Select Option...</option>
-                                                        {field.options.map((o: string) => <option key={o} value={o}>{o}</option>)}
-                                                    </select>
-                                                    <span className="material-symbols-outlined absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_more</span>
-                                                </div>
+                                                <select
+                                                    value={formData[field.id as keyof typeof formData] as string}
+                                                    onChange={(e) => setFormData({ ...formData, [field.id]: e.target.value })}
+                                                    className="w-full p-4 rounded-2xl border-2 border-slate-50 focus:border-indigo-100 focus:bg-white outline-none font-black text-xs text-slate-700 bg-slate-50 transition-all"
+                                                >
+                                                    <option value="">Select Option...</option>
+                                                    {field.options.map((o: string) => <option key={o} value={o}>{o}</option>)}
+                                                </select>
                                             ) : (
                                                 <input
                                                     type="text"
                                                     value={formData[field.id as keyof typeof formData] as string}
                                                     onChange={(e) => setFormData({ ...formData, [field.id]: e.target.value })}
                                                     placeholder={field.placeholder}
-                                                    className="w-full p-5 rounded-2xl border-2 border-slate-50 focus:border-indigo-100 focus:bg-white outline-none font-black text-xs text-slate-900 placeholder-slate-300 bg-slate-50 transition-all shadow-inner"
+                                                    className="w-full p-4 rounded-2xl border-2 border-slate-50 focus:border-indigo-100 focus:bg-white outline-none font-black text-xs text-slate-700 placeholder-slate-300 bg-slate-50 transition-all"
                                                 />
                                             )}
                                         </div>
@@ -265,7 +226,7 @@ export default function LaunchPadAIOnboarding({ businessData, onComplete }: Laun
                             {quizSteps[step].type === 'products' && (
                                 <div className="space-y-4">
                                     {formData.products.map((p, idx) => (
-                                        <div key={idx} className="bg-slate-50/50 p-6 rounded-2xl border-2 border-slate-100 group hover:border-indigo-100 transition-all">
+                                        <div key={idx} className="bg-slate-50 p-5 rounded-2xl border-2 border-slate-100">
                                             <input
                                                 type="text"
                                                 value={p.name}
@@ -275,185 +236,146 @@ export default function LaunchPadAIOnboarding({ businessData, onComplete }: Laun
                                                     setFormData({ ...formData, products: newProds });
                                                 }}
                                                 placeholder="Service Name (e.g. Design, Coaching)..."
-                                                className="w-full bg-transparent border-b-2 border-slate-200 focus:border-indigo-600 outline-none font-black text-xs text-slate-900 py-2 transition-all"
+                                                className="w-full p-3 rounded-xl border border-slate-200 outline-none font-black text-xs"
                                             />
                                         </div>
                                     ))}
                                     <button
                                         onClick={() => setFormData({ ...formData, products: [...formData.products, { name: '', images: [] }] })}
-                                        className="w-full py-5 border-2 border-dashed border-slate-200 rounded-[1.5rem] text-slate-400 font-extrabold text-[10px] uppercase tracking-widest hover:border-indigo-200 hover:text-indigo-400 hover:bg-indigo-50 transition-all flex items-center justify-center gap-2"
+                                        className="w-full py-3 border-2 border-dashed border-slate-200 rounded-2xl text-slate-400 font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 transition-all"
                                     >
-                                        <span className="material-symbols-outlined text-sm">add</span>
-                                        Add Another Offering
+                                        + Add Another Offering
                                     </button>
                                 </div>
                             )}
 
                             {quizSteps[step].type === 'textarea' && (
-                                <div className="relative">
-                                    <textarea
-                                        value={formData.description}
-                                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                        placeholder={quizSteps[step].placeholder}
-                                        rows={6}
-                                        className="w-full p-8 rounded-[2rem] border-2 border-slate-50 focus:border-indigo-100 focus:bg-white outline-none font-bold text-xs text-slate-900 placeholder-slate-300 bg-slate-50 transition-all resize-none leading-relaxed shadow-inner"
-                                    />
-                                    <div className="absolute bottom-6 right-8 text-[8px] font-black text-slate-300 uppercase tracking-widest">Analyzing Sentiment...</div>
-                                </div>
+                                <textarea
+                                    value={formData.description}
+                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                    placeholder={quizSteps[step].placeholder}
+                                    rows={5}
+                                    className="w-full p-6 rounded-[2rem] border-2 border-slate-50 focus:border-indigo-100 focus:bg-white outline-none font-bold text-xs text-slate-700 placeholder-slate-300 bg-slate-50 transition-all resize-none leading-relaxed"
+                                />
                             )}
                         </div>
 
-                        <div className="p-8 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between shrink-0">
-                            <button onClick={handleBackQuiz} disabled={step === 0} className="px-8 py-4 rounded-xl font-black text-slate-400 hover:text-slate-900 disabled:opacity-0 transition-all text-[10px] uppercase tracking-[0.2em] flex items-center gap-2">
-                                <span className="material-symbols-outlined text-sm">arrow_back</span>
-                                Back
-                            </button>
-                            <button onClick={handleNextQuiz} className="px-12 py-5 bg-slate-900 text-white rounded-[1.5rem] font-black text-[10px] uppercase tracking-[0.2em] shadow-2xl shadow-slate-900/30 hover:bg-black hover:scale-105 transition-all active:scale-95 flex items-center gap-3">
-                                {step === quizSteps.length - 1 ? 'Start Engine' : 'Continue'}
-                                <span className="material-symbols-outlined text-xs font-black">bolt</span>
+                        <div className="p-6 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+                            <button onClick={handleBackQuiz} disabled={step === 0} className="px-6 py-3 rounded-xl font-black text-slate-400 hover:text-slate-600 disabled:opacity-0 transition-all text-[10px] uppercase tracking-widest">Back</button>
+                            <button onClick={handleNextQuiz} className="px-10 py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-slate-900/20 hover:scale-105 transition-all active:scale-95 flex items-center gap-3">
+                                {step === quizSteps.length - 1 ? 'Start Building' : 'Continue'}
+                                <span className="material-symbols-outlined text-xs font-black">arrow_forward</span>
                             </button>
                         </div>
                     </div>
                 )}
 
-                {/* Login / Profile Phase - Founder Identity */}
+                {/* Login / Profile Phase */}
                 {phase === 'LOGIN' && (
-                    <div className="bg-white rounded-[3rem] p-12 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] border border-slate-100 animate-in zoom-in-95 duration-700 text-center relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2"></div>
-
-                        <div className="relative z-10">
-                            <div className="w-20 h-20 bg-slate-900 text-white rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-2xl rotate-6 group-hover:rotate-0 transition-transform">
-                                <span className="material-symbols-outlined text-4xl font-black">fingerprint</span>
-                            </div>
-                            <h2 className="text-3xl font-black text-slate-900 leading-tight uppercase tracking-tighter italic">Neural <span className="not-italic text-indigo-600">ID</span></h2>
-                            <p className="text-slate-400 text-[10px] mt-4 font-black uppercase tracking-[0.3em]">Map your profile to the ecosystem</p>
-
-                            <div className="mt-10 space-y-5 mb-12 text-left">
-                                <div className="p-6 bg-slate-50/80 backdrop-blur-sm rounded-[1.5rem] border border-slate-100 flex items-center gap-5 transition-all hover:bg-white group">
-                                    <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-lg border border-slate-50 group-hover:scale-110 transition-transform">
-                                        <span className="material-symbols-outlined text-indigo-600 text-xl">alternate_email</span>
-                                    </div>
-                                    <div className="flex-1">
-                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Registered Vector</p>
-                                        <p className="text-xs font-black text-slate-900">{formData.email}</p>
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-5">
-                                    <input type="text" placeholder="First Name" className="w-full p-6 bg-slate-50 rounded-[1.5rem] border-2 border-transparent focus:border-indigo-100 focus:bg-white outline-none font-black text-xs text-slate-900 shadow-inner" />
-                                    <input type="text" placeholder="Last Name" className="w-full p-6 bg-slate-50 rounded-[1.5rem] border-2 border-transparent focus:border-indigo-100 focus:bg-white outline-none font-black text-xs text-slate-900 shadow-inner" />
-                                </div>
-                                <div className="relative">
-                                    <input type="password" placeholder="Secure Key" className="w-full p-6 bg-slate-50 rounded-[1.5rem] border-2 border-transparent focus:border-indigo-100 focus:bg-white outline-none font-black text-xs text-slate-900 shadow-inner" />
-                                    <span className="material-symbols-outlined absolute right-6 top-1/2 -translate-y-1/2 text-slate-300">visibility_off</span>
-                                </div>
-                            </div>
-
-                            <button
-                                onClick={() => setPhase('BUILDING_ASSETS')}
-                                className="w-full py-6 bg-slate-900 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-slate-900/30 hover:bg-black hover:scale-[1.02] transition-all active:scale-95"
-                            >
-                                Secure My Brand Identity
-                            </button>
+                    <div className="bg-white rounded-[3rem] p-12 shadow-2xl border border-slate-100 animate-in slide-in-from-right-4 duration-500 text-center">
+                        <div className="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-inner">
+                            <span className="material-symbols-outlined text-4xl font-black">person_add</span>
                         </div>
+                        <h2 className="text-3xl font-black text-slate-900 leading-tight">Founder Identity</h2>
+                        <p className="text-slate-500 text-xs mt-3 font-bold uppercase tracking-widest opacity-60">Unlock your AI Factory Dashboard</p>
+
+                        <div className="mt-8 space-y-4 mb-10 text-left">
+                            <div className="p-5 bg-slate-50 rounded-[1.5rem] border border-slate-100 flex items-center gap-4">
+                                <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm">
+                                    <span className="material-symbols-outlined text-indigo-600">mail</span>
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Registration Email</p>
+                                    <p className="text-xs font-black text-slate-700">{formData.email}</p>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <input type="text" placeholder="First Name" className="w-full p-5 bg-slate-50 rounded-[1.5rem] border-2 border-transparent focus:border-indigo-100 focus:bg-white outline-none font-black text-xs text-slate-700" />
+                                <input type="text" placeholder="Last Name" className="w-full p-5 bg-slate-50 rounded-[1.5rem] border-2 border-transparent focus:border-indigo-100 focus:bg-white outline-none font-black text-xs text-slate-700" />
+                            </div>
+                            <input type="password" placeholder="Secure Password" className="w-full p-5 bg-slate-50 rounded-[1.5rem] border-2 border-transparent focus:border-indigo-100 focus:bg-white outline-none font-black text-xs text-slate-700" />
+                        </div>
+
+                        <button
+                            onClick={() => setPhase('BUILDING_ASSETS')}
+                            className="w-full py-5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-widest shadow-2xl shadow-indigo-500/30 hover:scale-[1.02] transition-all active:scale-95"
+                        >
+                            Initialize AI Core
+                        </button>
                     </div>
                 )}
 
-                {/* Building Loader - Recursive Rendering */}
+                {/* Building Loader */}
                 {phase === 'BUILDING_ASSETS' && (
-                    <div className="bg-slate-900 rounded-[3.5rem] p-16 text-center text-white shadow-2xl relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-[100px] animate-pulse"></div>
-                        <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/10 rounded-full blur-[80px] animate-pulse delay-700"></div>
+                    <div className="bg-slate-900 rounded-[3rem] p-12 text-center text-white shadow-2xl relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/20 rounded-full blur-[100px]"></div>
+                        <div className="w-16 h-16 border-4 border-white/10 border-t-indigo-500 rounded-full animate-spin mx-auto mb-8 shadow-[0_0_20px_rgba(79,70,229,0.3)]"></div>
+                        <h2 className="text-3xl font-black mb-3 uppercase tracking-tighter italic">AI Designing...</h2>
+                        <p className="text-[10px] text-indigo-400 font-bold tracking-[0.3em] uppercase">Constructing Brand Identity</p>
 
-                        <div className="relative z-10">
-                            <div className="w-24 h-24 border-[6px] border-white/5 border-t-indigo-500 rounded-full animate-spin mx-auto mb-10 shadow-[0_0_40px_rgba(79,70,229,0.4)]"></div>
-                            <h2 className="text-4xl font-black mb-4 uppercase tracking-tighter italic">Factory <span className="not-italic text-indigo-400">Rendering...</span></h2>
-                            <p className="text-[11px] text-slate-400 font-bold tracking-[0.4em] uppercase mb-16 animate-pulse">Synthesizing Digital Assets</p>
-
-                            <div className="space-y-6 max-w-xs mx-auto">
-                                {[
-                                    { label: 'Neural Mesh', progress: '94%' },
-                                    { label: 'Pixel Buffer', progress: '72%' },
-                                    { label: 'Vector Logic', progress: '45%' }
-                                ].map((step, i) => (
-                                    <div key={i} className="space-y-2">
-                                        <div className="flex justify-between text-[8px] font-black uppercase tracking-widest text-slate-500">
-                                            <span>{step.label}</span>
-                                            <span className="text-indigo-400">{step.progress}</span>
-                                        </div>
-                                        <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-                                            <div className="h-full bg-indigo-500/40 w-full animate-pulse"></div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+                        <div className="mt-12 grid grid-cols-3 gap-4 opacity-40">
+                            <div className="h-1 bg-white/20 rounded-full overflow-hidden"><div className="h-full bg-indigo-500 w-full animate-pulse"></div></div>
+                            <div className="h-1 bg-white/20 rounded-full overflow-hidden"><div className="h-full bg-indigo-500 w-1/2 animate-pulse"></div></div>
+                            <div className="h-1 bg-white/20 rounded-full overflow-hidden"><div className="h-full bg-indigo-500 w-3/4 animate-pulse"></div></div>
                         </div>
                     </div>
                 )}
 
-                {/* Selection Phases (Overlays) - Immersive Fullscreen Experience */}
+                {/* Selection Phases (Overlays) */}
                 {(phase === 'LOGO_SAMPLES' || phase === 'LOGO_SELECTION' || phase === 'WEBSITE_FLOW') && (
-                    <div className="fixed inset-0 z-[110] bg-slate-900/95 backdrop-blur-2xl flex items-center justify-center p-8 overflow-hidden animate-in fade-in duration-700">
-                        {/* Phase Content ... */}
+                    <div className="fixed inset-0 z-[110] bg-slate-900/80 backdrop-blur-xl flex items-center justify-center p-8 overflow-hidden">
                         {phase === 'LOGO_SAMPLES' && (
-                            <div className="bg-white rounded-[4rem] p-16 max-w-6xl w-full shadow-2xl animate-in zoom-in-95 duration-700 text-left relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-50 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2"></div>
-
-                                <div className="relative z-10">
-                                    <div className="flex items-center justify-between mb-16">
-                                        <div>
-                                            <h2 className="text-5xl font-black text-slate-900 tracking-tightest uppercase italic">Brand <span className="not-italic text-indigo-600">DNA</span></h2>
-                                            <p className="text-slate-400 font-black uppercase tracking-[0.4em] text-[10px] mt-4 opacity-80">Engine identified 6 strategic directions</p>
-                                        </div>
-                                        <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center border border-slate-100 shadow-inner">
-                                            <span className="material-symbols-outlined text-indigo-600 text-4xl font-black">palette</span>
-                                        </div>
+                            <div className="bg-white rounded-[4rem] p-16 max-w-5xl w-full shadow-2xl animate-in zoom-in-95 duration-700 text-left">
+                                <div className="flex items-center justify-between mb-12">
+                                    <div>
+                                        <h2 className="text-4xl font-black text-slate-900 tracking-tighter uppercase">Brand Philosophy</h2>
+                                        <p className="text-slate-500 font-bold uppercase tracking-widest text-xs mt-2 opacity-60">Engine identified 6 core directions</p>
                                     </div>
-                                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-8">
-                                        {logoSamples.map((logo) => (
-                                            <button
-                                                key={logo.id}
-                                                onClick={() => {
-                                                    setFormData({ ...formData, logoPreference: logo.name });
-                                                    setPhase('LOGO_SELECTION');
-                                                }}
-                                                className="group relative bg-slate-50 aspect-[16/10] rounded-[3rem] border-2 border-transparent hover:border-indigo-600 transition-all overflow-hidden flex flex-col items-center justify-center p-10 shadow-sm hover:shadow-2xl"
-                                            >
-                                                <div className="absolute inset-0 opacity-10 group-hover:opacity-40 transition-opacity grayscale group-hover:grayscale-0">
-                                                    <img src={logo.preview} alt="" className="w-full h-full object-cover scale-150 group-hover:scale-100 transition-transform duration-1000" />
-                                                </div>
-                                                <span className="material-symbols-outlined text-5xl text-indigo-600 group-hover:scale-110 transition-transform mb-4 relative z-10 font-black">{logo.icon}</span>
-                                                <span className="text-[12px] font-black text-slate-900 uppercase tracking-[0.3em] relative z-10">{logo.name}</span>
-                                                <div className="absolute bottom-6 opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0">
-                                                    <span className="px-5 py-2 bg-indigo-600 text-white rounded-full text-[8px] font-black uppercase tracking-widest shadow-xl">Select Vision</span>
-                                                </div>
-                                            </button>
-                                        ))}
+                                    <div className="w-16 h-16 bg-slate-50 rounded-3xl flex items-center justify-center border border-slate-100">
+                                        <span className="material-symbols-outlined text-indigo-600 text-3xl font-black">palette</span>
                                     </div>
+                                </div>
+                                <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {logoSamples.map((logo) => (
+                                        <button
+                                            key={logo.id}
+                                            onClick={() => {
+                                                setFormData({ ...formData, logoPreference: logo.name });
+                                                setPhase('LOGO_SELECTION');
+                                            }}
+                                            className="group relative bg-slate-50 aspect-video rounded-[2.5rem] border-2 border-transparent hover:border-indigo-600 transition-all overflow-hidden flex flex-col items-center justify-center p-8"
+                                        >
+                                            <div className="absolute inset-0 opacity-10 group-hover:opacity-30 transition-opacity grayscale group-hover:grayscale-0">
+                                                <img src={logo.preview} alt="" className="w-full h-full object-cover" />
+                                            </div>
+                                            <span className="material-symbols-outlined text-4xl text-indigo-600 group-hover:scale-110 transition-transform mb-3 relative z-10 font-black">{logo.icon}</span>
+                                            <span className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] relative z-10">{logo.name}</span>
+                                            <div className="absolute bottom-4 opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0 text-center">
+                                                <span className="text-[8px] font-black text-indigo-600 uppercase tracking-widest block">Select Vision</span>
+                                            </div>
+                                        </button>
+                                    ))}
                                 </div>
                             </div>
                         )}
 
                         {phase === 'LOGO_SELECTION' && (
-                            <div className="bg-white rounded-[4rem] p-16 max-w-[90vw] w-full shadow-2xl animate-in zoom-in-95 duration-700 flex flex-col max-h-[90vh] text-left relative overflow-hidden">
-                                <div className="flex items-center justify-between mb-12 shrink-0 relative z-10">
+                            <div className="bg-white rounded-[4rem] p-16 max-w-7xl w-full shadow-2xl animate-in zoom-in-95 duration-700 flex flex-col max-h-[90vh] text-left">
+                                <div className="flex items-center justify-between mb-12 shrink-0">
                                     <div>
-                                        <h2 className="text-5xl font-black text-slate-900 tracking-tightest uppercase italic">Neural <span className="not-italic text-indigo-600">Prototypes</span></h2>
-                                        <p className="text-slate-400 font-black uppercase tracking-[0.4em] text-[10px] mt-4">Recursive iterations for {formData.logoPreference}</p>
+                                        <h2 className="text-4xl font-black text-slate-900 tracking-tighter uppercase">AI Prototypes</h2>
+                                        <p className="text-slate-500 font-bold uppercase tracking-widest text-xs mt-2 opacity-60">10 recursive variations for {formData.logoPreference}</p>
                                     </div>
-                                    <button onClick={() => setPhase('LOGO_SAMPLES')} className="px-10 py-5 bg-slate-100 hover:bg-slate-200 rounded-[2rem] text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-3">
-                                        <span className="material-symbols-outlined text-sm">arrow_back</span>
-                                        Back to Concepts
-                                    </button>
+                                    <button onClick={() => setPhase('LOGO_SAMPLES')} className="px-10 py-4 bg-slate-100 hover:bg-slate-200 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest transition-all">Back to Concepts</button>
                                 </div>
-                                <div className="flex-1 overflow-y-auto custom-scroll grid grid-cols-2 md:grid-cols-5 gap-10 p-4 relative z-10">
+                                <div className="flex-1 overflow-y-auto custom-scroll grid grid-cols-2 md:grid-cols-5 gap-8 p-4">
                                     {Array.from({ length: 10 }).map((_, i) => (
-                                        <div key={i} className="group relative bg-white aspect-square rounded-[3.5rem] border-2 border-slate-100 hover:border-indigo-600 shadow-sm hover:shadow-[0_24px_48px_-12px_rgba(79,70,229,0.3)] transition-all flex flex-col items-center justify-center p-14 cursor-pointer" onClick={() => setPhase('WEBSITE_FLOW')}>
-                                            <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                                            <div className="w-24 h-24 rounded-full border-[6px] border-indigo-600 flex items-center justify-center text-5xl font-black text-indigo-600 group-hover:scale-110 transition-transform shadow-xl rotate-[15deg] group-hover:rotate-0">
+                                        <div key={i} className="group relative bg-white aspect-square rounded-[3rem] border-2 border-slate-100 hover:border-indigo-600 shadow-sm hover:shadow-2xl transition-all flex flex-col items-center justify-center p-12 cursor-pointer" onClick={() => setPhase('WEBSITE_FLOW')}>
+                                            <div className={`w-20 h-20 rounded-full border-4 border-indigo-600 flex items-center justify-center text-4xl font-black text-indigo-600 group-hover:scale-110 transition-transform`}>
                                                 {formData.businessName.charAt(0)}
                                             </div>
-                                            <div className="absolute inset-x-0 bottom-8 flex justify-center opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0">
-                                                <span className="text-[9px] font-black text-white bg-slate-900 px-6 py-2.5 rounded-full uppercase tracking-widest shadow-2xl">Initialize Unit</span>
+                                            <div className="absolute inset-x-0 bottom-6 flex justify-center opacity-0 group-hover:opacity-100 transition-all">
+                                                <span className="text-[8px] font-black text-white bg-indigo-600 px-3 py-1.5 rounded-full uppercase tracking-widest">Pick Prototype</span>
                                             </div>
                                         </div>
                                     ))}
@@ -462,60 +384,35 @@ export default function LaunchPadAIOnboarding({ businessData, onComplete }: Laun
                         )}
 
                         {phase === 'WEBSITE_FLOW' && (
-                            <div className="bg-white rounded-[4rem] max-w-[95vw] w-full h-[90vh] shadow-2xl animate-in zoom-in-95 duration-700 overflow-hidden flex text-left border border-white/20">
-                                <div className="w-96 bg-slate-900 flex flex-col p-12 text-white relative">
-                                    <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_0%_0%,rgba(79,70,229,0.1),transparent_50%)]"></div>
-                                    <div className="relative z-10">
-                                        <h3 className="text-3xl font-black mb-12 tracking-tightest uppercase italic">The Layer <span className="not-italic text-indigo-400">Builder</span></h3>
-                                        <div className="space-y-4 mb-12">
-                                            {['Hero Matrix', 'Product Ecosystem', 'Founder Story', 'Neural Feedback', 'Signal Capture'].map(comp => (
-                                                <div key={comp} className="p-5 bg-white/5 rounded-2xl border border-white/10 text-[10px] font-black text-slate-300 flex items-center justify-between shadow-lg cursor-grab uppercase tracking-widest hover:bg-white/10 hover:border-white/20 transition-all group">
-                                                    {comp}
-                                                    <span className="material-symbols-outlined text-[18px] opacity-30 group-hover:opacity-100 transition-opacity">drag_indicator</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                        <div className="p-6 bg-indigo-600/10 rounded-3xl border border-indigo-500/20 mb-12">
-                                            <p className="text-[9px] font-medium text-indigo-300 leading-relaxed uppercase tracking-wider">
-                                                Live preview is rendered using Gemini 3.5. Any changes are reflected immediately across the neural stack.
-                                            </p>
-                                        </div>
-                                        <button
-                                            onClick={() => setPhase('COMPLETED')}
-                                            className="w-full py-6 bg-white text-slate-900 rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] shadow-2xl hover:bg-indigo-50 hover:scale-[1.02] transition-all flex items-center justify-center gap-3"
-                                        >
-                                            Transmit Store
-                                            <span className="material-symbols-outlined text-sm">send</span>
-                                        </button>
+                            <div className="bg-white rounded-[4rem] max-w-7xl w-full h-[85vh] shadow-2xl animate-in zoom-in-95 duration-700 overflow-hidden flex text-left">
+                                <div className="w-80 bg-slate-50 border-r border-slate-100 flex flex-col p-10">
+                                    <h3 className="text-2xl font-black mb-10 tracking-tighter uppercase">Factory</h3>
+                                    <div className="flex-1 space-y-4">
+                                        {['Hero Section', 'Product Grid', 'Service List', 'Testimonials', 'Contact Us'].map(comp => (
+                                            <div key={comp} className="p-5 bg-white rounded-2xl border border-slate-200 text-[10px] font-black text-slate-600 flex items-center justify-between shadow-sm cursor-grab uppercase tracking-widest hover:border-indigo-100 transition-all">
+                                                {comp}
+                                                <span className="material-symbols-outlined text-[16px] opacity-30">drag_indicator</span>
+                                            </div>
+                                        ))}
                                     </div>
+                                    <button
+                                        onClick={() => setPhase('COMPLETED')}
+                                        className="w-full py-5 bg-slate-900 text-white rounded-[1.5rem] font-black text-[10px] uppercase tracking-widest mt-10 shadow-2xl shadow-slate-900/20 hover:scale-[1.02] transition-all"
+                                    >
+                                        Publish Store
+                                    </button>
                                 </div>
-                                <div className="flex-1 bg-slate-50 p-16 overflow-y-auto custom-scroll relative">
-                                    <div className="absolute top-10 left-1/2 -translate-x-1/2 px-6 py-2 bg-white rounded-full shadow-sm border border-slate-100 z-10 flex items-center gap-3">
-                                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Live Rendering Active</span>
-                                    </div>
-                                    <div className="bg-white w-full min-h-full rounded-[4rem] shadow-[0_64px_128px_-32px_rgba(0,0,0,0.1)] p-24 text-center border border-slate-200/50 relative overflow-hidden">
-                                        <div className="absolute top-0 left-0 w-full h-[600px] bg-gradient-to-b from-indigo-50/30 to-transparent"></div>
-                                        <nav className="flex justify-between items-center mb-32 text-[11px] font-black uppercase tracking-[0.3em] relative z-10">
-                                            <span className="italic text-slate-900 border-b-4 border-indigo-600 pb-2">{formData.businessName}</span>
-                                            <div className="space-x-12 text-slate-400">
-                                                <span className="hover:text-indigo-600 cursor-pointer transition-colors">Vision</span>
-                                                <span className="hover:text-indigo-600 cursor-pointer transition-colors">Neural Kit</span>
-                                                <span className="hover:text-indigo-600 cursor-pointer transition-colors">Connect</span>
-                                            </div>
+                                <div className="flex-1 bg-slate-100 p-16 overflow-y-auto">
+                                    <div className="bg-white w-full min-h-full rounded-[3rem] shadow-2xl p-16 text-center border border-slate-200/50">
+                                        <nav className="flex justify-between items-center mb-24 text-[10px] font-black uppercase tracking-[0.2em]">
+                                            <span className="italic">{formData.businessName}</span>
+                                            <div className="space-x-10 text-slate-400"><span>Products</span><span>About</span><span>Contact</span></div>
                                         </nav>
-                                        <div className="relative z-10">
-                                            <h1 className="text-8xl font-black mb-12 tracking-tightest text-slate-900 leading-[0.85]">
-                                                NEXT-GEN <br />
-                                                <span className="text-indigo-600 italic">{formData.service}</span>
-                                            </h1>
-                                            <p className="text-slate-500 max-w-2xl mx-auto mb-20 text-lg font-medium leading-relaxed uppercase tracking-tight opacity-70">
-                                                {formData.description || "Synthesizing new paradigms for the modern entrepreneur."}
-                                            </p>
-                                            <div className="flex justify-center gap-8">
-                                                <div className="px-12 py-5 bg-slate-900 text-white rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.3em] shadow-2xl hover:bg-black transition-all cursor-pointer">Initialize Access</div>
-                                                <div className="px-12 py-5 bg-slate-100 text-slate-900 rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.3em] hover:bg-slate-200 transition-all cursor-pointer">System View</div>
-                                            </div>
+                                        <h1 className="text-6xl font-black mb-10 tracking-tighter text-slate-900">Innovative {formData.service} <br /> Done Right.</h1>
+                                        <p className="text-slate-500 max-w-xl mx-auto mb-16 text-sm font-medium leading-relaxed uppercase tracking-wide opacity-80">{formData.description}</p>
+                                        <div className="flex justify-center gap-6">
+                                            <div className="px-10 py-4 bg-indigo-600 text-white rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest shadow-xl shadow-indigo-500/30">Get Started</div>
+                                            <div className="px-10 py-4 bg-slate-100 text-slate-900 rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest">Deep Dive</div>
                                         </div>
                                     </div>
                                 </div>
@@ -524,49 +421,55 @@ export default function LaunchPadAIOnboarding({ businessData, onComplete }: Laun
                     </div>
                 )}
 
-                {/* Phase 8: Completed - Final Transcendence */}
+                {/* Phase 8: Completed */}
                 {phase === 'COMPLETED' && (
-                    <div className="bg-white rounded-[4rem] p-16 shadow-[0_32px_128px_-32px_rgba(79,70,229,0.3)] border border-slate-100 animate-in flip-in-y duration-1000 overflow-hidden text-center relative max-w-2xl mx-auto">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-green-50 rounded-full -translate-y-32 translate-x-32 opacity-80 blur-[80px]"></div>
-                        <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-50 rounded-full translate-y-32 -translate-x-32 opacity-80 blur-[80px]"></div>
+                    <div className="bg-white rounded-[3rem] p-12 shadow-2xl border border-slate-100 animate-in flip-in-y duration-1000 overflow-hidden text-center relative">
+                        <div className="absolute top-0 right-0 w-40 h-40 bg-green-50 rounded-full -translate-y-20 translate-x-20 opacity-50 blur-xl"></div>
+                        <div className="w-24 h-24 bg-green-50 text-green-600 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
+                            <span className="material-symbols-outlined text-4xl font-black">check_circle</span>
+                        </div>
+                        <h2 className="text-4xl font-black text-slate-900 leading-tight uppercase tracking-tighter">Brand is Live!</h2>
+                        <p className="text-slate-500 text-[10px] mt-4 font-black uppercase tracking-[0.3em] opacity-60 mb-12">Universal Stack Initialized</p>
 
-                        <div className="relative z-10">
-                            <div className="w-24 h-24 bg-green-500 text-white rounded-[2.5rem] flex items-center justify-center mx-auto mb-10 shadow-2xl scale-110">
-                                <span className="material-symbols-outlined text-5xl font-black animate-pulse">check</span>
-                            </div>
-                            <h2 className="text-5xl font-black text-slate-900 leading-tight uppercase tracking-tightest italic mb-4">Signal <span className="not-italic text-indigo-600">Locked.</span></h2>
-                            <p className="text-slate-400 text-[11px] font-black uppercase tracking-[0.5em] mb-16">Universal stack fully initialized</p>
-
-                            <div className="space-y-4 mb-20 text-left">
-                                {[
-                                    { label: 'Neural Roadmap', status: 'SYNCHRONIZED', icon: 'auto_awesome' },
-                                    { label: 'Pixel Ecosystem', status: 'RENDERED', icon: 'brush' },
-                                    { label: 'Factory Core', status: 'OPERATIONAL', icon: 'settings_input_component' }
-                                ].map((item, i) => (
-                                    <div key={i} className="flex items-center justify-between p-6 bg-slate-50 rounded-[2rem] border border-slate-100 group hover:border-indigo-200 hover:bg-white transition-all shadow-sm hover:shadow-xl">
-                                        <div className="flex items-center gap-5">
-                                            <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-indigo-600 shadow-lg border border-slate-50 group-hover:rotate-6 transition-transform">
-                                                <span className="material-symbols-outlined text-xl font-black">{item.icon}</span>
-                                            </div>
-                                            <span className="text-[12px] font-black uppercase tracking-widest text-slate-900">{item.label}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-                                            <span className="text-[9px] font-black uppercase tracking-widest text-indigo-600">{item.status}</span>
-                                        </div>
+                        <div className="space-y-4 mb-12 text-left">
+                            <div className="flex items-center justify-between p-5 bg-slate-50 rounded-[1.5rem] border border-slate-100 group hover:border-indigo-100 transition-all">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-indigo-600 shadow-sm border border-slate-100">
+                                        <span className="material-symbols-outlined text-xl font-black">task_alt</span>
                                     </div>
-                                ))}
+                                    <span className="text-[11px] font-black uppercase tracking-widest text-slate-700">Founder Roadmap</span>
+                                </div>
+                                <span className="text-[9px] bg-indigo-600 text-white px-3 py-1 rounded-full font-black uppercase tracking-widest">Complete</span>
                             </div>
+                            <div className="flex items-center justify-between p-5 bg-slate-50 rounded-[1.5rem] border border-slate-100 group hover:border-indigo-100 transition-all">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-indigo-600 shadow-sm border border-slate-100">
+                                        <span className="material-symbols-outlined text-xl font-black">brush</span>
+                                    </div>
+                                    <span className="text-[11px] font-black uppercase tracking-widest text-slate-700">Digital Identity</span>
+                                </div>
+                                <span className="text-[9px] bg-indigo-600 text-white px-3 py-1 rounded-full font-black uppercase tracking-widest">Rendered</span>
+                            </div>
+                            <div className="flex items-center justify-between p-5 bg-slate-50 rounded-[1.5rem] border border-slate-100 group hover:border-indigo-100 transition-all">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-indigo-600 shadow-sm border border-slate-100">
+                                        <span className="material-symbols-outlined text-xl font-black">web</span>
+                                    </div>
+                                    <span className="text-[11px] font-black uppercase tracking-widest text-slate-700">Custom Workspace</span>
+                                </div>
+                                <span className="text-[9px] bg-indigo-600 text-white px-3 py-1 rounded-full font-black uppercase tracking-widest">Active</span>
+                            </div>
+                        </div>
 
+                        <div className="flex gap-4">
                             <button
                                 onClick={() => {
                                     onComplete(formData);
                                     window.location.reload();
                                 }}
-                                className="w-full py-6 bg-slate-900 text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] shadow-2xl hover:bg-black hover:scale-[1.02] transition-all flex items-center justify-center gap-4"
+                                className="flex-1 py-5 bg-slate-900 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-widest shadow-2xl shadow-slate-900/20 hover:scale-[1.02] transition-all"
                             >
-                                TRANSMIT TO WORKSPACE
-                                <span className="material-symbols-outlined text-sm font-black">login</span>
+                                Enter Workspace
                             </button>
                         </div>
                     </div>

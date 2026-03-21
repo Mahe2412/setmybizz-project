@@ -20,9 +20,29 @@ export type ExistingAsset =
     | 'startup_india'
     | 'udyam';
 
+export interface Director {
+    name: string;
+    din: string;
+    designation: string;
+    kyc: boolean;
+}
+
 export interface BusinessData {
     name: string;
-    businessName?: string; // Unified with name
+    businessName?: string;
+    cin?: string;
+    gstin?: string;
+    pan?: string;
+    roc?: string;
+    regDate?: string;
+    structure?: string;
+    category?: string;
+    address?: string;
+    directors?: Director[];
+    healthScore?: number;
+    email?: string;
+    phone?: string;
+    website?: string;
     offeringType: OfferingType;
     offeringOther: string;
     industry: string;
@@ -34,7 +54,8 @@ export interface BusinessData {
     stage: BusinessStage | string;
     existingAssets: ExistingAsset[];
     focusAreas: FocusArea[];
-    // Additional fields from AI Incorporation Assistant
+    shareCapital?: string;
+    paidUpCapital?: string;
     focus?: string;
     teamSize?: string;
     funding?: string;

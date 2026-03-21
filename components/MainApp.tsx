@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { saveBusinessProfile } from '../lib/db';
 import WelcomeStep from './steps/WelcomeStep';
@@ -47,6 +47,7 @@ const MainApp: React.FC = () => {
 
 const AppContent: React.FC = () => {
     const searchParams = useSearchParams();
+    const router = useRouter();
     const [view, setView] = useState<View>('onboarding');
     const [currentStep, setCurrentStep] = useState(0);
     const [data, setData] = useState<BusinessData>(INITIAL_DATA);
@@ -247,20 +248,14 @@ const AppContent: React.FC = () => {
     }
 
     if (view === 'dashboard') {
+        router.push('/os');
         return (
-            <>
-                <Dashboard 
-                    data={data} 
-                    initialTab={dashboardConfig.tab} 
-                    initialGlobal={dashboardConfig.global}
-                    onNavigateToFlow={handleBackToFlow} 
-                    onLogin={() => setView('login')}
-                />
-                <ProfileCompletionModal
-                    isOpen={showProfileModal}
-                    onComplete={handleProfileComplete}
-                />
-            </>
+            <div className="flex h-screen items-center justify-center bg-white">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                    <p className="text-slate-500 text-sm font-medium animate-pulse">Launching your AI Operating System...</p>
+                </div>
+            </div>
         );
     }
 

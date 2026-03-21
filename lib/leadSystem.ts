@@ -23,7 +23,7 @@ export const generateLeadId = async (): Promise<string> => {
 export const identifyLead = async (guestId: string, userId?: string): Promise<string> => {
     // Check if lead exists for this guestId
     const leadsRef = collection(db, 'leads');
-    const q = query(leadsRef, where('guestId', '==', guestId), orderBy('createdAt', 'desc'), limit(1));
+    const q = query(leadsRef, where('guestId', '==', guestId), limit(1));
     const snapshot = await getDocs(q);
 
     if (!snapshot.empty) {
