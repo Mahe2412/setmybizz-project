@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { T } from '@/components/os/shared';
-import GlobalIncorporationFullPage from '@/components/dashboard/GlobalIncorporationFullPage';
 import GlobalAssistantPanel from '@/components/os/GlobalAssistantPanel';
+import GlobalIncorporationFullPage from '@/components/dashboard/GlobalIncorporationFullPage';
 import GlobalWorkspaceDashboard from '@/components/dashboard/GlobalWorkspaceDashboard';
 
 const TRANSLATIONS = {

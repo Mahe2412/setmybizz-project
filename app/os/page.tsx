@@ -21,10 +21,9 @@ import SettingsTab from '@/components/os/SettingsTab';
 import SellCommerceTab from '@/components/os/SellCommerceTab';
 import SuppliersTab from '@/components/os/SuppliersTab';
 import RetailerTab from '@/components/os/RetailerTab';
-import LaunchPadAIOnboarding from '@/components/dashboard/LaunchPadAIOnboarding';
-import Workspace from '@/components/dashboard/Workspace';
 import LearnTab from '@/components/os/LearnTab';
 import LaunchPadTab from '@/components/os/LaunchPadTab';
+import Workspace from '@/components/dashboard/Workspace';
 
 /* ───────────── SIDEBAR NAV CONFIG (BizDesk) ───────────── */
 type SidebarSection = { section: string; items: { id: OsTab; icon: string; label: string; badge?: string }[] };
