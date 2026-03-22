@@ -122,6 +122,7 @@ export default function ArklePanel({ onClose, selectedLang = 'en-IN' }: { onClos
   ];
 
   return (
+    // @ts-ignore
     <Draggable nodeRef={draggableNodeRef} handle=".arkle-drag-handle" bounds="parent">
       <div 
         ref={draggableNodeRef}

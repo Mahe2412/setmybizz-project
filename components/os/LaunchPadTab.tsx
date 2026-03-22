@@ -876,7 +876,7 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
                         <span className="material-symbols-outlined text-[18px]">attach_file</span>
                     </button>
                     <input 
-                        value={isRecording && appState === ('discuss' || 'solutions-chat') && liveTranscript ? liveTranscript : input}
+                        value={isRecording && (appState === 'discuss' || appState === 'solutions-chat') && liveTranscript ? liveTranscript : input}
                         onChange={(e) => setInput(e.target.value)}
                         placeholder="Type your response..." 
                         className="flex-1 min-w-[300px] bg-transparent px-2 py-2 outline-none text-[14px] text-[#323338] placeholder-[#b8bccc]"
