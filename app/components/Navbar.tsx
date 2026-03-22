@@ -20,15 +20,15 @@ export const Navbar = () => {
                 <div className="max-w-7xl mx-auto flex justify-between items-center">
                     <div className="flex items-center gap-2">
                         {/* Logo */}
-                        <Link href="/dashboard" className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-indigo-600 cursor-pointer">
+                        <Link href="/os" className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-indigo-600 cursor-pointer">
                             SetMyBizz
                         </Link>
                     </div>
 
                     <div className="hidden md:flex gap-6 items-center">
-                        <Link href="/dashboard" className="text-slate-600 hover:text-blue-600 font-medium text-sm transition-colors">Dashboard</Link>
+                        <Link href="/os" className="text-slate-600 hover:text-blue-600 font-medium text-sm transition-colors">Dashboard</Link>
                         <Link href="/services" className="text-slate-600 hover:text-blue-600 font-medium text-sm transition-colors">Services</Link>
-                        {user && <Link href="/workspace" className="text-slate-600 hover:text-blue-600 font-medium text-sm transition-colors">My Workspace</Link>}
+                        {user && <Link href="/os" className="text-slate-600 hover:text-blue-600 font-medium text-sm transition-colors">My Workspace</Link>}
                     </div>
 
                     <div className="flex items-center gap-4">
