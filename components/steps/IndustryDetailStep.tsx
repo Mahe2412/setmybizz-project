@@ -1,0 +1,1 @@
+export default function IndustryDetailStep(props: any) { return <div>IndustryDetailStep</div> }

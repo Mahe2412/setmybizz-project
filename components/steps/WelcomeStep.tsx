@@ -1,0 +1,1 @@
+export default function WelcomeStep(props: any) { return <div>WelcomeStep</div> }

@@ -1,0 +1,1 @@
+export default function IndustryOfferStep(props: any) { return <div>IndustryOfferStep</div> }

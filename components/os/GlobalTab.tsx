@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { T } from '@/components/os/shared';
-import GlobalIncorporationFullPage from '@/components/dashboard/GlobalIncorporationFullPage';
 import GlobalAssistantPanel from '@/components/os/GlobalAssistantPanel';
-import GlobalWorkspaceDashboard from '@/components/dashboard/GlobalWorkspaceDashboard';
 
 const TRANSLATIONS = {
   English: {
@@ -422,13 +420,12 @@ export default function GlobalTab() {
         <GlobalAssistantPanel onClose={() => setShowGlobalAssistant(false)} />
       )}
 
-      {showWorkspaceDashboard && (
-        <GlobalWorkspaceDashboard onClose={() => setShowWorkspaceDashboard(false)} />
-      )}
-
       {/* The full onboarding flow is still accessible via the top "Start My Global Journey" banner button */}
       {showGlobalJourney && (
-        <GlobalIncorporationFullPage onClose={() => setShowGlobalJourney(false)} />
+        <div className="fixed inset-0 z-50 bg-white p-5 overflow-auto">
+          <button onClick={() => setShowGlobalJourney(false)} className="mb-4 text-blue-600 font-bold">← Back</button>
+          <h2 className="text-2xl font-black">Global Onboarding Coming Soon</h2>
+        </div>
       )}
     </div>
   );

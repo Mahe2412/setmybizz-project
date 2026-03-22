@@ -21,8 +21,6 @@ import SettingsTab from '@/components/os/SettingsTab';
 import SellCommerceTab from '@/components/os/SellCommerceTab';
 import SuppliersTab from '@/components/os/SuppliersTab';
 import RetailerTab from '@/components/os/RetailerTab';
-import LaunchPadAIOnboarding from '@/components/dashboard/LaunchPadAIOnboarding';
-import Workspace from '@/components/dashboard/Workspace';
 import LearnTab from '@/components/os/LearnTab';
 import LaunchPadTab from '@/components/os/LaunchPadTab';
 
@@ -406,13 +404,13 @@ export default function OSPage() {
 
               {/* ══════ AI WORKSPACE ══════ */}
               {activeTopNav === 'ai-workspace' && (
-                 <div className="h-full overflow-hidden">
-                    <Workspace onNavigate={(tab) => {
-                      if (tab === 'A' || tab === 'B') setActiveTopNav('bizdesk');
-                      if (tab === 'LearnerStudio') setActiveTopNav('learn');
-                      if (tab === 'Workspace') setActiveTopNav('ai-workspace');
-                    }} />
-                 </div>
+                <div className="h-full flex items-center justify-center">
+                   <div className="text-center">
+                     <div className="text-4xl mb-4">🤖</div>
+                     <h2 className="text-xl font-bold">AI Workspace</h2>
+                     <p className="text-slate-500">Coming Soon - Your Unified AI Command Center</p>
+                   </div>
+                </div>
               )}
             </motion.div>
           </AnimatePresence>
