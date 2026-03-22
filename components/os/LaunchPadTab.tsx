@@ -11,7 +11,7 @@ interface LaunchPadTabProps {
 
 /* ── Types ─────────────────────────────────────────────── */
 type TopTab = 'arkle' | 'co-founder' | 'solutions' | 'ai-agents';
-type AppState = 'home' | 'discuss' | 'building' | 'ready' | 'solutions-chat';
+type AppState = 'home' | 'discuss' | 'building' | 'ready' | 'solutions-chat' | 'agent-workspace';
 
 interface ChatMsg { role: 'ai' | 'user'; text: string; ts: number; }
 interface BuiltAsset { id: string; label: string; icon: string; status: 'pending' | 'building' | 'done'; color: string; }
@@ -119,6 +119,22 @@ const SOLUTION_IDEAS = [
     },
 ];
 
+/* ── AI Digital Employees Data ─────────────────────────── */
+const DIGITAL_EMPLOYEES = [
+    { id: 'marketing', title: 'Marketing Strategist', role: 'CMO', desc: 'Creates ad campaigns, plans SEO, and drives market positioning.', icon: 'insights', clr: '#ff7b00', status: 'Available' },
+    { id: 'social', title: 'Social Media Manager', role: 'Growth', desc: 'Writes, schedules, and analyzes viral posts across platforms.', icon: 'campaign', clr: '#e2445c', status: 'Available' },
+    { id: 'sales', title: 'Sales Executive', role: 'Revenue', desc: 'Handles outbound emails, lead qualification, and deal closing.', icon: 'trending_up', clr: '#00c875', status: 'Available' },
+    { id: 'crm', title: 'CRM Manager', role: 'Operations', desc: 'Manages client follow-ups, retention, and seamless onboarding.', icon: 'group', clr: '#579bfc', status: 'Available' },
+    { id: 'designer', title: 'UI/UX Designer', role: 'Creative', desc: 'Generates brand kits, logos, brochures, and interface designs.', icon: 'palette', clr: '#9d94ff', status: 'Available' },
+    { id: 'developer', title: 'Full-Stack Developer', role: 'Product', desc: 'Writes code, fixes bugs, and builds custom web applications.', icon: 'terminal', clr: '#1c1f3b', status: 'Available' },
+    { id: 'finance', title: 'Financial Analyst', role: 'Finance', desc: 'Tracks expenses, monitors runway, and plans tax strategies.', icon: 'account_balance', clr: '#ffcc00', status: 'Available' },
+    { id: 'legal', title: 'Legal Counsel', role: 'Compliance', desc: 'Drafts contracts, term sheets, and ensures corporate compliance.', icon: 'gavel', clr: '#323338', status: 'Coming Soon' },
+    { id: 'launchpad-overseer', title: 'Launchpad Overseer', role: 'Chief of Staff', desc: 'Deploys apps, builds websites, and manages Arkle services on autopilot.', icon: 'rocket_launch', clr: '#0073ea', status: 'Available' },
+    { id: 'gws-admin', title: 'Workspace Admin', role: 'IT Manager', desc: 'Manages Google Workspace, drafts emails, and organizes drive files silently.', icon: 'cloud_sync', clr: '#db4437', status: 'Available' },
+    { id: 'erp-manager', title: 'ERP Specialist', role: 'Operations', desc: 'Syncs Zoho/Odoo inventory, processes orders, and manages supplier pipelines.', icon: 'account_tree', clr: '#0f9d58', status: 'Available' },
+    { id: 'data-bot', title: 'Integration Bot', role: 'Data Flow', desc: 'Connects third-party APIs invisibly without any human clicks.', icon: 'api', clr: '#8e24aa', status: 'Available' },
+];
+
 /* ── Co-Founder Discovery & Strategy Flow ──────────────── */
 const DISCUSSION_FLOW = [
     {
@@ -223,7 +239,7 @@ const DISCUSSION_FLOW = [
 ];
 
 const QUICK_MESSAGES = [
-    "Suggest color palette", "Marketing gaps?", "Competitor analysis", "Suggest taglines", "How's my strategy?"
+    "Suggest color palette", "Marketing gaps?", "Competitor analysis", "Suggest taglines"
 ];
 
 const BRAND_TEMPLATES: Record<string, any> = {
@@ -250,6 +266,10 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
     const [topTab, setTopTab] = useState<TopTab>('co-founder');
     const [appState, setAppState] = useState<AppState>('home');
     const [promptInput, setPromptInput] = useState('');
+    const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
+    const [agentTaskInput, setAgentTaskInput] = useState('');
+    const [agentTasks, setAgentTasks] = useState<any[]>([]);
+    const [isAgentWorking, setIsAgentWorking] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(true);
 
     // Business context collected from Co-Founder discussion
@@ -373,6 +393,7 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
                     if (appState === 'home') setPromptInput(transcript);
                     else if (appState === 'discuss') setChatInput(transcript);
                     else if (appState === 'solutions-chat') setSolInput(transcript);
+                    else if (appState === 'agent-workspace') setAgentTaskInput(transcript);
 
                     if (isFinal) {
                         setLiveTranscript('');
@@ -384,6 +405,9 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
                             setTimeout(() => {
                                 if (appState === 'discuss') handleDiscussSubmit();
                                 else if (appState === 'solutions-chat') handleSolSubmit();
+                                else if (appState === 'agent-workspace') {
+                                    handleAgentTaskSubmit(transcript);
+                                }
                             }, 500);
                         }
                     }
@@ -846,24 +870,32 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
                 <div ref={endRef} />
             </div>
 
-            <form onSubmit={onSubmit} className="mt-auto bg-white border border-[#c3c6d4] rounded-xl flex items-center gap-2 p-1.5 shadow-sm mb-4">
-                <input 
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    placeholder="Type your response..." 
-                    className="flex-1 bg-transparent px-3 py-2 outline-none text-[14px] text-[#323338] placeholder-[#b8bccc]"
-                    autoFocus
-                />
-                <button 
-                    type="button"
-                    onClick={toggleVoice}
-                    className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${isRecording ? 'bg-red-50 text-red-500 animate-pulse' : 'text-[#676879] hover:bg-[#f5f6f8]'}`}
-                >
-                    <span className="material-symbols-outlined text-[18px]">{isRecording ? 'graphic_eq' : 'mic'}</span>
-                </button>
-                <button type="submit" disabled={!input.trim()} className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${input.trim() ? 'bg-[#0073ea] text-white' : 'bg-[#e6e9ef] text-[#c3c6d4]'}`}>
-                    <span className="material-symbols-outlined text-[16px]">arrow_upward</span>
-                </button>
+            <form onSubmit={onSubmit} className="mt-auto bg-white border border-[#c3c6d4] rounded-[24px] flex items-center justify-between p-1.5 shadow-sm mb-4">
+                <div className="flex items-center gap-1 pl-2">
+                    <button type="button" className="w-8 h-8 rounded-full flex items-center justify-center text-[#676879] hover:bg-[#f5f6f8] transition-colors" title="Attach">
+                        <span className="material-symbols-outlined text-[18px]">attach_file</span>
+                    </button>
+                    <input 
+                        value={isRecording && appState === ('discuss' || 'solutions-chat') && liveTranscript ? liveTranscript : input}
+                        onChange={(e) => setInput(e.target.value)}
+                        placeholder="Type your response..." 
+                        className="flex-1 min-w-[300px] bg-transparent px-2 py-2 outline-none text-[14px] text-[#323338] placeholder-[#b8bccc]"
+                        autoFocus
+                    />
+                </div>
+                <div className="flex items-center gap-1 pr-1">
+                    <button 
+                        type="button"
+                        onClick={toggleVoice}
+                        className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${isRecording ? 'bg-black text-white hover:scale-105 shadow-md animate-pulse' : 'text-[#676879] hover:bg-[#f5f6f8] hover:text-[#323338]'}`}
+                        title="Voice Mode"
+                    >
+                        <span className="material-symbols-outlined text-[18px]">{isRecording ? 'graphic_eq' : 'mic'}</span>
+                    </button>
+                    <button type="submit" disabled={!input.trim() && !liveTranscript.trim()} className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${(input.trim() || liveTranscript.trim()) ? 'bg-[#0073ea] text-white hover:scale-105 shadow-sm' : 'bg-[#f0f1f3] text-[#c3c6d4]'}`}>
+                        <span className="material-symbols-outlined text-[16px]">arrow_upward</span>
+                    </button>
+                </div>
             </form>
         </div>
     );
@@ -880,7 +912,7 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
                      `Hi ${firstName}, what should we build?`}
                 </h1>
                 <p className="text-[#676879] text-[16px] mt-2 font-normal">
-                    {topTab === 'co-founder' ? "I'll guide you through the setup and generate everything you need in seconds." :
+                    {topTab === 'co-founder' ? "I'll guide you through the setup of your business." :
                      topTab === 'solutions' ? "AI-powered tools to solve your specific business challenges" :
                      topTab === 'ai-agents' ? "Deploy specialized AI agents for your business" :
                      "Arkle can execute any task, from filing GST to building websites."}
@@ -933,27 +965,33 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
                         className="w-full bg-transparent border-none outline-none resize-none text-[#323338] text-[15px] placeholder-[#b8bccc] p-4 pb-1 font-normal"
                         rows={3}
                     />
-                    <div className="flex items-center justify-between px-4 py-2.5 border-t border-[#f0f1f3]">
-                        <div className="flex items-center gap-3">
-                            <button className="text-[#676879] hover:text-[#323338] transition-colors" title="Attach">
+                    <div className="flex items-center justify-between px-3 py-2 border-t border-[#f0f1f3]">
+                        <div className="flex items-center gap-2">
+                            <button className="w-9 h-9 rounded-full flex items-center justify-center text-[#676879] hover:bg-[#f5f6f8] hover:text-[#323338] transition-colors" title="Attach">
                                 <span className="material-symbols-outlined text-[18px]">attach_file</span>
                             </button>
-                            <button onClick={toggleVoice} className={`transition-all ${isRecording ? 'text-red-500 animate-pulse' : 'text-[#676879] hover:text-[#323338]'}`} title="Voice">
-                                <span className="material-symbols-outlined text-[18px]">{isRecording ? 'graphic_eq' : 'mic'}</span>
-                            </button>
                             {topTab === 'co-founder' && (
-                                <button onClick={() => { setShowDiscovery(true); setDiscoveryStep(0); }} className="flex items-center gap-1.5 text-[13px] text-[#0073ea] font-medium hover:underline">
+                                <button onClick={() => { setShowDiscovery(true); setDiscoveryStep(0); }} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] text-[#0073ea] font-medium bg-[#eef5ff] hover:bg-[#ddebff] transition-colors">
                                     <span className="material-symbols-outlined text-[16px]">psychology</span>
                                     {bizCtx.businessName ? "Update Strategy" : "Setup Strategy"}
                                 </button>
                             )}
                         </div>
-                        <button 
-                            onClick={handleDirectSubmit}
-                            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${promptInput.trim() ? 'bg-[#0073ea] text-white' : 'bg-[#f0f1f3] text-[#c3c6d4]'}`}
-                        >
-                            <span className="material-symbols-outlined text-[16px]">arrow_upward</span>
-                        </button>
+                        <div className="flex items-center gap-2">
+                            <button 
+                                onClick={toggleVoice} 
+                                className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${isRecording ? 'bg-black text-white hover:scale-105 shadow-md animate-pulse' : 'bg-[#f5f6f8] text-[#676879] hover:bg-[#e6e9ef] hover:text-[#323338]'}`} 
+                                title="Voice Mode"
+                            >
+                                <span className="material-symbols-outlined text-[18px]">{isRecording ? 'graphic_eq' : 'mic'}</span>
+                            </button>
+                            <button 
+                                onClick={handleDirectSubmit}
+                                className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${promptInput.trim() || liveTranscript.trim() ? 'bg-[#0073ea] text-white shadow-sm hover:scale-105' : 'bg-[#f0f1f3] text-[#c3c6d4]'}`}
+                            >
+                                <span className="material-symbols-outlined text-[18px]">arrow_upward</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -975,7 +1013,7 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
             </div>
 
             {/* Services Horizontal Scroll — Only for branding/co-founder tabs */}
-            {(topTab === 'co-founder' || topTab === 'arkle' || topTab === 'ai-agents') && (
+            {(topTab === 'co-founder' || topTab === 'arkle') && (
                 <div className="w-full mt-10 overflow-hidden">
                     <p className="text-center text-[13px] text-[#676879] mb-6 font-medium">Suggested starters tailored for your work</p>
                     <div className="flex items-center gap-6 overflow-x-auto pb-4 no-scrollbar scroll-smooth px-6">
@@ -1015,70 +1053,100 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
                 </div>
             )}
 
-            {/* Solutions Grid — Monday.com Vibe Ideas */}
+            {/* Solutions Tab Content Reordered */}
             {topTab === 'solutions' && (
-                <div className="w-full max-w-5xl mt-12 px-6">
-                    <div className="flex items-center justify-between mb-8">
-                        <h2 className="text-[20px] font-medium text-[#323338]">Start with an idea</h2>
-                        <div className="flex items-center gap-4 text-[13px]">
-                            {['All', 'Projects', 'Sales', 'Marketing', 'Operations', 'HR'].map((cat, i) => (
-                                <button key={i} className={`px-4 py-1.5 rounded-full border transition-all ${i === 0 ? 'bg-[#0073ea] text-white border-[#0073ea]' : 'bg-white text-[#676879] border-[#e6e9ef] hover:border-[#c3c6d4]'}`}>
-                                    {cat}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {SOLUTION_IDEAS.map((idea, i) => (
-                            <button 
-                                key={i} 
-                                onClick={() => {
-                                    setPromptInput(idea.prompt);
-                                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                                }}
-                                className="group flex flex-col bg-white rounded-2xl border border-[#e6e9ef] hover:border-[#0073ea] hover:shadow-xl transition-all overflow-hidden text-left"
-                            >
-                                <div className="h-40 w-full relative overflow-hidden bg-slate-50">
-                                    {/* Template Preview Image */}
-                                    <img 
-                                        src={(idea as any).image} 
-                                        alt={idea.title}
-                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                                        onError={(e) => (e.currentTarget.style.display = 'none')}
-                                    />
-                                    <div className="absolute inset-0 bg-linear-to-t from-black/20 to-transparent"></div>
-                                    <div className="absolute top-4 left-4 w-10 h-10 rounded-xl flex items-center justify-center bg-white shadow-sm">
-                                        <span className="material-symbols-outlined text-[20px]" style={{ color: idea.clr }}>
-                                            {idea.category === 'Marketing' ? 'campaign' : 
-                                             idea.category === 'Sales' ? 'monitoring' : 
-                                             idea.category === 'Operations' ? 'account_tree' : 'group'}
-                                        </span>
-                                    </div>
-                                    <div className="absolute bottom-4 left-4 flex items-center gap-1.5 px-2 py-1 rounded bg-white/90 w-fit backdrop-blur-sm shadow-sm select-none">
-                                        <span className="w-1.5 h-1.5 rounded-full" style={{ background: idea.clr }}></span>
-                                        <span className="text-[10px] font-bold text-[#323338] uppercase tracking-wider">{idea.category}</span>
-                                    </div>
-                                </div>
-                                <div className="p-4 bg-white border-t border-[#e6e9ef] group-hover:border-[#0073ea] transition-colors">
-                                    <p className="text-[14px] font-medium text-[#323338] group-hover:text-[#0073ea] transition-colors">{idea.title}</p>
-                                    <p className="text-[12px] text-[#676879] mt-1 line-clamp-2">Visual-first startup template</p>
-                                </div>
-                            </button>
-                        ))}
-                    </div>
-                    
-                    {/* Additional Apps Section */}
-                    <div className="mt-16 text-center">
-                        <p className="text-[14px] text-[#676879] mb-4">Want to build something specific?</p>
+                <div className="w-full flex flex-col items-center">
+                    {/* Additional Apps Section (MOVED UP) */}
+                    <div className="w-full mt-2 text-center animate-in fade-in slide-in-from-bottom-2">
+                        <p className="text-[14px] text-[#676879] mb-4 font-medium">Want to build something specific?</p>
                         <div className="flex flex-wrap justify-center gap-3">
                             {['Build Apps', 'Web Applications', 'Tools', 'SaaS Products', 'Custom CRM'].map((item, i) => (
                                 <button 
                                     key={i} 
                                     onClick={() => setPromptInput(`Help me build a ${item}...`)}
-                                    className="px-6 py-2 bg-white border border-[#e6e9ef] rounded-xl text-[14px] text-[#323338] font-medium hover:border-[#0073ea] hover:text-[#0073ea] transition-all"
+                                    className="px-6 py-2 bg-white border border-[#e6e9ef] rounded-xl text-[14px] text-[#323338] font-medium hover:border-[#0073ea] hover:text-[#0073ea] transition-all shadow-sm shadow-blue-500/5"
                                 >
                                     {item}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Solutions Cards (MOVED UP) */}
+                    <div className="max-w-[680px] w-full mt-10 animate-in fade-in slide-in-from-bottom-3 flex flex-col items-center">
+                        <p className="text-[14px] text-[#676879] mb-4 font-medium">Or get started with</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full px-2">
+                            {[
+                                { title: 'Build a Custom CRM', desc: 'Track leads, deals, and customer lifecycle', icon: 'group', clr: '#579bfc' },
+                                { title: 'Create AI Agent', desc: 'Automate follow-ups, support, and workflows', icon: 'smart_toy', clr: '#9d94ff' },
+                                { title: 'Performance Dashboard', desc: 'Real-time analytics on revenue and growth', icon: 'monitoring', clr: '#00c875' },
+                                { title: 'Workflow Automation', desc: 'Connect tools and eliminate manual tasks', icon: 'account_tree', clr: '#ff7b00' },
+                            ].map((card, i) => (
+                                <button 
+                                    key={i} 
+                                    onClick={startSolutionsChat}
+                                    className="flex items-start gap-4 p-5 bg-white border border-[#e6e9ef] rounded-2xl hover:border-[#c3c6d4] hover:shadow-md transition-all text-left group"
+                                >
+                                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${card.clr}15` }}>
+                                        <span className="material-symbols-outlined text-[20px]" style={{ color: card.clr }}>{card.icon}</span>
+                                    </div>
+                                    <div>
+                                        <p className="text-[15px] text-[#323338] font-medium group-hover:text-[#0073ea] transition-colors">{card.title}</p>
+                                        <p className="text-[13px] text-[#676879] mt-1">{card.desc}</p>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Solutions Grid — Monday.com Vibe Ideas (MOVED DOWN) */}
+                    <div className="w-full max-w-5xl mt-16 px-6 pb-12 animate-in fade-in slide-in-from-bottom-5">
+                        <div className="flex items-center justify-between mb-8">
+                            <h2 className="text-[20px] font-medium text-[#323338]">Start with an idea</h2>
+                            <div className="flex items-center gap-4 text-[13px]">
+                                {['All', 'Projects', 'Sales', 'Marketing', 'Operations', 'HR'].map((cat, i) => (
+                                    <button key={i} className={`px-4 py-1.5 rounded-full border transition-all ${i === 0 ? 'bg-[#0073ea] text-white border-[#0073ea]' : 'bg-white text-[#676879] border-[#e6e9ef] hover:border-[#c3c6d4]'}`}>
+                                        {cat}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {SOLUTION_IDEAS.map((idea, i) => (
+                                <button 
+                                    key={i} 
+                                    onClick={() => {
+                                        setPromptInput(idea.prompt);
+                                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                                    }}
+                                    className="group flex flex-col bg-white rounded-2xl border border-[#e6e9ef] hover:border-[#0073ea] hover:shadow-xl transition-all overflow-hidden text-left"
+                                >
+                                    <div className="h-40 w-full relative overflow-hidden bg-slate-50">
+                                        {/* Template Preview Image */}
+                                        <img 
+                                            src={(idea as any).image} 
+                                            alt={idea.title}
+                                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                            onError={(e) => (e.currentTarget.style.display = 'none')}
+                                        />
+                                        <div className="absolute inset-0 bg-linear-to-t from-black/20 to-transparent"></div>
+                                        <div className="absolute top-4 left-4 w-10 h-10 rounded-xl flex items-center justify-center bg-white shadow-sm">
+                                            <span className="material-symbols-outlined text-[20px]" style={{ color: idea.clr }}>
+                                                {idea.category === 'Marketing' ? 'campaign' : 
+                                                 idea.category === 'Sales' ? 'monitoring' : 
+                                                 idea.category === 'Operations' ? 'account_tree' : 'group'}
+                                            </span>
+                                        </div>
+                                        <div className="absolute bottom-4 left-4 flex items-center gap-1.5 px-2 py-1 rounded bg-white/90 w-fit backdrop-blur-sm shadow-sm select-none">
+                                            <span className="w-1.5 h-1.5 rounded-full" style={{ background: idea.clr }}></span>
+                                            <span className="text-[10px] font-bold text-[#323338] uppercase tracking-wider">{idea.category}</span>
+                                        </div>
+                                    </div>
+                                    <div className="p-4 bg-white border-t border-[#e6e9ef] group-hover:border-[#0073ea] transition-colors">
+                                        <p className="text-[14px] font-medium text-[#323338] group-hover:text-[#0073ea] transition-colors">{idea.title}</p>
+                                        <p className="text-[12px] text-[#676879] mt-1 line-clamp-2">Visual-first startup template</p>
+                                    </div>
                                 </button>
                             ))}
                         </div>
@@ -1098,31 +1166,58 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
                 </div>
             )}
 
-            {/* Solutions Cards — only show for Solutions tab */}
-            {topTab === 'solutions' && (
-                <div className="max-w-[680px] w-full mt-12 animate-in fade-in slide-in-from-bottom-4">
-                    <p className="text-[14px] text-[#676879] mb-4 font-medium">Or get started with</p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {[
-                            { title: 'Build a Custom CRM', desc: 'Track leads, deals, and customer lifecycle', icon: 'group', clr: '#579bfc' },
-                            { title: 'Create AI Agent', desc: 'Automate follow-ups, support, and workflows', icon: 'smart_toy', clr: '#9d94ff' },
-                            { title: 'Performance Dashboard', desc: 'Real-time analytics on revenue and growth', icon: 'monitoring', clr: '#00c875' },
-                            { title: 'Workflow Automation', desc: 'Connect tools and eliminate manual tasks', icon: 'account_tree', clr: '#ff7b00' },
-                        ].map((card, i) => (
-                            <button 
-                                key={i} 
-                                onClick={startSolutionsChat}
-                                className="flex items-start gap-4 p-5 bg-white border border-[#e6e9ef] rounded-2xl hover:border-[#c3c6d4] hover:shadow-md transition-all text-left group"
-                            >
-                                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${card.clr}15` }}>
-                                    <span className="material-symbols-outlined text-[20px]" style={{ color: card.clr }}>{card.icon}</span>
+
+            {/* AI Agents / Digital Employees — only show for ai-agents tab */}
+            {topTab === 'ai-agents' && (
+                <div className="max-w-[1000px] w-full mt-12 mb-10 px-6 animate-in fade-in slide-in-from-bottom-4">
+                    <div className="flex flex-col items-center text-center mb-10">
+                        <span className="px-3 py-1 bg-gradient-to-r from-sky-500/10 to-indigo-500/10 text-indigo-600 rounded-full text-[11px] font-black uppercase tracking-widest mb-3 border border-indigo-100">Future of Work</span>
+                        <h2 className="text-[26px] font-medium text-[#323338] tracking-tight">Hire Your Digital Team</h2>
+                        <p className="text-[15px] text-[#676879] mt-2 max-w-2xl">Run an entire enterprise solo. Arkle's AI Agents act as your dedicated executive team, executing tasks autonomously 24/7 so you can focus on the big picture.</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                        {DIGITAL_EMPLOYEES.map((emp) => (
+                            <div key={emp.id} onClick={() => { setSelectedAgentId(emp.id); setAppState('agent-workspace'); }} className="relative group bg-white border border-[#e6e9ef] hover:border-[#0073ea] rounded-2xl p-5 hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col items-start overflow-hidden text-left cursor-pointer">
+                                {/* Subtle Background Accent */}
+                                <div className="absolute -top-10 -right-10 w-24 h-24 rounded-full opacity-10 group-hover:opacity-20 transition-all blur-xl" style={{ backgroundColor: emp.clr }}></div>
+                                
+                                <div className="flex justify-between w-full items-start mb-4">
+                                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm relative z-10" style={{ backgroundColor: `${emp.clr}15`, color: emp.clr }}>
+                                        <span className="material-symbols-outlined text-[24px]">{emp.icon}</span>
+                                    </div>
+                                    <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-[#f5f6f8] text-[#676879] border border-[#e6e9ef]">
+                                        {emp.role}
+                                    </span>
                                 </div>
-                                <div>
-                                    <p className="text-[15px] text-[#323338] font-medium group-hover:text-[#0073ea] transition-colors">{card.title}</p>
-                                    <p className="text-[13px] text-[#676879] mt-1">{card.desc}</p>
+                                
+                                <h3 className="text-[16px] font-bold text-[#323338] mb-1.5 leading-tight relative z-10">{emp.title}</h3>
+                                <p className="text-[13px] text-[#676879] leading-relaxed flex-1 relative z-10">{emp.desc}</p>
+                                
+                                <div className="mt-5 w-full pt-4 border-t border-[#f0f1f3] flex items-center justify-between relative z-10">
+                                    <span className={`text-[11px] font-bold uppercase tracking-wide ${emp.status === 'Available' ? 'text-[#00c875]' : 'text-[#ff7b00]'}`}>
+                                        {emp.status}
+                                    </span>
+                                    <button 
+                                        className="text-[#0073ea] opacity-0 group-hover:opacity-100 transition-opacity flex items-center text-[12px] font-bold uppercase tracking-wider hover:underline"
+                                        onClick={(e) => { e.stopPropagation(); setPromptInput(`I want to assign a task to my ${emp.title}...`); }}
+                                    >
+                                        Deploy <span className="material-symbols-outlined text-[16px] ml-1">arrow_forward</span>
+                                    </button>
                                 </div>
-                            </button>
+                            </div>
                         ))}
+                    </div>
+
+                    <div className="mt-10 p-6 bg-gradient-to-r from-slate-900 to-indigo-950 rounded-2xl shadow-2xl flex flex-col md:flex-row items-center justify-between text-left border border-indigo-500/30">
+                        <div className="mb-4 md:mb-0">
+                            <h3 className="text-white text-[18px] font-bold mb-1">Need a Custom Workflow?</h3>
+                            <p className="text-indigo-200 text-[14px]">Train a bespoke digital employee for your unique operational needs.</p>
+                        </div>
+                        <button className="px-6 py-2.5 bg-white text-slate-900 rounded-full text-[13px] font-black uppercase tracking-widest hover:scale-105 transition-transform flex items-center gap-2">
+                            <span className="material-symbols-outlined text-[18px] text-indigo-600">draw</span>
+                            Build Custom Agent
+                        </button>
                     </div>
                 </div>
             )}
@@ -1212,6 +1307,195 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
         </div>
     );
 
+    /* ── Render: Digital Employee Workspace ─────────────────────────── */
+    const renderAgentWorkspace = () => {
+        const agent = DIGITAL_EMPLOYEES.find(a => a.id === selectedAgentId);
+        if (!agent) return null;
+
+        const currentTasks = agentTasks.filter(t => t.agentId === selectedAgentId);
+        const inProgressTasks = currentTasks.filter(t => t.status === 'in-progress');
+        const doneTasks = currentTasks.filter(t => t.status === 'done');
+
+        return (
+            <div className="flex flex-col h-full bg-[#f4f7fe] animate-in fade-in slide-in-from-right-8 duration-500 relative z-0">
+                {/* Workspace Header */}
+                <div className="bg-white px-6 py-5 border-b border-[#e6e9ef] shadow-sm flex items-center justify-between shrink-0 relative z-10">
+                    <div className="flex items-center gap-4">
+                        <button onClick={() => setAppState('home')} className="w-8 h-8 rounded-full hover:bg-[#f5f6f8] flex items-center justify-center text-[#676879] transition-colors border border-[#e6e9ef] hover:border-[#c3c6d4]">
+                            <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+                        </button>
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-md relative" style={{ backgroundColor: `${agent.clr}15`, color: agent.clr }}>
+                                <span className="material-symbols-outlined text-[24px]">{agent.icon}</span>
+                                <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#00c875] border-2 border-white flex items-center justify-center shadow-sm">
+                                    <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>
+                                </div>
+                            </div>
+                            <div>
+                                <h1 className="text-[18px] font-bold text-[#323338] leading-tight flex items-center gap-2">
+                                    {agent.title}
+                                    <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-slate-800 text-white">AI Worker</span>
+                                </h1>
+                                <p className="text-[13px] text-[#676879] flex items-center gap-1.5 mt-0.5">
+                                    <span className="material-symbols-outlined text-[14px]">bolt</span>
+                                    {agent.role} &bull; Ready to execute
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="hidden md:flex items-center gap-3">
+                        <button className="px-4 py-2 bg-white border border-[#e6e9ef] rounded-lg text-[13px] text-[#676879] font-medium hover:bg-[#f5f6f8] transition-colors flex items-center gap-2">
+                            <span className="material-symbols-outlined text-[16px]">settings</span>
+                            Train Agent
+                        </button>
+                    </div>
+                </div>
+
+                {/* Workspace Board (Monday.com concept) */}
+                <div className="flex-1 overflow-x-auto overflow-y-auto p-6 flex items-start gap-6 no-scrollbar relative z-0">
+                    {/* Backlog / Inbox Column */}
+                    <div className="w-[320px] shrink-0 flex flex-col gap-3">
+                        <div className="bg-[#eef5ff] text-[#0073ea] px-3 py-1.5 rounded-lg text-[12px] font-bold uppercase tracking-wider flex items-center justify-between border border-blue-100 shadow-xs">
+                            Inbox / Backlog <span className="w-5 h-5 bg-white rounded-md flex items-center justify-center text-[10px] shadow-sm">Demo</span>
+                        </div>
+                        <div className="bg-white p-4 rounded-xl border border-[#e6e9ef] shadow-sm cursor-grab hover:border-[#0073ea] transition-all">
+                            <div className="flex justify-between items-start mb-2">
+                                <span className="text-[10px] font-bold text-white bg-slate-800 px-1.5 py-0.5 rounded uppercase tracking-wider">Example</span>
+                            </div>
+                            <p className="text-[14px] text-[#323338] font-medium leading-snug">Generate {agent.role} strategy report for Q3</p>
+                            <div className="mt-3 flex items-center gap-2 text-[#676879] text-[12px]">
+                                <span className="material-symbols-outlined text-[14px]">calendar_today</span>
+                                Suggested
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* In Progress Column */}
+                    <div className="w-[320px] shrink-0 flex flex-col gap-3">
+                        <div className="bg-orange-50 text-orange-600 px-3 py-1.5 rounded-lg text-[12px] font-bold uppercase tracking-wider flex items-center justify-between border border-orange-100 shadow-xs">
+                            Working <span className="w-5 h-5 bg-white rounded-md flex items-center justify-center text-[10px] shadow-sm animate-pulse">{inProgressTasks.length}</span>
+                        </div>
+                        {inProgressTasks.map((t) => (
+                            <div key={t.id} className="bg-white p-4 rounded-xl border border-[#e6e9ef] shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-2 ring-orange-500/20">
+                                <p className="text-[14px] text-[#323338] font-medium mb-3">{t.title}</p>
+                                <div className="w-full bg-[#f5f6f8] h-1.5 rounded-full overflow-hidden">
+                                    <div className="h-full bg-orange-500 w-[60%] animate-pulse"></div>
+                                </div>
+                                <div className="mt-3 flex items-center gap-2 text-[11px] font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded w-fit capitalize">
+                                    <span className="material-symbols-outlined text-[14px] animate-spin">sync</span>
+                                    Arkle Processing
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Done Column */}
+                    <div className="w-[350px] shrink-0 flex flex-col gap-3">
+                        <div className="bg-[#e6fff4] text-[#00c875] px-3 py-1.5 rounded-lg text-[12px] font-bold uppercase tracking-wider flex items-center justify-between border border-green-100 shadow-xs">
+                            Done <span className="w-5 h-5 bg-white rounded-md flex items-center justify-center text-[10px] shadow-sm">{doneTasks.length}</span>
+                        </div>
+                        {doneTasks.map((t) => (
+                            <div key={t.id} className="bg-white p-4 rounded-xl border border-[#e6e9ef] shadow-sm overflow-hidden flex flex-col gap-2">
+                                <div className="flex items-start gap-2 border-b border-[#f0f1f3] pb-3">
+                                    <span className="material-symbols-outlined text-[16px] text-green-500 shrink-0 mt-0.5">check_circle</span>
+                                    <p className="text-[13px] text-[#323338] font-medium leading-tight">{t.title}</p>
+                                </div>
+                                <div className="text-[12px] text-[#676879] whitespace-pre-wrap mt-1 bg-[#f5f6f8] p-3 rounded-lg overflow-x-auto max-h-[300px] overflow-y-auto">
+                                    {t.result}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Direct Chat / Assign Box */}
+                <div className="p-4 bg-white border-t border-[#e6e9ef] shrink-0 z-10 shadow-[0_-10px_40px_rgba(0,0,0,0.03)] pb-8 relative flex items-center justify-center">
+                    <div className="max-w-4xl w-full mx-auto bg-white border border-[#c3c6d4] rounded-[24px] flex items-center justify-between p-1.5 shadow-sm">
+                        <div className="flex items-center gap-1 pl-2">
+                            <button className="w-8 h-8 rounded-full flex items-center justify-center text-[#676879] hover:bg-[#f5f6f8] transition-colors" title="Attach">
+                                <span className="material-symbols-outlined text-[18px]">attach_file</span>
+                            </button>
+                            <input 
+                                value={isRecording && liveTranscript ? liveTranscript : agentTaskInput}
+                                onChange={(e) => setAgentTaskInput(e.target.value)}
+                                onKeyDown={(e) => { if (e.key === 'Enter') handleAgentTaskSubmit(); }}
+                                placeholder={`Assign a task to ${agent.title}... (e.g. "Draft an email to clients")`}
+                                className="flex-1 min-w-[400px] bg-transparent px-2 py-2 outline-none text-[15px] focus:bg-transparent text-[#323338] placeholder-[#b8bccc]"
+                                disabled={isAgentWorking}
+                            />
+                        </div>
+                        <div className="flex items-center gap-1 pr-1">
+                            <button 
+                                onClick={toggleVoice} 
+                                className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${isRecording ? 'bg-black text-white hover:scale-105 shadow-md animate-pulse' : 'text-[#676879] hover:bg-[#f5f6f8] hover:text-[#323338]'}`}
+                                title="Voice Mode - Talk like a phone call"
+                            >
+                                <span className="material-symbols-outlined text-[18px]">{isRecording ? 'graphic_eq' : 'mic'}</span>
+                            </button>
+                            <button 
+                                onClick={() => handleAgentTaskSubmit()}
+                                disabled={isAgentWorking || (!agentTaskInput.trim() && !liveTranscript.trim())}
+                                className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${(isAgentWorking || (!agentTaskInput.trim() && !liveTranscript.trim())) ? 'bg-[#f0f1f3] text-[#c3c6d4]' : 'bg-[#0073ea] text-white hover:scale-105 shadow-sm'}`}
+                            >
+                                <span className="material-symbols-outlined text-[18px]">{isAgentWorking ? 'hourglass_empty' : 'arrow_upward'}</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    /* ── Agent Workspace Flow ────────────────────────────── */
+    const handleAgentTaskSubmit = async (overrideText?: string) => {
+        const textToSubmit = overrideText || agentTaskInput;
+        if (!textToSubmit.trim() || !selectedAgentId || isAgentWorking) return;
+
+        const newTask = {
+            id: Date.now().toString(),
+            agentId: selectedAgentId,
+            title: textToSubmit,
+            status: 'in-progress',
+            result: null
+        };
+
+        setAgentTasks(prev => [...prev, newTask]);
+        setAgentTaskInput('');
+        setIsAgentWorking(true);
+
+        try {
+            // Using the sales agent API as a universal backend for now
+            const res = await fetch('/api/agents/sales', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    task: newTask.title, 
+                    context: bizCtx 
+                })
+            });
+
+            const data = await res.json();
+            
+            if (res.ok && data.result) {
+                setAgentTasks(prev => prev.map(t => 
+                    t.id === newTask.id ? { ...t, status: 'done', result: data.result } : t
+                ));
+                // Speak out the actual response clearly without markdown characters
+                speak(data.result.replace(/[*_#\[\]]/g, '').slice(0, 300) + (data.result.length > 300 ? '...' : ''));
+            } else {
+                setAgentTasks(prev => prev.map(t => 
+                    t.id === newTask.id ? { ...t, status: 'done', result: `⚠️ API Error: ${data.error || 'Unknown error'}. ${data.details || ''}` } : t
+                ));
+            }
+        } catch (e: any) {
+            setAgentTasks(prev => prev.map(t => 
+                t.id === newTask.id ? { ...t, status: 'done', result: `Failed to connect to agent backend: ${e.message}` } : t
+            ));
+        } finally {
+            setIsAgentWorking(false);
+        }
+    };
+
     /* ── Main Layout ───────────────────────────────────── */
     return (
         <div className="flex h-[calc(100vh-60px)] -m-3 md:-m-5 overflow-hidden bg-white relative">
@@ -1236,7 +1520,7 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
 
                     <button 
                         onClick={() => setSidebarOpen(!sidebarOpen)} 
-                        className="w-10 h-10 flex items-center justify-center text-[#676879] hover:bg-white hover:text-[#323338] rounded-full transition-all border border-transparent hover:border-[#e6e9ef] hover:shadow-sm"
+                        className="w-10 h-10 flex items-center justify-center text-[#676879] hover:bg-white hover:text-[#323338] rounded-full transition-all border border-transparent hover:border-[#e6e9ef] hover:shadow-sm mt-3"
                         title={sidebarOpen ? "Close Menu" : "Open Menu"}
                     >
                         <span className="material-symbols-outlined text-[20px]">{sidebarOpen ? 'chevron_right' : 'menu'}</span>
@@ -1249,6 +1533,7 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
                 {appState === 'solutions-chat' && renderChat(solThread, solInput, setSolInput, handleSolSubmit, solEndRef, 'Solutions Lab')}
                 {appState === 'building' && renderBuilding()}
                 {appState === 'ready' && renderReady()}
+                {appState === 'agent-workspace' && renderAgentWorkspace()}
             </div>
 
             {/* Inner Sidebar: Now on the Right */}

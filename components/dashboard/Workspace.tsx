@@ -478,8 +478,44 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
 
                         {/* Marketplace */}
                         <div>
-                            <h2 className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 font-sans">Marketplace</h2>
+                            <h2 className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 font-sans flex items-center gap-2">Marketplace <span className="bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full text-[8px]">New Tools</span></h2>
                             <div className="space-y-3">
+                                {/* User Built Tools */}
+                                <div className="space-y-2 mb-4">
+                                    <h3 className="text-[9px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-2 px-1">Your Custom Built Tools</h3>
+                                    
+                                    <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-100 rounded-xl hover:shadow-md cursor-pointer transition-all group relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 w-16 h-16 bg-white/40 rounded-full blur-xl translate-x-1/2 -translate-y-1/2"></div>
+                                        <div className="w-10 h-10 rounded-lg bg-indigo-500 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform relative z-10">
+                                            <span className="material-icons text-white text-lg">campaign</span>
+                                        </div>
+                                        <div className="flex-1 relative z-10">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[10px] font-black text-slate-800 uppercase tracking-wider group-hover:text-indigo-700 transition-colors">Campaign ROI Tracker</span>
+                                                <span className="px-1.5 py-0.5 bg-indigo-100 text-indigo-700 rounded text-[7px] font-bold uppercase">Active</span>
+                                            </div>
+                                            <span className="text-[8px] font-bold text-slate-500 uppercase tracking-tight flex items-center gap-1 mt-0.5"><span className="material-icons-outlined text-[10px]">build</span> Built by You</span>
+                                        </div>
+                                        <span className="material-icons-outlined text-indigo-400 text-sm group-hover:text-indigo-600 relative z-10">play_circle</span>
+                                    </div>
+
+                                    <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-100 rounded-xl hover:shadow-md cursor-pointer transition-all group relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 w-16 h-16 bg-white/40 rounded-full blur-xl translate-x-1/2 -translate-y-1/2"></div>
+                                        <div className="w-10 h-10 rounded-lg bg-emerald-500 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform relative z-10">
+                                            <span className="material-icons-outlined text-white text-lg">smart_toy</span>
+                                        </div>
+                                        <div className="flex-1 relative z-10">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[10px] font-black text-slate-800 uppercase tracking-wider group-hover:text-emerald-700 transition-colors">Customer Follow-up Bot</span>
+                                                <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 rounded text-[7px] font-bold uppercase">Active</span>
+                                            </div>
+                                            <span className="text-[8px] font-bold text-slate-500 uppercase tracking-tight flex items-center gap-1 mt-0.5"><span className="material-icons-outlined text-[10px]">build</span> Built by You</span>
+                                        </div>
+                                        <span className="material-icons-outlined text-emerald-400 text-sm group-hover:text-emerald-600 relative z-10">play_circle</span>
+                                    </div>
+                                </div>
+                                
+                                <h3 className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 px-1 mt-6">Extensions</h3>
                                 <div
                                     onClick={() => {
                                         if (isGoogleConnected) {

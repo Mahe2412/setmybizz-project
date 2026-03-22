@@ -300,23 +300,23 @@ export default function OSPage() {
               {/* Sectioned Navigation */}
               <div className="h-full flex flex-col pt-12 pb-8 px-4 overflow-y-auto no-scrollbar">
               {(activeTopNav === 'bizdesk' ? BIZDESK_SIDEBAR : activeTopNav === 'launchpad' ? LAUNCHPAD_SIDEBAR : LEARN_SIDEBAR).map((section, si) => (
-                <div key={si} className="mb-4">
-                  <h3 className={`px-3 mb-1 text-[13px] font-medium capitalize ${section.section.includes('ARKLE') || section.section.includes('AI PARTNER') ? 'text-[#575CDE]' : 'text-[#676879]'}`}>
+                <div key={si} className="mb-6">
+                  <h3 className={`px-3 mb-3 text-[11px] font-bold capitalize tracking-[0.15em] ${section.section.includes('ARKLE') || section.section.includes('AI PARTNER') ? 'text-[#575CDE]' : 'text-[#676879]'}`}>
                     {section.section === 'AI PARTNER' ? 'Powered by Arkle AI' : section.section.toLowerCase()}
                   </h3>
-                  <div className="space-y-0.5">
+                  <div className="space-y-2">
                     {section.items.map(item => (
                       <button
                         key={item.label}
                         onClick={() => { setActiveTab(item.id); if (window.innerWidth < 768) setSidebarOpen(false); }}
-                        className={`w-full flex items-center gap-3 px-3 py-1.5 mt-[2px] transition-colors text-left group focus-visible:outline-none focus:ring-2 focus:ring-blue-500 rounded text-[#323338]`}
+                        className={`w-full flex items-center gap-3.5 px-3 py-2 mt-[2px] transition-all text-left group focus-visible:outline-none focus:ring-2 focus:ring-blue-500 rounded-[8px] hover:bg-slate-50`}
                       >
-                        <span className={`text-[18px] text-center shrink-0 w-6 leading-none transition-transform group-hover:scale-105 text-[#676879] ${activeTab === item.id ? 'text-[#0073ea]' : ''}`}>{item.icon}</span>
-                        <span className={`text-[14px] flex-1 truncate font-normal group-hover:underline ${activeTab === item.id ? 'text-[#0073ea]' : 'text-[#323338]'}`}>
+                        <span className={`text-[16px] text-center shrink-0 w-6 leading-none transition-transform group-hover:scale-110 text-[#676879] ${activeTab === item.id ? 'text-[#0073ea]' : ''}`}>{item.icon}</span>
+                        <span className={`text-[12.5px] flex-1 truncate font-medium group-hover:underline ${activeTab === item.id ? 'text-[#0073ea]' : 'text-[#323338]'}`}>
                           {item.label}
                         </span>
                         {item.badge && (
-                          <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-[#f5f6f8] text-[#676879]">
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-[#f5f6f8] text-[#676879] ml-1">
                             {item.badge}
                           </span>
                         )}

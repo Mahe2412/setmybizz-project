@@ -31,8 +31,42 @@ export default function GlobalAssistantPanel({ onClose }: { onClose: () => void 
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const recognitionRef = useRef<any>(null);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, loading]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+
+      recognition.onresult = (e: any) => {
+        let transcript = '';
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          transcript += e.results[i][0].transcript;
+        }
+        setInput(transcript);
+      };
+      recognition.onend = () => setIsRecording(false);
+      recognition.onerror = () => setIsRecording(false);
+      recognitionRef.current = recognition;
+    }
+  }, []);
+
+  const toggleVoice = () => {
+    if (!recognitionRef.current) return alert('Voice not supported in this browser.');
+    if (isRecording) {
+      recognitionRef.current.stop();
+      setIsRecording(false);
+    } else {
+      recognitionRef.current.start();
+      setIsRecording(true);
+    }
+  };
 
   const send = async () => {
     const q = input.trim();
@@ -116,21 +150,30 @@ export default function GlobalAssistantPanel({ onClose }: { onClose: () => void 
 
       {/* Input */}
       <div className="p-4 shrink-0 bg-white border-t border-slate-100 shadow-[0_-4px_24px_rgba(0,0,0,0.02)]">
-        <div className="flex items-center gap-2 rounded-2xl px-4 py-2.5 bg-slate-50 border border-slate-200 focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-100 transition-all">
+        <div className="flex items-center gap-1 rounded-[20px] px-2 py-1.5 bg-slate-50 border border-slate-200 focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-100 transition-all">
           <input
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && send()}
             placeholder="Ask your global agent..."
-            className="flex-1 bg-transparent text-[13px] text-slate-800 placeholder-slate-400 outline-none w-full"
+            className="flex-1 bg-transparent text-[13px] text-slate-800 placeholder-slate-400 outline-none w-full px-3"
           />
-          <button
-            onClick={send}
-            disabled={!input.trim() || loading}
-            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 transition-all hover:scale-105 active:scale-95 shadow-md"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z" /></svg>
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={toggleVoice}
+              className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all ${isRecording ? 'bg-black text-white shadow-md animate-pulse' : 'bg-transparent text-slate-400 hover:text-emerald-700 hover:bg-emerald-50'}`}
+              title="Voice Mode"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.91-3c-.49 0-.9.39-.9.88C16.69 14.54 14.54 16.5 12 16.5s-4.69-1.96-5.01-4.62c-.05-.49-.46-.88-.9-.88-.56 0-1.01.5-1.01 1.06 0 3.34 2.5 6.16 5.71 6.67V21c0 .55.45 1 1 1s1-.45 1-1v-2.28c3.21-.51 5.71-3.33 5.71-6.67 0-.56-.45-1.05-1.01-1.05z"/></svg>
+            </button>
+            <button
+              onClick={send}
+              disabled={!input.trim() || loading}
+              className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all shadow-sm ${!input.trim() || loading ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-700 text-white hover:scale-105 active:scale-95'}`}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M3.4 20.4l17.45-7.48a1 1 0 000-1.84L3.4 3.6a.993.993 0 00-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88a1 1 0 00-.87.99l.01 4.61c0 .71.73 1.2 1.39.92z"/></svg>
+            </button>
+          </div>
         </div>
         <p className="text-[10px] text-slate-400 font-medium text-center mt-3">Trained exclusively for SetMyBizz Global Operations</p>
       </div>

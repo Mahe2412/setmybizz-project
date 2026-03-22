@@ -122,13 +122,13 @@ export default function ArklePanel({ onClose, selectedLang = 'en-IN' }: { onClos
   ];
 
   return (
-    <Draggable nodeRef={draggableNodeRef} handle=".arkle-drag-handle" bounds="root">
+    <Draggable nodeRef={draggableNodeRef} handle=".arkle-drag-handle" bounds="parent">
       <div 
         ref={draggableNodeRef}
-        className="fixed bottom-24 right-8 w-[420px] h-[700px] bg-slate-900/95 backdrop-blur-3xl rounded-[40px] shadow-[0_40px_120px_-20px_rgba(0,0,0,0.6)] flex flex-col z-200 overflow-hidden border border-white/10 animate-in zoom-in-95 duration-500"
+        className="fixed bottom-24 right-8 w-[420px] h-[70%] max-h-[720px] min-h-[500px] bg-slate-900/95 backdrop-blur-3xl rounded-[40px] shadow-[0_40px_120px_-20px_rgba(0,0,0,0.6)] flex flex-col z-[200] overflow-hidden border border-white/10 animate-in zoom-in-95 duration-500"
       >
         {/* Neural Header with Mode Selector */}
-        <div className="arkle-drag-handle shrink-0 p-6 bg-white/5 border-b border-white/5 cursor-grab active:cursor-grabbing">
+        <div className="arkle-drag-handle shrink-0 p-6 bg-white/5 border-b border-white/5 cursor-grab active:cursor-grabbing select-none">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-linear-to-tr from-sky-400 to-indigo-600 rounded-[18px] flex items-center justify-center shadow-xl shadow-sky-500/20">
@@ -140,11 +140,11 @@ export default function ArklePanel({ onClose, selectedLang = 'en-IN' }: { onClos
               </div>
             </div>
             <div className="flex items-center gap-2">
-               <button onClick={() => setIsSpeechEnabled(!isSpeechEnabled)} className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${isSpeechEnabled ? 'text-sky-400 bg-sky-500/10' : 'text-white/20 hover:text-white/40'}`}>
-                  <span className="material-symbols-outlined text-[20px]">{isSpeechEnabled ? 'volume_up' : 'volume_off'}</span>
+               <button onClick={() => setIsSpeechEnabled(!isSpeechEnabled)} className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${isSpeechEnabled ? 'text-sky-400 bg-sky-500/10' : 'text-white/20 hover:text-white/40'}`}>
+                  <span className="material-symbols-outlined text-[18px]">{isSpeechEnabled ? 'volume_up' : 'volume_off'}</span>
                </button>
-               <button onClick={onClose} className="w-10 h-10 rounded-full hover:bg-white/10 flex items-center justify-center text-white/50">
-                  <span className="material-symbols-outlined">close</span>
+               <button onClick={onClose} className="w-9 h-9 rounded-xl bg-white/5 hover:bg-red-500/80 hover:scale-105 active:scale-95 flex items-center justify-center text-white/50 hover:text-white transition-all">
+                  <span className="material-symbols-outlined text-[18px]">close</span>
                </button>
             </div>
           </div>
