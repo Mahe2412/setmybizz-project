@@ -368,7 +368,7 @@ export default function OSPage() {
                   <div className="flex flex-col md:flex-row gap-3 md:gap-5 p-3 md:p-5 h-full">
                       {/* Main Workspace Area (Tab-based content) */}
                       <div className="flex-1 min-w-0 h-full overflow-y-auto pr-1">
-                          {activeTab === 'home' && <HomeTab />}
+                          {activeTab === 'home' && <HomeTab data={bizData} />}
                           {activeTab === 'company' && <CompanyTab />}
                           {activeTab === 'banking' && <BankingTab />}
                           {activeTab === 'gst' && <GSTTab />}
