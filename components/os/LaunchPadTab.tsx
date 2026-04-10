@@ -10,7 +10,7 @@ interface LaunchPadTabProps {
 }
 
 /* ── Types ─────────────────────────────────────────────── */
-type TopTab = 'arkle' | 'co-founder' | 'solutions' | 'ai-agents';
+type TopTab = 'launchpad' | 'arkle' | 'co-founder' | 'solutions' | 'ai-agents';
 type AppState = 'home' | 'discuss' | 'building' | 'ready' | 'solutions-chat' | 'agent-workspace';
 
 interface ChatMsg { role: 'ai' | 'user'; text: string; ts: number; }
