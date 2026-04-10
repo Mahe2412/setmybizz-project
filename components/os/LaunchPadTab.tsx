@@ -1003,8 +1003,8 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
                         placeholder={
                             isRecording ? "Listening to you directly... Speak now" :
                             topTab === 'launchpad' ? "Tell me about your startup idea..." :
-                            topTab === 'tools' ? "Describe a business problem you want to solve..." :
-                            topTab === 'ai-team' ? "Which AI Employee do you need?" :
+                            topTab === 'solutions' ? "Describe a business problem you want to solve..." :
+                            topTab === 'ai-agents' ? "Which AI Employee do you need?" :
                             "Ask Arkle anything..."
                         }
                         className={`w-full bg-transparent border-none outline-none resize-none text-[16px] p-5 pb-2 font-medium ${isRecording ? 'text-blue-600' : 'text-[#323338]'} placeholder-[#b8bccc]`}
