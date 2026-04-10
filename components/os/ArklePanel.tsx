@@ -27,6 +27,7 @@ export default function ArklePanel({ onClose, selectedLang = 'en-IN' }: { onClos
   const [isSpeechEnabled, setIsSpeechEnabled] = useState(false);
   const [activeMode, setActiveMode] = useState<ArkleMode>('Voice');
   const [liveTranscript, setLiveTranscript] = useState('');
+  const [isAiTalking, setIsAiTalking]   = useState(false);
   
   const bottomRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
@@ -45,8 +46,15 @@ export default function ArklePanel({ onClose, selectedLang = 'en-IN' }: { onClos
     if (voice) utterance.voice = voice;
     utterance.rate = 1.0;
     
-    utterance.onstart = () => { if (recognitionRef.current) recognitionRef.current.stop(); setIsRecording(false); };
-    utterance.onend = () => { if (isVoiceActive) startRecognition(); };
+    utterance.onstart = () => { 
+      setIsAiTalking(true);
+      if (recognitionRef.current) recognitionRef.current.stop(); 
+      setIsRecording(false); 
+    };
+    utterance.onend = () => { 
+      setIsAiTalking(false);
+      if (isVoiceActive) startRecognition(); 
+    };
     window.speechSynthesis.speak(utterance);
   };
 
@@ -91,6 +99,7 @@ export default function ArklePanel({ onClose, selectedLang = 'en-IN' }: { onClos
   const send = async (textOverride?: string) => {
     const q = textOverride || input.trim();
     if (!q || loading) return;
+    
     setInput('');
     setLiveTranscript('');
     setMessages(prev => [...prev, { role: 'user', text: q, mode: activeMode }]);
@@ -100,16 +109,54 @@ export default function ArklePanel({ onClose, selectedLang = 'en-IN' }: { onClos
       const res = await fetch('/api/gemini', { 
         method: 'POST', 
         headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify({ prompt: `${ARKLE_SYSTEM_PROMPT}\n\nCURRENT_MODE: ${activeMode}\n${MODE_PROMPTS[activeMode]}\n\nUser: ${q}\nArkle:` }) 
+        body: JSON.stringify({ 
+          prompt: q,
+          messages: messages.map(m => ({ 
+            role: m.role === 'ai' ? 'assistant' : 'user', 
+            content: m.text 
+          })),
+          context: {
+            currentDashboard: 'neural',
+            activeMode,
+            selectedLang
+          }
+        }) 
       });
+      
       const data = await res.json();
-      const aiResponse = data.text ?? 'In-depth neural analysis complete.';
-      setMessages(prev => [...prev, { role: 'ai', text: aiResponse, mode: activeMode }]);
-      speak(aiResponse, selectedLang);
-    } catch {
-      setMessages(prev => [...prev, { role: 'ai', text: 'Neural disconnect. Re-initializing...', mode: activeMode }]);
+      if (data.error) throw new Error(data.error);
+      
+      let aiResponse = data.text;
+      
+      // Parse Neural Directives: [DIRECTIVE: ACTION {payload}]
+      const directiveRegex = /\[DIRECTIVE:\s*(\w+)\s*({.*?})\]/g;
+      let match;
+      while ((match = directiveRegex.exec(aiResponse)) !== null) {
+        const action = match[1];
+        const payload = JSON.parse(match[2]);
+        console.log(`Neural Execution: ${action}`, payload);
+        
+        // Handle Global Execution (e.g. creating tasks in Supabase soon)
+        if (action === 'NOTIFY') {
+          // Future: Toast notification
+        }
+      }
+
+      // Hide directives from the chat bubble for a cleaner UI
+      const cleanResponse = aiResponse.replace(directiveRegex, '').trim();
+      
+      setMessages(prev => [...prev, { role: 'ai', text: cleanResponse, mode: activeMode }]);
+      speak(cleanResponse, selectedLang);
+    } catch (error: any) {
+      console.error("ARKIA Brain Sync Error:", error);
+      setMessages(prev => [...prev, { 
+        role: 'ai', 
+        text: `❌ Brain Sync Error: ${error.message}. Please check your connection.`, 
+        mode: activeMode 
+      }]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, loading]);
@@ -166,7 +213,62 @@ export default function ArklePanel({ onClose, selectedLang = 'en-IN' }: { onClos
         </div>
 
         {/* Dynamic Context Stream */}
-        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4 no-scrollbar">
+        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4 no-scrollbar relative">
+          <AnimatePresence>
+            {isVoiceActive && (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 z-40 bg-slate-900/40 backdrop-blur-md flex flex-col items-center justify-center p-8 text-center"
+              >
+                 <div className="relative mb-10 group cursor-pointer" onClick={toggleVoiceMode}>
+                    <motion.div 
+                      animate={{ 
+                        scale: isAiTalking ? [1, 1.4, 1] : [1, 1.2, 1], 
+                        opacity: isAiTalking ? [0.2, 0.5, 0.2] : [0.1, 0.3, 0.1] 
+                      }}
+                      transition={{ duration: isAiTalking ? 1 : 2, repeat: Infinity }}
+                      className="absolute inset-0 bg-sky-500 rounded-full blur-3xl -m-10"
+                    />
+                    <motion.div 
+                      animate={{ 
+                        borderRadius: ["40% 60% 70% 30%", "60% 40% 30% 70%", "40% 60% 70% 30%"],
+                        rotate: [0, 90, 0],
+                        scale: isAiTalking ? [1, 1.1, 1] : 1
+                      }} 
+                      transition={{ 
+                        duration: isAiTalking ? 3 : 6, 
+                        repeat: Infinity, 
+                        ease: "easeInOut" 
+                      }}
+                      className="w-32 h-32 md:w-40 md:h-40 bg-linear-to-tr from-sky-400 via-indigo-400 to-cyan-300 shadow-[0_0_80px_rgba(56,189,248,0.5)] border border-white/40 flex flex-col items-center justify-center overflow-hidden"
+                    >
+                       <span className="material-symbols-outlined text-white text-[56px] drop-shadow-2xl">
+                         {isAiTalking ? 'volume_up' : 'graphic_eq'}
+                       </span>
+                    </motion.div>
+                 </div>
+                 
+                 <div className="space-y-3">
+                   <p className={`font-black text-[13px] uppercase tracking-[0.4em] ${isAiTalking ? 'text-sky-300 animate-bounce' : 'text-white/60 animate-pulse'}`}>
+                     {isAiTalking ? 'Arkle is Responding' : 'Listening...'}
+                   </p>
+                   <p className="text-white/40 text-[10px] font-medium leading-relaxed max-w-[250px] mx-auto uppercase tracking-widest">
+                     {isAiTalking ? 'Synthesizing business strategy directives...' : 'Speak your mission objective now'}
+                   </p>
+                 </div>
+
+                 <button 
+                   onClick={toggleVoiceMode}
+                   className="mt-12 px-10 py-4 bg-white/10 border border-white/10 hover:bg-red-500 hover:text-white text-white/60 text-[10px] font-black uppercase tracking-widest rounded-3xl transition-all shadow-xl"
+                 >
+                   Exit Voice Mode
+                 </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {messages.map((msg, i) => (
             <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
               <div className="flex flex-col gap-1 max-w-[85%]">
@@ -196,9 +298,32 @@ export default function ArklePanel({ onClose, selectedLang = 'en-IN' }: { onClos
         </div>
 
         {/* Neural Input Capsule - Lite Blue Adaptive */}
-        <div className="p-6 pt-2 bg-transparent shrink-0">
+        <div className="p-6 pt-2 bg-transparent shrink-0 relative">
+          
+          {/* 🌀 Floating Neural Prompts */}
+          <div className="absolute -top-10 inset-x-0 px-6 flex flex-wrap justify-center gap-2 pointer-events-none">
+             {['Sell on Amazon', 'GST Audit', 'Export Loop', 'Logo Design'].map((text, i) => (
+                <motion.button
+                  key={text}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ 
+                    opacity: isVoiceActive ? 0 : 1, 
+                    y: isVoiceActive ? 20 : [0, -8, 0],
+                    transition: { 
+                      delay: i * 0.1,
+                      y: { repeat: Infinity, duration: 3 + i, ease: "easeInOut" }
+                    }
+                  }}
+                  onClick={() => send(text)}
+                  className="pointer-events-auto px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-[9px] font-black text-sky-400 uppercase tracking-widest hover:bg-sky-400 hover:text-white hover:border-sky-400 transition-all shadow-2xl"
+                >
+                  {text}
+                </motion.button>
+             ))}
+          </div>
+
           <div className="relative group">
-            <div className="flex items-center gap-4 bg-sky-50 hover:bg-sky-100 transition-all p-2 pl-6 rounded-full border border-sky-200 shadow-2xl focus-within:ring-4 focus-within:ring-sky-500/10">
+            <div className={`flex items-center gap-4 bg-sky-50 hover:bg-sky-100 transition-all p-2 pl-6 rounded-full border border-sky-200 shadow-2xl focus-within:ring-4 focus-within:ring-sky-500/10 ${isVoiceActive ? 'opacity-0 pointer-events-none translate-y-4' : 'opacity-100 translate-y-0'}`}>
               <button className="text-sky-400 hover:text-sky-600 shrink-0">
                 <span className="material-symbols-outlined text-[26px]">add_circle</span>
               </button>
@@ -211,8 +336,8 @@ export default function ArklePanel({ onClose, selectedLang = 'en-IN' }: { onClos
                 placeholder={isVoiceActive ? "Listening..." : `Ask Arkle (${activeMode})...`}
               />
 
-              <button onClick={toggleVoiceMode} className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${isVoiceActive ? 'bg-sky-200 text-sky-600 animate-pulse' : 'text-slate-400 hover:text-slate-900'}`}>
-                <span className="material-symbols-outlined text-[24px]">{isVoiceActive ? 'graphic_eq' : 'mic'}</span>
+              <button onClick={toggleVoiceMode} className="text-slate-400 hover:text-slate-900 w-10 h-10 flex items-center justify-center">
+                <span className="material-symbols-outlined text-[24px]">mic</span>
               </button>
 
               <button onClick={() => send()} disabled={!input.trim() && !liveTranscript.trim()} className="w-12 h-12 bg-sky-400 text-white rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xl shadow-sky-400/20">

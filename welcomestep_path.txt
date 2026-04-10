@@ -1,3 +1,0 @@
-﻿C:\Users\mahen\OneDrive\Desktop\setmybizz-project\.checkpoints\2026-02-12\components\steps\WelcomeStep.tsx
-C:\Users\mahen\OneDrive\Desktop\setmybizz-project\.checkpoints\2026-02-18-workspace-feature\components\steps\WelcomeStep.tsx
-C:\Users\mahen\OneDrive\Desktop\setmybizz-project\.checkpoints\2026-03-19\components\steps\WelcomeStep.tsx

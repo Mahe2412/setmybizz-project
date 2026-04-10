@@ -42,46 +42,46 @@ export default function BankingTab() {
   const [booked, setBooked] = useState<number | null>(null);
 
   return (
-    <div className="max-w-2xl mx-auto space-y-5">
+    <div className="max-w-3xl mx-auto space-y-4 md:space-y-6 pb-20 px-4 md:px-0">
       {/* Header */}
-      <div className="rounded-3xl p-6 text-center" style={{ background: 'linear-gradient(135deg,#0d47a1,#0284c7)' }}>
-        <div className="text-5xl mb-3">💰</div>
-        <h1 className="text-2xl font-black text-white mb-1">Your Business Banking</h1>
-        <p className="text-blue-100 text-sm max-w-sm mx-auto">
-          Open accounts, get loans, talk to experts — everything your business needs to manage money, in one place.
+      <div className="rounded-[2rem] md:rounded-[3rem] p-6 md:p-10 text-center shadow-lg" style={{ background: 'linear-gradient(135deg,#0d47a1,#0284c7)' }}>
+        <div className="text-4xl md:text-5xl mb-3">💰</div>
+        <h1 className="text-xl md:text-2xl font-black text-white mb-1 uppercase tracking-widest">Business Banking</h1>
+        <p className="text-blue-100 text-xs md:text-sm max-w-sm mx-auto font-medium leading-relaxed italic">
+          Open accounts, get loans, talk to experts — synchronized capital management in one neural workspace.
         </p>
       </div>
 
       {/* 3 Big Service Cards */}
       {BANK_FEATURES.map((f, i) => (
-        <div key={i} className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
+        <div key={i} className="bg-white rounded-[2rem] md:rounded-[2.5rem] border border-slate-100 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500">
           {/* Card Header */}
-          <div className="p-5 pb-3 flex items-start gap-4">
-            <div className="text-4xl">{f.emoji}</div>
-            <div className="flex-1">
-              <div className="flex items-start justify-between gap-2 flex-wrap">
-                <div>
-                  <h2 className="text-lg font-black text-slate-900">{f.title}</h2>
-                  <p className="text-sm text-slate-500 mt-0.5">{f.sub}</p>
+          <div className="p-6 md:p-8 pb-4 flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left">
+            <div className="text-4xl md:text-5xl drop-shadow-md">{f.emoji}</div>
+            <div className="flex-1 w-full">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="w-full">
+                  <h2 className="text-base md:text-lg font-black text-slate-900 uppercase tracking-tight">{f.title}</h2>
+                  <p className="text-[10px] md:text-sm text-slate-400 font-bold uppercase tracking-widest mt-1">{f.sub}</p>
                 </div>
-                <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-green-100 text-green-700 whitespace-nowrap">{f.tag}</span>
+                <span className="text-[9px] font-black px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 whitespace-nowrap uppercase tracking-widest shrink-0">{f.tag.split(' ').slice(1).join(' ')}</span>
               </div>
             </div>
           </div>
 
           {/* Description */}
-          <div className="px-5 pb-3">
-            <p className="text-sm text-slate-600 leading-relaxed">{f.desc}</p>
+          <div className="px-6 md:px-8 pb-4">
+            <p className="text-xs md:text-sm text-slate-500 font-medium leading-relaxed italic text-center sm:text-left">{f.desc}</p>
           </div>
 
           {/* Simple Steps */}
-          <div className="px-5 pb-4">
-            <p className="text-xs font-black text-slate-400 uppercase tracking-wider mb-2">How it works</p>
-            <div className="space-y-1.5">
+          <div className="px-6 md:px-8 pb-5">
+            <p className="text-[9px] font-black text-slate-300 uppercase tracking-[0.2em] mb-3 text-center sm:text-left">Workflow Sequence</p>
+            <div className="space-y-2">
               {f.steps.map((step, si) => (
-                <div key={si} className="flex items-center gap-2">
-                  <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] font-black flex-shrink-0">{si + 1}</span>
-                  <p className="text-sm text-slate-700">{step}</p>
+                <div key={si} className="flex items-center gap-3 p-3 bg-slate-50/50 rounded-2xl border border-slate-50 group hover:bg-white hover:border-blue-100 transition-all">
+                  <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-black flex-shrink-0 shadow-md group-hover:scale-110 transition-transform">{si + 1}</span>
+                  <p className="text-xs md:text-sm text-slate-700 font-bold">{step}</p>
                 </div>
               ))}
             </div>
@@ -89,27 +89,27 @@ export default function BankingTab() {
 
           {/* Partners */}
           {f.partners.length > 0 && (
-            <div className="px-5 pb-3">
-              <p className="text-xs font-black text-slate-400 uppercase tracking-wider mb-2">Our Partners</p>
-              <div className="flex flex-wrap gap-2">
+            <div className="px-6 md:px-8 pb-4">
+              <p className="text-[9px] font-black text-slate-300 uppercase tracking-[0.2em] mb-3 text-center sm:text-left">Integrated Partners</p>
+              <div className="flex flex-wrap justify-center sm:justify-start gap-2">
                 {f.partners.map(p => (
-                  <span key={p} className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">{p}</span>
+                  <span key={p} className="text-[9px] font-black px-3 py-1.5 rounded-lg bg-slate-50 text-slate-500 border border-slate-100 uppercase tracking-tighter">{p}</span>
                 ))}
               </div>
             </div>
           )}
 
           {/* CTA */}
-          <div className="px-5 pb-5">
+          <div className="px-6 md:px-8 pb-6 md:pb-8">
             {booked === i ? (
-              <div className="py-3 rounded-2xl text-center text-sm font-black bg-green-50 text-green-700 border border-green-200">
-                ✅ Request received! We will contact you within 2 hours.
+              <div className="py-4 rounded-2xl text-center text-[10px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100 uppercase tracking-widest animate-in fade-in zoom-in-95">
+                ✅ Request Synced! Contact in 2 hours.
               </div>
             ) : (
               <button
                 onClick={() => setBooked(i)}
-                className="w-full py-3.5 rounded-2xl text-sm font-black text-white transition-all hover:opacity-90 active:scale-95"
-                style={{ background: f.ctaColor }}
+                className="w-full py-4 md:py-5 rounded-2xl text-[10px] md:text-xs font-black text-white transition-all shadow-xl hover:scale-[1.02] active:scale-95 uppercase tracking-[0.2em]"
+                style={{ background: f.ctaColor, boxShadow: `0 12px 24px -10px ${f.ctaColor}44` }}
               >
                 {f.cta}
               </button>
@@ -119,26 +119,27 @@ export default function BankingTab() {
       ))}
 
       {/* UPI / Digital Payments */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm">
-        <div className="flex items-center gap-4">
-          <span className="text-4xl">📲</span>
+      <div className="bg-slate-900 rounded-[2.5rem] p-6 md:p-8 shadow-2xl relative overflow-hidden group">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/20 rounded-full blur-[60px] -z-1" />
+        <div className="flex flex-col sm:flex-row items-center gap-6 relative z-10 text-center sm:text-left">
+          <span className="text-5xl p-4 bg-white/5 rounded-3xl border border-white/10">📲</span>
           <div className="flex-1">
-            <h3 className="font-black text-slate-900">Accept Payments via UPI</h3>
-            <p className="text-sm text-slate-500 mt-0.5">Let customers pay you via UPI, cards, or bank transfer. Works for any business — shop, service, or product.</p>
+            <h3 className="font-black text-white text-base md:text-lg uppercase tracking-widest">Global UPI Gateway</h3>
+            <p className="text-[10px] md:text-sm text-slate-400 font-medium leading-relaxed mt-2 italic">Accept instantaneous payments via UPI, Cards, and Neural Nets. Built for high-velocity ventures.</p>
           </div>
         </div>
-        <button className="mt-4 w-full py-3 rounded-2xl text-sm font-bold border-2 border-blue-200 text-blue-700 hover:bg-blue-50 transition-all">
-          Setup UPI for My Business →
+        <button className="mt-6 w-full py-5 rounded-2xl text-[10px] font-black bg-white text-slate-900 border border-white shadow-xl hover:bg-slate-100 transition-all uppercase tracking-[0.3em] active:scale-95">
+          Activate Payment Loop →
         </button>
       </div>
 
       {/* Arkle Help */}
-      <div className="rounded-3xl p-5 bg-blue-50 border border-blue-200 flex items-start gap-4">
-        <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-black text-xl flex-shrink-0">A</div>
+      <div className="rounded-[2.5rem] p-6 md:p-10 bg-[#f8fafc] border border-slate-100 flex flex-col md:flex-row items-center gap-6 md:gap-10 text-center md:text-left transition-all hover:bg-white hover:shadow-2xl">
+        <div className="w-16 h-16 md:w-20 md:h-20 rounded-[2rem] bg-indigo-600 text-white flex items-center justify-center font-black text-3xl shadow-2xl rotate-3 shrink-0">A</div>
         <div className="flex-1">
-          <p className="font-black text-slate-900 mb-1">Ask Arkle — Your AI Co-Founder</p>
-          <p className="text-sm text-slate-600">Not sure what bank to pick? Which loan is right? Ask Arkle and get an answer in seconds.</p>
-          <button className="mt-2 text-sm font-bold text-blue-700 hover:underline">Ask Arkle now →</button>
+          <p className="font-black text-slate-900 text-base md:text-lg uppercase tracking-tight mb-2">Neural Brain — Arkle Advice</p>
+          <p className="text-[10px] md:text-sm text-slate-500 font-medium leading-relaxed italic">Synchronize with Arkle to analyze your fiscal trajectory. Professional banking strategy, delivered in milliseconds.</p>
+          <button className="mt-4 text-[10px] md:text-xs font-black text-indigo-600 uppercase tracking-widest hover:tracking-[0.2em] transition-all">Engage Neural Brain →</button>
         </div>
       </div>
     </div>

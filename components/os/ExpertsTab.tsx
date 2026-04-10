@@ -29,16 +29,16 @@ export default function ExpertsTab() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {([
           { label: 'Professionals', value: '120+',    color: T.blue   },
           { label: 'Avg Rating',    value: '4.8 ★',   color: T.amber  },
           { label: 'Sessions Done', value: '3,400+',  color: T.green  },
           { label: 'Response Time', value: '< 2 hrs', color: T.purple },
         ] as const).map(s => (
-          <div key={s.label} className="p-3 rounded-2xl text-center bg-white border border-slate-200 shadow-sm">
-            <p className="text-xl font-black mb-0.5" style={{ color: s.color }}>{s.value}</p>
-            <p className="text-[10px] text-slate-400">{s.label}</p>
+          <div key={s.label} className="p-4 rounded-3xl text-center bg-white border border-slate-100 shadow-sm">
+            <p className="text-xl md:text-2xl font-black mb-0.5 whitespace-nowrap" style={{ color: s.color }}>{s.value}</p>
+            <p className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest">{s.label}</p>
           </div>
         ))}
       </div>
@@ -102,20 +102,22 @@ export default function ExpertsTab() {
             </div>
 
             {hired === expert.id ? (
-              <div className="py-3 rounded-xl text-center text-[12px] font-black bg-green-50 text-green-700 border border-green-200">
-                ✅ Request Sent! We&apos;ll confirm your session shortly.
+              <div className="py-4 rounded-2xl text-center text-[10px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100 uppercase tracking-widest animate-in zoom-in-95">
+                ✅ Request Synced! Session upcoming.
               </div>
             ) : (
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <button
                   onClick={() => setHired(expert.id)}
                   disabled={!expert.available}
-                  className="flex-1 py-2.5 rounded-xl text-[12px] font-black transition-all hover:opacity-90 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white"
-                  style={{ background: expert.available ? `linear-gradient(135deg,${T.blue},#0284c7)` : '#e2e8f0' }}
+                  className="flex-1 py-3.5 rounded-2xl text-[10px] font-black transition-all shadow-xl hover:scale-[1.02] active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white uppercase tracking-widest"
+                  style={{ background: expert.available ? `linear-gradient(135deg,${T.blue},#0284c7)` : '#e2e8f0', boxShadow: expert.available ? '0 8px 16px -6px rgba(37,99,235,0.4)' : 'none' }}
                 >
-                  {expert.available ? 'Book a Session →' : 'Join Waitlist'}
+                  {expert.available ? 'Book Session →' : 'Waitlist'}
                 </button>
-                <GhostBtn label="View Profile" />
+                <div className="sm:w-32 shrink-0">
+                   <GhostBtn label="Profile" />
+                </div>
               </div>
             )}
           </DCard>

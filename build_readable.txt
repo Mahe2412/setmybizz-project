@@ -1,7 +1,0 @@
-﻿
-> setmybizz-project@0.1.0 build
-> next build
-
-Γû▓ Next.js 16.1.1 (Turbopack)
-
-  Creating an optimized production build ...

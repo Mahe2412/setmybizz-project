@@ -247,8 +247,13 @@ const AppContent: React.FC = () => {
         }} />;
     }
 
+    useEffect(() => {
+        if (view === 'dashboard') {
+            router.push('/os');
+        }
+    }, [view, router]);
+
     if (view === 'dashboard') {
-        router.push('/os');
         return (
             <div className="flex h-screen items-center justify-center bg-white">
                 <div className="flex flex-col items-center gap-4">

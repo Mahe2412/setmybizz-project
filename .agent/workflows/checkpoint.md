@@ -32,3 +32,4 @@ If the project becomes corrupted or you need to revert to a previous state:
 | Date | Summary |
 |------|---------|
 | 2026-02-12 | Initial checkpoint after Dashboard Refinement and Onboarding UI polish. |
+| 2026-04-10 | Daily checkpoint and restore point creation. |

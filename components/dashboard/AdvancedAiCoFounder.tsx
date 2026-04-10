@@ -61,6 +61,7 @@ const AdvancedAiCoFounder: React.FC = () => {
     const [replyingTo, setReplyingTo] = useState<string | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const nodeRef = useRef(null);
 
     // Auto-scroll
     useEffect(() => {
@@ -297,8 +298,8 @@ const AdvancedAiCoFounder: React.FC = () => {
     if (mode === 'quick') {
         return (
             // @ts-ignore
-            <Draggable handle=".drag-handle" bounds="parent">
-                <div className="fixed bottom-6 right-6 z-50 w-[420px] h-[640px] bg-white rounded-[3rem] shadow-2xl border border-slate-100 flex flex-col overflow-hidden animate-in slide-in-from-right duration-500 fade-in" style={{ resize: 'both', minWidth: '380px', minHeight: '500px', maxWidth: '600px', maxHeight: '850px' }}>
+            <Draggable nodeRef={nodeRef} handle=".drag-handle" bounds="parent">
+                <div ref={nodeRef} className="fixed bottom-6 right-6 z-50 w-[420px] h-[640px] bg-white rounded-[3rem] shadow-2xl border border-slate-100 flex flex-col overflow-hidden animate-in slide-in-from-right duration-500 fade-in" style={{ resize: 'both', minWidth: '380px', minHeight: '500px', maxWidth: '600px', maxHeight: '850px' }}>
                     <div className="drag-handle cursor-move bg-slate-900 p-5 flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-white/10 rounded-2xl flex items-center justify-center text-white">

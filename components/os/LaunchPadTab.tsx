@@ -121,18 +121,14 @@ const SOLUTION_IDEAS = [
 
 /* ── AI Digital Employees Data ─────────────────────────── */
 const DIGITAL_EMPLOYEES = [
-    { id: 'marketing', title: 'Marketing Strategist', role: 'CMO', desc: 'Creates ad campaigns, plans SEO, and drives market positioning.', icon: 'insights', clr: '#ff7b00', status: 'Available' },
-    { id: 'social', title: 'Social Media Manager', role: 'Growth', desc: 'Writes, schedules, and analyzes viral posts across platforms.', icon: 'campaign', clr: '#e2445c', status: 'Available' },
+    { id: 'marketing', title: 'Marketing Head', role: 'Growth', desc: 'Creates ad campaigns, plans SEO, and drives market positioning.', icon: 'insights', clr: '#ff7b00', status: 'Available' },
+    { id: 'social', title: 'Social Media Expert', role: 'Engagement', desc: 'Writes, schedules, and analyzes viral posts across platforms.', icon: 'campaign', clr: '#e2445c', status: 'Available' },
     { id: 'sales', title: 'Sales Executive', role: 'Revenue', desc: 'Handles outbound emails, lead qualification, and deal closing.', icon: 'trending_up', clr: '#00c875', status: 'Available' },
-    { id: 'crm', title: 'CRM Manager', role: 'Operations', desc: 'Manages client follow-ups, retention, and seamless onboarding.', icon: 'group', clr: '#579bfc', status: 'Available' },
-    { id: 'designer', title: 'UI/UX Designer', role: 'Creative', desc: 'Generates brand kits, logos, brochures, and interface designs.', icon: 'palette', clr: '#9d94ff', status: 'Available' },
-    { id: 'developer', title: 'Full-Stack Developer', role: 'Product', desc: 'Writes code, fixes bugs, and builds custom web applications.', icon: 'terminal', clr: '#1c1f3b', status: 'Available' },
-    { id: 'finance', title: 'Financial Analyst', role: 'Finance', desc: 'Tracks expenses, monitors runway, and plans tax strategies.', icon: 'account_balance', clr: '#ffcc00', status: 'Available' },
-    { id: 'legal', title: 'Legal Counsel', role: 'Compliance', desc: 'Drafts contracts, term sheets, and ensures corporate compliance.', icon: 'gavel', clr: '#323338', status: 'Coming Soon' },
-    { id: 'launchpad-overseer', title: 'Launchpad Overseer', role: 'Chief of Staff', desc: 'Deploys apps, builds websites, and manages Arkle services on autopilot.', icon: 'rocket_launch', clr: '#0073ea', status: 'Available' },
-    { id: 'gws-admin', title: 'Workspace Admin', role: 'IT Manager', desc: 'Manages Google Workspace, drafts emails, and organizes drive files silently.', icon: 'cloud_sync', clr: '#db4437', status: 'Available' },
-    { id: 'erp-manager', title: 'ERP Specialist', role: 'Operations', desc: 'Syncs Zoho/Odoo inventory, processes orders, and manages supplier pipelines.', icon: 'account_tree', clr: '#0f9d58', status: 'Available' },
-    { id: 'data-bot', title: 'Integration Bot', role: 'Data Flow', desc: 'Connects third-party APIs invisibly without any human clicks.', icon: 'api', clr: '#8e24aa', status: 'Available' },
+    { id: 'crm', title: 'Account Manager', role: 'Retention', desc: 'Manages client follow-ups, retention, and seamless onboarding.', icon: 'group', clr: '#579bfc', status: 'Available' },
+    { id: 'designer', title: 'Creative Designer', role: 'Brand', desc: 'Generates brand kits, logos, brochures, and interface designs.', icon: 'palette', clr: '#9d94ff', status: 'Available' },
+    { id: 'finance', title: 'Finance Advisor', role: 'Tax & P&L', desc: 'Tracks expenses, monitors runway, and plans tax strategies.', icon: 'account_balance', clr: '#ffcc00', status: 'Available' },
+    { id: 'legal', title: 'Legal Assistant', role: 'Compliance', desc: 'Drafts contracts, term sheets, and ensures corporate compliance.', icon: 'gavel', clr: '#323338', status: 'Available' },
+    { id: 'overseer', title: 'Business Manager', role: 'Operations', desc: 'Deploys apps, builds websites, and manages Arkle services on autopilot.', icon: 'rocket_launch', clr: '#0073ea', status: 'Available' },
 ];
 
 /* ── Co-Founder Discovery & Strategy Flow ──────────────── */
@@ -263,7 +259,7 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
     const firstName = user?.displayName?.split(' ')[0] || data?.name?.split(' ')[0] || 'Founder';
 
     /* ── State ─────────────────────────────────────────── */
-    const [topTab, setTopTab] = useState<TopTab>('co-founder');
+    const [topTab, setTopTab] = useState<TopTab>('launchpad');
     const [appState, setAppState] = useState<AppState>('home');
     const [promptInput, setPromptInput] = useState('');
     const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
@@ -625,86 +621,124 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
                         ))}
                     </div>
 
-                    {/* Question Area */}
-                    <div className="text-center mb-10">
-                        <div className="flex items-center justify-center gap-3 mb-4">
-                            <div className="w-10 h-10 bg-gradient-to-tr from-[#0073ea] to-[#00c875] rounded-xl flex items-center justify-center shadow-lg">
-                                <span className="material-symbols-outlined text-white text-[20px] animate-pulse">psychology</span>
-                            </div>
-                            <span className="text-white/40 text-[11px] font-black uppercase tracking-[0.4em]">Arkle Consultation</span>
-                        </div>
-                        <h2 className="text-[28px] font-black text-white leading-tight tracking-tight uppercase font-[Outfit]">
-                            {(currentQ as any).q}
-                        </h2>
-                    </div>
-
-                    {/* Arkle Speaking Visualizer - Subtle */}
-                    {isVoiceActive && (
-                        <div className="flex gap-1.5 items-end justify-center h-10 mb-8 w-full animate-in fade-in zoom-in-50 duration-500">
-                            {[1,4,2,7,10,3,8,4,9].map((h, i) => (
-                                <div key={i} className="w-[3px] bg-[#0073ea] rounded-full animate-voice-wave" style={{ height: `${h * 3}px`, animationDelay: `${i * 0.05}s` }}></div>
-                            ))}
-                        </div>
-                    )}
-
-                    {liveTranscript && (
-                        <div className="mb-8 text-center px-6">
-                            <p className="text-white/80 text-[15px] font-bold italic tracking-tight bg-white/5 py-3 rounded-2xl border border-white/10 animate-pulse">"{liveTranscript}"</p>
-                        </div>
-                    )}
-
-                    {/* Interaction Zone */}
-                    <div className="flex-1 w-full">
-                        {(currentQ as any).type === 'choice' ? (
-                            <div className="grid grid-cols-1 gap-3 animate-in slide-in-from-bottom-6 duration-700">
-                                {(currentQ as any).options.map((opt: any, idx: number) => (
-                                    <button 
-                                        key={idx}
-                                        onClick={() => handlediscoveryAnswer(opt.label)}
-                                        className="group p-4 bg-white/5 hover:bg-white rounded-[20px] text-left transition-all border border-white/5 hover:border-white shadow-lg flex items-center gap-5 active:scale-95"
-                                    >
-                                        <div className="w-10 h-10 bg-white/10 group-hover:bg-[#0073ea] group-hover:text-white rounded-xl flex items-center justify-center transition-all">
-                                            <span className="material-symbols-outlined text-white group-hover:text-white text-[20px]">{opt.icon}</span>
-                                        </div>
-                                        <div>
-                                            <h4 className="text-[15px] font-black text-white group-hover:text-[#1c1f3b] uppercase tracking-tight">{opt.label}</h4>
-                                            <p className="text-[10px] text-white/30 group-hover:text-[#1c1f3b]/50 font-bold uppercase tracking-wider">{opt.desc}</p>
-                                        </div>
-                                    </button>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="relative w-full animate-in slide-in-from-bottom-6 duration-700">
-                                <input 
-                                    autoFocus
-                                    className="w-full bg-white/5 border border-white/10 rounded-[25px] px-8 py-5 text-[18px] font-bold text-white outline-none focus:border-[#0073ea] transition-all placeholder-white/10 text-center font-[Outfit]"
-                                    placeholder={(currentQ as any).placeholder}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                            handlediscoveryAnswer((e.target as any).value);
-                                            (e.target as any).value = "";
-                                        }
-                                    }}
-                                />
-                                <button 
-                                    onClick={() => {
-                                        const inp = document.querySelector('input') as any;
-                                        handlediscoveryAnswer(inp.value);
-                                        inp.value = "";
-                                    }}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-[#0073ea] text-white rounded-full flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
+                    {/* Question Area & Neural Orb */}
+                    <div className="flex-1 flex flex-col items-center justify-center py-6">
+                        <AnimatePresence mode="wait">
+                            {!isVoiceActive ? (
+                                <motion.div 
+                                    key="text-q"
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.9 }}
+                                    className="text-center w-full"
                                 >
-                                    <span className="material-symbols-outlined text-[18px]">east</span>
-                                </button>
-                            </div>
-                        )}
+                                    <div className="flex items-center justify-center gap-3 mb-6">
+                                        <div className="w-10 h-10 bg-gradient-to-tr from-[#0073ea] to-[#00c875] rounded-xl flex items-center justify-center shadow-lg">
+                                            <span className="material-symbols-outlined text-white text-[20px] animate-pulse">psychology</span>
+                                        </div>
+                                        <span className="text-white/40 text-[11px] font-black uppercase tracking-[0.4em]">Arkle Consultation</span>
+                                    </div>
+                                    <h2 className="text-[28px] font-black text-white leading-tight tracking-tight uppercase font-[Outfit] mb-10 px-4">
+                                        {(currentQ as any).q}
+                                    </h2>
+
+                                    {/* Interaction Zone (Text/Choice) */}
+                                    <div className="w-full">
+                                        {(currentQ as any).type === 'choice' ? (
+                                            <div className="grid grid-cols-1 gap-3 px-2">
+                                                {(currentQ as any).options.map((opt: any, idx: number) => (
+                                                    <button 
+                                                        key={idx}
+                                                        onClick={() => handlediscoveryAnswer(opt.label)}
+                                                        className="group p-4 bg-white/5 hover:bg-white rounded-[22px] text-left transition-all border border-white/5 hover:border-white shadow-lg flex items-center gap-5 active:scale-95"
+                                                    >
+                                                        <div className="w-10 h-10 bg-white/10 group-hover:bg-[#0073ea] group-hover:text-white rounded-xl flex items-center justify-center transition-all">
+                                                            <span className="material-symbols-outlined text-white group-hover:text-white text-[20px]">{opt.icon}</span>
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="text-[14px] font-black text-white group-hover:text-[#1c1f3b] uppercase tracking-tight">{opt.label}</h4>
+                                                            <p className="text-[10px] text-white/30 group-hover:text-[#1c1f3b]/50 font-bold uppercase tracking-wider">{opt.desc}</p>
+                                                        </div>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="relative w-full px-2">
+                                                <input 
+                                                    autoFocus
+                                                    className="w-full bg-white/5 border border-white/10 rounded-[25px] px-8 py-5 text-[18px] font-bold text-white outline-none focus:border-[#0073ea] transition-all placeholder-white/10 text-center font-[Outfit]"
+                                                    placeholder={(currentQ as any).placeholder}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') {
+                                                            handlediscoveryAnswer((e.target as any).value);
+                                                            (e.target as any).value = "";
+                                                        }
+                                                    }}
+                                                />
+                                                <button 
+                                                    onClick={() => {
+                                                        const inp = document.querySelector('input') as any;
+                                                        handlediscoveryAnswer(inp.value);
+                                                        inp.value = "";
+                                                    }}
+                                                    className="absolute right-5 top-1/2 -translate-y-1/2 w-10 h-10 bg-[#0073ea] text-white rounded-full flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
+                                                >
+                                                    <span className="material-symbols-outlined text-[18px]">east</span>
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </motion.div>
+                            ) : (
+                                <motion.div 
+                                    key="voice-q"
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.8 }}
+                                    className="flex flex-col items-center justify-center w-full"
+                                >
+                                    {/* NEURAL ORB - LARGE INTEGRATED */}
+                                    <div className="relative mb-12 group cursor-pointer" onClick={() => { setIsVoiceActive(false); toggleVoice(); }}>
+                                        <motion.div 
+                                          animate={{ scale: [1, 1.3, 1], opacity: [0.1, 0.4, 0.1] }}
+                                          transition={{ duration: 2, repeat: Infinity }}
+                                          className="absolute inset-0 bg-[#0073ea] rounded-full blur-[60px] -m-12"
+                                        />
+                                        <motion.div 
+                                          animate={{ 
+                                            borderRadius: ["40% 60% 70% 30%", "60% 40% 30% 70%", "40% 60% 70% 30%"],
+                                            rotate: [0, 90, 0]
+                                          }} 
+                                          transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
+                                          className="w-40 h-40 bg-linear-to-tr from-[#0073ea] via-[#00c875] to-cyan-400 shadow-[0_0_100px_rgba(0,115,234,0.4)] border border-white/40 flex flex-col items-center justify-center overflow-hidden"
+                                        >
+                                           <span className="material-symbols-outlined text-white text-[60px] drop-shadow-2xl">graphic_eq</span>
+                                        </motion.div>
+                                    </div>
+                                    
+                                    <div className="text-center space-y-4">
+                                        <p className="text-[#0073ea] font-black text-[14px] uppercase tracking-[0.4em] animate-pulse">Neural Link Active</p>
+                                        <h3 className="text-white text-[20px] font-black uppercase tracking-tight max-w-[340px] px-4 font-[Outfit]">
+                                            {(currentQ as any).q}
+                                        </h3>
+                                        {liveTranscript ? (
+                                             <p className="text-white/80 text-[14px] font-bold italic tracking-tight bg-white/5 py-3 px-6 rounded-2xl border border-white/10 animate-pulse">
+                                                 "{liveTranscript}"
+                                             </p>
+                                        ) : (
+                                            <p className="text-white/30 text-[10px] font-bold uppercase tracking-widest">Awaiting founder directive...</p>
+                                        )}
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
 
                     {/* Bottom Controls */}
-                    <div className="flex justify-between items-center mt-10 pt-6 border-t border-white/10">
+                    <div className="shrink-0 flex justify-between items-center mt-6 pt-6 border-t border-white/10">
                         <button 
                             onClick={() => setDiscoveryStep(prev => Math.max(0, prev - 1))}
-                            disabled={discoveryStep === 0}
+                            disabled={discoveryStep === 0 || isVoiceActive}
                             className="text-[12px] font-black text-white/20 hover:text-white disabled:opacity-0 transition-colors uppercase tracking-[0.2em] flex items-center gap-2"
                         >
                             <span className="material-symbols-outlined text-[16px]">west</span>
@@ -713,10 +747,10 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
 
                         <button 
                             onClick={() => { setIsVoiceActive(!isVoiceActive); toggleVoice(); if (!isVoiceActive) speak(currentQ.q); }}
-                            className={`flex items-center gap-2 px-5 py-2.5 rounded-full transition-all text-[11px] font-black uppercase tracking-widest ${isVoiceActive ? 'bg-red-500 text-white animate-pulse shadow-lg shadow-red-500/20' : 'bg-white/5 text-white/40 hover:text-white hover:bg-white/10 border border-white/10'}`}
+                            className={`flex items-center gap-2 px-6 py-3 rounded-full transition-all text-[11px] font-black uppercase tracking-widest shadow-xl transform active:scale-95 ${isVoiceActive ? 'bg-red-500 text-white animate-pulse shadow-red-500/20' : 'bg-white text-[#1c1f3b] hover:bg-[#0073ea] hover:text-white'}`}
                         >
-                            <span className="material-symbols-outlined text-[18px]">{isVoiceActive ? 'mic' : 'mic_none'}</span>
-                            {isVoiceActive ? 'Arkle Listening' : 'Talk Mode'}
+                            <span className="material-symbols-outlined text-[20px]">{isVoiceActive ? 'mic_off' : 'mic'}</span>
+                            {isVoiceActive ? 'Exit Talk Mode' : 'Talk with Arkle'}
                         </button>
                     </div>
 
@@ -906,15 +940,15 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
             {/* Header */}
             <div className="text-center mb-10 w-full max-w-2xl px-4">
                 <h1 className="text-[32px] text-[#323338] font-medium tracking-tight">
-                    {topTab === 'co-founder' ? `Strategic Setup for ${bizCtx.businessName || firstName}` :
-                     topTab === 'solutions' ? `Solutions Lab` :
-                     topTab === 'ai-agents' ? `AI Agents Hub` :
+                    {topTab === 'co-founder' ? `LaunchPad Startup Essentials` :
+                     topTab === 'solutions' ? `Business Tools Lab` :
+                     topTab === 'ai-agents' ? `AI Digital Team Hub` :
                      `Hi ${firstName}, what should we build?`}
                 </h1>
                 <p className="text-[#676879] text-[16px] mt-2 font-normal">
                     {topTab === 'co-founder' ? "I'll guide you through the setup of your business." :
                      topTab === 'solutions' ? "AI-powered tools to solve your specific business challenges" :
-                     topTab === 'ai-agents' ? "Deploy specialized AI agents for your business" :
+                     topTab === 'ai-agents' ? "Deploy specialized AI employees for your business" :
                      "Arkle can execute any task, from filing GST to building websites."}
                 </p>
 
@@ -927,76 +961,95 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
             </div>
 
             {/* Top Navigation Buttons - Above Chat Box */}
-            <div className="max-w-[680px] w-full flex items-center gap-1 mb-3">
+            <div className="max-w-[850px] w-full flex items-center gap-2 mb-4">
                 {([
-                    { id: 'arkle' as TopTab, label: 'Arkle', icon: 'auto_awesome' },
-                    { id: 'co-founder' as TopTab, label: 'Co-Founder', icon: 'handshake' },
-                    { id: 'solutions' as TopTab, label: 'Solutions', icon: 'build' },
-                    { id: 'ai-agents' as TopTab, label: 'AI Agents', icon: 'smart_toy' },
+                    { id: 'arkle' as TopTab, label: 'Arkle Co-Founder', icon: 'psychology' },
+                    { id: 'co-founder' as TopTab, label: 'Startup Essentials', icon: 'rocket_launch' },
+                    { id: 'solutions' as TopTab, label: 'Business Tools', icon: 'grid_view' },
+                    { id: 'ai-agents' as TopTab, label: 'AI Digital Team', icon: 'smart_toy' },
                 ]).map(tab => (
                     <button
                         key={tab.id}
                         onClick={() => { setTopTab(tab.id); setAppState('home'); }}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[13px] font-medium transition-all ${
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[14px] font-bold transition-all ${
                             topTab === tab.id 
-                            ? 'bg-[#eef5ff] text-[#0073ea]' 
+                            ? 'bg-[#eef5ff] text-[#0073ea] shadow-sm' 
                             : 'text-[#676879] hover:bg-[#f5f6f8] hover:text-[#323338]'
                         }`}
                     >
-                        <span className="material-symbols-outlined text-[16px]">{tab.icon}</span>
+                        <span className="material-symbols-outlined text-[18px]">{tab.icon}</span>
                         {tab.label}
                     </button>
                 ))}
             </div>
 
             {/* Prompt Box */}
-            <div className="max-w-[680px] w-full">
-                <div className="rounded-2xl border border-[#c3c6d4] shadow-sm bg-white overflow-hidden hover:shadow-md transition-shadow">
+            <div className="max-w-[850px] w-full relative z-10 transition-all duration-500">
+                <div className={`rounded-3xl border transition-all duration-300 overflow-hidden bg-white shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_8px_30px_rgb(0,115,234,0.1)] relative ${
+                    isRecording 
+                    ? 'border-[#0073ea] shadow-[0_0_0_4px_rgba(0,115,234,0.15)] ring-2 ring-[#0073ea] scale-[1.02]' 
+                    : 'border-[#e6e9ef] hover:border-[#c3c6d4]'
+                }`}>
+                    {/* Live voice indicator wave */}
+                    {isRecording && (
+                        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-400 via-indigo-500 to-purple-500 animate-pulse"></div>
+                    )}
+                    
                     <textarea
-                        value={promptInput}
+                        value={isRecording ? liveTranscript : promptInput}
                         onChange={(e) => setPromptInput(e.target.value)}
                         onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleDirectSubmit(); }}}
                         placeholder={
-                            topTab === 'co-founder' ? "Tell me about your startup idea..." :
-                            topTab === 'solutions' ? "Describe a business problem you want to solve..." :
-                            topTab === 'ai-agents' ? "Which AI Agent do you need?" :
-                            "Ask Arkle to do something..."
+                            isRecording ? "Listening to you directly... Speak now" :
+                            topTab === 'launchpad' ? "Tell me about your startup idea..." :
+                            topTab === 'tools' ? "Describe a business problem you want to solve..." :
+                            topTab === 'ai-team' ? "Which AI Employee do you need?" :
+                            "Ask Arkle anything..."
                         }
-                        className="w-full bg-transparent border-none outline-none resize-none text-[#323338] text-[15px] placeholder-[#b8bccc] p-4 pb-1 font-normal"
-                        rows={3}
+                        className={`w-full bg-transparent border-none outline-none resize-none text-[16px] p-5 pb-2 font-medium ${isRecording ? 'text-blue-600' : 'text-[#323338]'} placeholder-[#b8bccc]`}
+                        rows={isRecording ? 4 : 3}
                     />
-                    <div className="flex items-center justify-between px-3 py-2 border-t border-[#f0f1f3]">
-                        <div className="flex items-center gap-2">
-                            <button className="w-9 h-9 rounded-full flex items-center justify-center text-[#676879] hover:bg-[#f5f6f8] hover:text-[#323338] transition-colors" title="Attach">
+                    <div className="flex items-center justify-between px-4 py-3 bg-slate-50/50 border-t border-[#f0f1f3]">
+                        <div className="flex items-center gap-3">
+                            <button className="w-10 h-10 rounded-full flex items-center justify-center text-[#676879] hover:bg-[#e6e9ef] hover:text-[#323338] transition-colors shadow-sm bg-white border border-[#e6e9ef]" title="Attach data">
                                 <span className="material-symbols-outlined text-[18px]">attach_file</span>
                             </button>
-                            {topTab === 'co-founder' && (
-                                <button onClick={() => { setShowDiscovery(true); setDiscoveryStep(0); }} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] text-[#0073ea] font-medium bg-[#eef5ff] hover:bg-[#ddebff] transition-colors">
-                                    <span className="material-symbols-outlined text-[16px]">psychology</span>
-                                    {bizCtx.businessName ? "Update Strategy" : "Setup Strategy"}
+                            {topTab === 'launchpad' && (
+                                <button onClick={() => { setShowDiscovery(true); setDiscoveryStep(0); }} className="flex items-center gap-2 px-4 py-2 rounded-full text-[13px] text-[#0073ea] font-medium bg-[#eef5ff] hover:bg-[#ddebff] transition-all border border-blue-100 shadow-sm hover:shadow">
+                                    <span className="material-symbols-outlined text-[18px]">auto_fix_high</span>
+                                    {bizCtx.businessName ? "Optimize Strategy" : "Setup Strategy"}
                                 </button>
                             )}
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3">
                             <button 
                                 onClick={toggleVoice} 
-                                className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${isRecording ? 'bg-black text-white hover:scale-105 shadow-md animate-pulse' : 'bg-[#f5f6f8] text-[#676879] hover:bg-[#e6e9ef] hover:text-[#323338]'}`} 
-                                title="Voice Mode"
+                                className={`h-11 px-4 rounded-full flex items-center justify-center gap-2 transition-all ${
+                                    isRecording 
+                                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xl animate-pulse scale-110' 
+                                    : 'bg-[#eef5ff] text-[#0073ea] hover:bg-[#ddebff] shadow-sm'
+                                }`} 
+                                title="Direct Voice Assistance"
                             >
-                                <span className="material-symbols-outlined text-[18px]">{isRecording ? 'graphic_eq' : 'mic'}</span>
+                                <span className="material-symbols-outlined text-[20px]">{isRecording ? 'graphic_eq' : 'mic'}</span>
+                                {isRecording && <span className="text-[13px] font-bold tracking-wider pr-1">Listening</span>}
                             </button>
                             <button 
                                 onClick={handleDirectSubmit}
-                                className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${promptInput.trim() || liveTranscript.trim() ? 'bg-[#0073ea] text-white shadow-sm hover:scale-105' : 'bg-[#f0f1f3] text-[#c3c6d4]'}`}
+                                className={`w-11 h-11 rounded-full flex items-center justify-center transition-all ${
+                                    promptInput.trim() || liveTranscript.trim() 
+                                    ? 'bg-[#0073ea] text-white shadow-md hover:scale-105' 
+                                    : 'bg-[#f0f1f3] text-[#c3c6d4]'
+                                }`}
                             >
-                                <span className="material-symbols-outlined text-[18px]">arrow_upward</span>
+                                <span className="material-symbols-outlined text-[20px]">{isRecording ? 'send' : 'arrow_upward'}</span>
                             </button>
                         </div>
                     </div>
                 </div>
 
-                {/* Quick Messages - Only for Co-Founder mode */}
-                {topTab === 'co-founder' && (
+                {/* Quick Messages - Only for Essentials mode */}
+                {topTab === 'launchpad' && (
                     <div className="mt-4 flex flex-wrap justify-center gap-2 animate-in fade-in slide-in-from-top-2 duration-400">
                         {QUICK_MESSAGES.map((msg, i) => (
                             <button 
@@ -1012,43 +1065,50 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
                 )}
             </div>
 
-            {/* Services Horizontal Scroll — Only for branding/co-founder tabs */}
-            {(topTab === 'co-founder' || topTab === 'arkle') && (
-                <div className="w-full mt-10 overflow-hidden">
-                    <p className="text-center text-[13px] text-[#676879] mb-6 font-medium">Suggested starters tailored for your work</p>
-                    <div className="flex items-center gap-6 overflow-x-auto pb-4 no-scrollbar scroll-smooth px-6">
-                        <div className="flex mx-auto gap-6">
-                            {SERVICES.map(svc => {
-                                const isSelected = selectedServices.includes(svc.id);
-                                return (
-                                    <button
-                                        key={svc.id}
-                                        onClick={() => toggleService(svc.id)}
-                                        className="flex flex-col items-center gap-2.5 group min-w-[85px] transition-transform active:scale-95"
+            {/* Services Grid — Only for essentials tab */}
+            {(topTab === 'co-founder') && (
+                <div className="w-full mt-10 max-w-4xl px-6">
+                    <p className="text-center text-[15px] text-[#323338] mb-8 font-bold uppercase tracking-widest flex items-center justify-center gap-3">
+                        <span className="h-px w-10 bg-[#e6e9ef]"></span>
+                        Build Startup Essentials
+                        <span className="h-px w-10 bg-[#e6e9ef]"></span>
+                    </p>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-6">
+                        {SERVICES.map(svc => {
+                            const isSelected = selectedServices.includes(svc.id);
+                            return (
+                                <button
+                                    key={svc.id}
+                                    onClick={() => toggleService(svc.id)}
+                                    className="flex flex-col items-center gap-3 group transition-all"
+                                >
+                                    <div 
+                                        className={`w-14 h-14 rounded-2xl flex items-center justify-center border-2 transition-all duration-300 ${
+                                            isSelected 
+                                            ? 'border-[#0073ea] bg-[#eef5ff] shadow-lg scale-110' 
+                                            : 'border-[#e6e9ef] bg-white group-hover:border-[#0073ea] group-hover:shadow-md'
+                                        }`}
                                     >
-                                        <div 
-                                            className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
-                                                isSelected 
-                                                ? 'border-[#0073ea] bg-[#eef5ff] shadow-md scale-105' 
-                                                : 'border-transparent bg-white shadow-[0_3px_10px_rgba(0,0,0,0.05)] group-hover:shadow-[0_6px_12px_rgba(0,0,0,0.08)] group-hover:-translate-y-0.5'
-                                            }`}
+                                        <span 
+                                            className="material-symbols-outlined text-[28px] transition-all" 
+                                            style={{ color: isSelected ? '#0073ea' : svc.color }}
                                         >
-                                            <span 
-                                                className="material-symbols-outlined text-[24px] transition-all" 
-                                                style={{ color: isSelected ? '#0073ea' : svc.color }}
-                                            >
-                                                {svc.icon}
-                                            </span>
-                                        </div>
-                                        <span className={`text-[12px] font-normal transition-colors whitespace-nowrap ${
-                                            isSelected ? 'text-[#0073ea] font-medium' : 'text-[#323338] group-hover:text-black'
+                                            {svc.icon}
+                                        </span>
+                                    </div>
+                                    <div className="text-center">
+                                        <p className={`text-[13px] font-bold transition-colors ${
+                                            isSelected ? 'text-[#0073ea]' : 'text-[#323338]'
                                         }`}>
                                             {svc.label}
-                                        </span>
-                                    </button>
-                                );
-                            })}
-                        </div>
+                                        </p>
+                                        <p className="text-[10px] text-[#676879] mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            {svc.desc.split(' ').slice(0, 2).join(' ')}
+                                        </p>
+                                    </div>
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
             )}

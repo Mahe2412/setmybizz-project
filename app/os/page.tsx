@@ -117,27 +117,27 @@ const TOP_NAV: { id: TopNavId; label: string; icon: string; badge?: string; desc
   {
     id: 'bizdesk',
     label: 'Biz Desk',
-    icon: '🏢',
+    icon: 'home_work',
     description: 'Your entire company — one desk. Management, legal, compliance, finance, banking, hiring, scaling, and go-global support. Run your company from your desk.',
   },
   {
     id: 'launchpad',
     label: 'LaunchPad',
-    icon: '🚀',
+    icon: 'rocket_launch',
     badge: 'Beta',
     description: 'A rapid business builder. Build your brand, logo, website, pitch decks, and brochures without agencies or coding. Your AI Co-Founder builds everything through simple conversation.',
   },
   {
     id: 'learn',
     label: 'LearnHub',
-    icon: '🎓',
+    icon: 'school',
     badge: 'Beta',
     description: 'Skill upgradation and tech adoption center. Learn business strategy, marketing, compliance, and more.',
   },
   {
     id: 'ai-workspace',
     label: 'AI Workspace',
-    icon: '⚡',
+    icon: 'api',
     badge: 'Beta',
     description: 'Your tech automation control room. CRM, sales pipelines, WhatsApp campaigns, email automation, stock management, ERP — all AI-powered.',
   },
@@ -214,21 +214,21 @@ export default function OSPage() {
         </div>
 
         {/* ─── TOP NAV BUTTONS (Mobile & Desktop) ─── */}
-        <div className="flex flex-1 items-center justify-center gap-0.5 md:gap-1 px-2">
+        <div className="flex flex-1 items-center justify-center gap-2 md:gap-3 px-2">
           {TOP_NAV.map(nav => (
             <button
               key={nav.id}
               onClick={() => switchTopNav(nav.id)}
-              className={`flex items-center gap-1.5 md:gap-2 px-2.5 md:px-4 py-1.5 md:py-2 rounded-xl text-[9px] md:text-[11px] font-bold transition-all whitespace-nowrap border ${
+              className={`flex items-center gap-2 md:gap-3 px-4 md:px-6 py-2.5 md:py-3 rounded-xl text-[11px] md:text-[13px] font-bold transition-all whitespace-nowrap border ${
                 activeTopNav === nav.id
-                  ? 'bg-white shadow-[0_2px_8px_rgba(0,0,0,0.04)] text-blue-600 border-slate-200'
-                  : 'text-slate-400 border-transparent hover:bg-slate-50'
+                  ? 'bg-white shadow-[0_4px_12px_rgba(0,0,0,0.06)] text-blue-600 border-slate-200 scale-105'
+                  : 'text-slate-400 border-transparent hover:bg-slate-50 hover:text-slate-600'
               }`}
             >
-              <span className="text-sm md:text-base">{nav.icon}</span>
-              <span className="hidden xs:block">{nav.label}</span>
+              <span className="material-symbols-outlined text-lg md:text-[22px]">{nav.icon}</span>
+              <span className="hidden xs:block tracking-wide">{nav.label}</span>
               {nav.badge && (
-                <span className="text-[7px] md:text-[8px] px-1 md:px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-500 border border-blue-100 hidden sm:block">
+                <span className="text-[8px] md:text-[9px] px-1.5 md:px-2 py-0.5 rounded-full bg-blue-50 text-blue-500 border border-blue-100 hidden sm:block">
                   {nav.badge}
                 </span>
               )}

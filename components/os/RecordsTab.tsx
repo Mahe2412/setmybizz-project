@@ -20,86 +20,86 @@ export default function RecordsTab() {
       <SectionTitle icon="🗄️" title="Startup Records Room" sub="All certificates, filings & documents — secure vault" />
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {([
-          { label: 'Total Documents', value: RECORDS.length,                                      color: T.blue   },
-          { label: 'Verified',        value: RECORDS.filter(r => r.status === 'verified').length, color: T.green  },
-          { label: 'Pending',         value: RECORDS.filter(r => r.status === 'pending').length,  color: T.amber  },
-          { label: 'Filed',           value: RECORDS.filter(r => r.status === 'filed').length,    color: T.purple },
+          { label: 'Total Records', value: RECORDS.length,                                      color: T.blue   },
+          { label: 'Verified',      value: RECORDS.filter(r => r.status === 'verified').length, color: T.green  },
+          { label: 'Pending Audit', value: RECORDS.filter(r => r.status === 'pending').length,  color: T.amber  },
+          { label: 'Synced',        value: RECORDS.filter(r => r.status === 'filed').length,    color: T.purple },
         ] as const).map(s => (
-          <div key={s.label} className="p-3 rounded-2xl text-center bg-white border border-slate-200 shadow-sm">
-            <p className="text-2xl font-black mb-0.5" style={{ color: s.color }}>{s.value}</p>
-            <p className="text-[10px] text-slate-400">{s.label}</p>
+          <div key={s.label} className="p-4 rounded-3xl text-center bg-white border border-slate-100 shadow-sm">
+            <p className="text-xl md:text-2xl font-black mb-0.5" style={{ color: s.color }}>{s.value}</p>
+            <p className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest">{s.label}</p>
           </div>
         ))}
       </div>
 
       {/* Search + Filters */}
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1 min-w-[180px] bg-white border border-slate-200 shadow-sm">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round">
-            <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
+      <div className="flex flex-col sm:flex-row items-center gap-3">
+        <div className="flex items-center gap-2 px-4 py-3 rounded-2xl w-full sm:flex-1 bg-white border border-slate-100 shadow-sm">
+          <span className="material-symbols-outlined text-slate-400 text-lg">search</span>
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Search documents..."
-            className="bg-transparent text-sm text-slate-800 placeholder-slate-400 outline-none flex-1"
+            placeholder="Query records..."
+            className="bg-transparent text-sm text-slate-800 placeholder-slate-400 outline-none flex-1 font-bold"
           />
         </div>
-        {CATS.map(c => (
-          <button
-            key={c}
-            onClick={() => setFilter(c)}
-            className="text-[11px] font-bold px-3 py-1.5 rounded-full transition-all"
-            style={filter === c ? { background: T.blue, color: 'white' } : { background: 'white', color: '#64748b', border: '1px solid #e2e8f0' }}
-          >
-            {c}
-          </button>
-        ))}
-        <ActionBtn label="+ Upload" color={T.blue} />
+        <div className="flex flex-wrap items-center justify-center gap-2 w-full sm:w-auto">
+          {CATS.map(c => (
+            <button
+              key={c}
+              onClick={() => setFilter(c)}
+              className="text-[10px] font-black px-4 py-2 rounded-xl transition-all uppercase tracking-widest"
+              style={filter === c ? { background: T.blue, color: 'white' } : { background: 'white', color: '#64748b', border: '1px solid #f1f5f9' }}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Document Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         {visible.map((doc, i) => {
           const iconMap: Record<string, string> = { Legal: '📜', Tax: '🧾', Brand: '™️', Banking: '🏦' };
           return (
             <div
               key={i}
-              className="flex items-center gap-3 p-4 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+              className="flex flex-col sm:flex-row items-center gap-4 p-5 rounded-[2rem] bg-white border border-slate-100 shadow-sm hover:shadow-xl transition-all group text-center sm:text-left"
             >
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center text-xl flex-shrink-0 bg-blue-50 border border-blue-100">
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0 bg-slate-50 border border-slate-100 group-hover:scale-110 transition-transform">
                 {iconMap[doc.cat] ?? '📄'}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-slate-800 truncate">{doc.name}</p>
-                <p className="text-[10px] text-slate-400 mt-0.5">{doc.cat} · {doc.date} · PDF</p>
+                <p className="text-sm font-black text-slate-900 truncate uppercase tracking-tight">{doc.name}</p>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">{doc.cat} · {doc.date}</p>
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
+              <div className="flex items-center gap-3 flex-shrink-0 w-full sm:w-auto justify-center">
                 <StatusBadge status={doc.status} />
-                <button className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 border border-slate-200 hover:border-slate-400 transition-all" title="Download">
-                  ⬇
+                <button className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-blue-600 border border-slate-100 hover:border-blue-100 hover:bg-blue-50 transition-all shadow-sm" title="Download">
+                  <span className="material-symbols-outlined text-lg">download</span>
                 </button>
               </div>
             </div>
           );
         })}
         {visible.length === 0 && (
-          <div className="col-span-2 text-center py-10 text-slate-400 text-sm">No documents found</div>
+          <div className="col-span-full text-center py-20 bg-slate-50/50 rounded-[3rem] border border-dashed border-slate-200">
+             <span className="text-4xl block mb-4">🔍</span>
+             <p className="text-slate-400 font-black text-xs uppercase tracking-widest">No neural records found matching your query</p>
+          </div>
         )}
       </div>
 
       {/* Upload Zone */}
-      <DCard>
-        <div className="border-2 border-dashed border-blue-200 rounded-2xl p-8 text-center flex flex-col items-center gap-3">
-          <span className="text-4xl">📤</span>
-          <h3 className="font-bold text-slate-800">Upload a Document</h3>
-          <p className="text-[12px] text-slate-400 max-w-xs">Add new documents to your records room. Securely stored and always accessible.</p>
-          <ActionBtn label="Choose File to Upload →" color={T.blue} />
-          <p className="text-[10px] text-slate-400">Supports PDF, JPG, PNG · Max 10MB per file</p>
-        </div>
-      </DCard>
+      <div className="bg-white rounded-[2.5rem] p-6 md:p-10 border-2 border-dashed border-blue-100 text-center flex flex-col items-center gap-4 hover:border-blue-300 transition-colors group">
+          <span className="text-5xl group-hover:scale-110 transition-transform">📤</span>
+          <h3 className="font-black text-slate-900 uppercase tracking-widest">Global Record Sync</h3>
+          <p className="text-[10px] md:text-xs text-slate-400 font-bold uppercase tracking-normal leading-relaxed max-w-sm">Synchronize new certificates or filings into your startup vault. Verified by Arkle Neural Intelligence.</p>
+          <button className="w-full sm:w-auto px-8 py-4 rounded-2xl text-[10px] font-black text-white bg-blue-600 shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all uppercase tracking-[0.2em]">Initiate Upload Protocol →</button>
+          <p className="text-[9px] text-slate-300 font-black uppercase tracking-widest">PDF, JPG, PNG · Vault Protection Active</p>
+      </div>
     </div>
   );
 }
