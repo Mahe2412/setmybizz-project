@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { BusinessData } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import VoiceBuilderStudio from '@/components/ai-studio/VoiceBuilderStudio';
 
 interface LaunchPadTabProps {
     data: BusinessData;
@@ -15,7 +16,7 @@ type TopTab = 'launchpad' | 'arkle' | 'co-founder' | 'solutions' | 'ai-agents';
 type AppState = 'home' | 'discuss' | 'building' | 'ready' | 'solutions-chat' | 'agent-workspace';
 
 interface ChatMsg { role: 'ai' | 'user'; text: string; ts: number; }
-interface BuiltAsset { id: string; label: string; icon: string; status: 'pending' | 'building' | 'done'; color: string; }
+interface BuiltAsset { id: string; label: string; icon: string; status: 'pending' | 'building' | 'done' | 'failed'; color: string; result?: string; }
 interface BusinessContext {
     businessName: string;
     idea: string;
@@ -278,6 +279,7 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
 
     const [showWelcome, setShowWelcome] = useState(false);
     const [showDiscovery, setShowDiscovery] = useState(false);
+    const [showVoiceStudio, setShowVoiceStudio] = useState(false);
     const [discoveryStep, setDiscoveryStep] = useState(0);
     const selectedLang = externalLang || 'en-IN';
     const setSelectedLang = onLangChange || (() => {});
@@ -327,6 +329,7 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
     // Building & Ready
     const [builtAssets, setBuiltAssets] = useState<BuiltAsset[]>([]);
     const [buildProgress, setBuildProgress] = useState(0);
+    const [viewingAsset, setViewingAsset] = useState<BuiltAsset | null>(null);
 
     const chatEndRef = useRef<HTMLDivElement>(null);
     const solEndRef = useRef<HTMLDivElement>(null);
@@ -802,7 +805,7 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
     };
 
     /* ── Building Engine ──────────────────────────────── */
-    const startBuilding = () => {
+    const startBuilding = async () => {
         setAppState('building');
         setBuildProgress(0);
 
@@ -813,27 +816,49 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
 
         setBuiltAssets(assets);
 
-        // Simulate sequential building with progress
         let completed = 0;
-        assets.forEach((asset, idx) => {
-            setTimeout(() => {
-                setBuiltAssets(prev => prev.map(a => 
-                    a.id === asset.id ? { ...a, status: 'building' } : a
-                ));
-            }, idx * 1200);
+        
+        for (let i = 0; i < assets.length; i++) {
+            const currentAsset = assets[i];
+            
+            // Mark as building
+            setBuiltAssets(prev => prev.map(a => 
+                a.id === currentAsset.id ? { ...a, status: 'building' } : a
+            ));
 
-            setTimeout(() => {
-                setBuiltAssets(prev => prev.map(a => 
-                    a.id === asset.id ? { ...a, status: 'done' } : a
-                ));
-                completed++;
-                setBuildProgress(Math.round((completed / assets.length) * 100));
-
-                if (completed === assets.length) {
-                    setTimeout(() => setAppState('ready'), 800);
+            try {
+                const res = await fetch('/api/generate-asset', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ assetType: currentAsset.id, context: bizCtx })
+                });
+                
+                const data = await res.json();
+                
+                if (data.success && data.result) {
+                    setBuiltAssets(prev => prev.map(a => 
+                        a.id === currentAsset.id ? { ...a, status: 'done', result: data.result } : a
+                    ));
+                } else {
+                     setBuiltAssets(prev => prev.map(a => 
+                        a.id === currentAsset.id ? { ...a, status: 'failed' } : a
+                    ));
                 }
-            }, idx * 1200 + 1000);
-        });
+            } catch (err) {
+                 setBuiltAssets(prev => prev.map(a => 
+                    a.id === currentAsset.id ? { ...a, status: 'failed' } : a
+                ));
+            }
+
+            completed++;
+            setBuildProgress(Math.round((completed / assets.length) * 100));
+        }
+
+        setTimeout(() => {
+            setAppState('ready');
+            const successMsg = selectedLang === 'te-IN' ? "మీ అసెట్స్ అన్నీ సిద్ధమయ్యాయి!" : "All your assets are generated and ready to view!";
+            speak(successMsg, selectedLang);
+        }, 1000);
     };
 
     /* ── Direct submit from prompt ────────────────────── */
@@ -1216,13 +1241,20 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
             )}
 
             {selectedServices.length > 0 && topTab !== 'solutions' && (
-                <div className="mt-4 animate-in fade-in slide-in-from-top-2">
+                <div className="mt-4 animate-in fade-in slide-in-from-top-2 flex flex-col md:flex-row items-center gap-4">
                     <button 
                         onClick={startBuilding}
                         className="px-8 py-3 bg-[#0073ea] hover:bg-[#0060c2] text-white text-[15px] font-medium rounded-full shadow-lg shadow-[#0073ea]/20 transition-all flex items-center gap-2 hover:-translate-y-px"
                     >
                         <span className="material-symbols-outlined text-[18px]">rocket_launch</span>
-                        Generate ecosystem now
+                        Generate automatically
+                    </button>
+                    <button 
+                        onClick={() => setShowVoiceStudio(true)}
+                        className="px-8 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white text-[15px] font-medium rounded-full shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-2 hover:-translate-y-px"
+                    >
+                        <span className="material-symbols-outlined text-[18px]">graphic_eq</span>
+                        Enter Live Voice Studio
                     </button>
                 </div>
             )}
@@ -1313,6 +1345,7 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
                             {asset.status === 'pending' && <span className="text-[12px] text-[#b8bccc]">Queued</span>}
                             {asset.status === 'building' && <span className="material-symbols-outlined text-[16px] text-[#0073ea] animate-spin">progress_activity</span>}
                             {asset.status === 'done' && <span className="material-symbols-outlined text-[16px] text-[#00c875]">check_circle</span>}
+                            {asset.status === 'failed' && <span className="material-symbols-outlined text-[16px] text-red-500">error</span>}
                         </div>
                     ))}
                 </div>
@@ -1336,15 +1369,15 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {builtAssets.map(asset => (
-                    <div key={asset.id} className="bg-white p-5 rounded-xl border border-[#e6e9ef] hover:border-[#c3c6d4] hover:shadow-md transition-all cursor-pointer group">
+                    <div key={asset.id} onClick={() => asset.status === 'done' && setViewingAsset(asset)} className="bg-white p-5 rounded-xl border border-[#e6e9ef] hover:border-[#0073ea] hover:shadow-lg transition-all cursor-pointer group">
                         <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition-transform" style={{ background: `${asset.color}18` }}>
                             <span className="material-symbols-outlined text-[20px]" style={{ color: asset.color }}>{asset.icon}</span>
                         </div>
                         <h3 className="text-[15px] text-[#323338] font-medium">{asset.label}</h3>
-                        <p className="text-[12px] text-[#676879] mt-1">Ready to customize</p>
-                        <div className="flex items-center gap-1 mt-3 text-[12px] text-[#00c875] font-medium">
-                            <span className="material-symbols-outlined text-[14px]">check_circle</span>
-                            Generated
+                        <p className="text-[12px] text-[#676879] mt-1">{asset.status === 'done' ? 'Click to view' : 'Generation failed'}</p>
+                        <div className={`flex items-center gap-1 mt-3 text-[12px] font-medium ${asset.status === 'done' ? 'text-[#00c875]' : 'text-red-500'}`}>
+                            <span className="material-symbols-outlined text-[14px]">{asset.status === 'done' ? 'check_circle' : 'error'}</span>
+                            {asset.status === 'done' ? 'Generated securely' : 'Failed'}
                         </div>
                     </div>
                 ))}
@@ -1688,6 +1721,75 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
             <WelcomeModal />
             <DiscoveryModal />
             <BuildingModal />
+            
+            {showVoiceStudio && (
+                <VoiceBuilderStudio onClose={() => setShowVoiceStudio(false)} context={bizCtx} />
+            )}
+            
+            {/* Asset Viewer Modal */}
+            {viewingAsset && (
+                <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/80 backdrop-blur-md animate-in fade-in py-10 px-5">
+                    <div className="bg-[#f0f1f3] w-full max-w-7xl h-full rounded-[24px] shadow-2xl flex flex-col overflow-hidden relative border border-white/20">
+                        {/* Modal Header */}
+                        <div className="flex items-center justify-between p-4 border-b border-[#e6e9ef] bg-white">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${viewingAsset.color}20` }}>
+                                    <span className="material-symbols-outlined text-[20px]" style={{ color: viewingAsset.color }}>{viewingAsset.icon}</span>
+                                </div>
+                                <div>
+                                    <h3 className="text-[16px] font-bold text-[#323338]">{bizCtx.businessName || 'Your'} {viewingAsset.label}</h3>
+                                    <p className="text-[11px] font-bold uppercase tracking-wider text-[#00c875] flex items-center gap-1">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-[#00c875] animate-pulse"></span>
+                                        Arkle AI Generated
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <button className="px-5 py-2 bg-[#0073ea] text-white font-bold text-[13px] rounded-lg hover:bg-blue-700 transition flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-[16px]">download</span> Download
+                                </button>
+                                <button onClick={() => setViewingAsset(null)} className="w-10 h-10 rounded-full hover:bg-slate-100 flex items-center justify-center text-[#323338] transition-colors border border-transparent hover:border-slate-300">
+                                    <span className="material-symbols-outlined">close</span>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        {/* Modal Body */}
+                        <div className="flex-1 overflow-auto p-4 md:p-8 flex items-center justify-center relative">
+                            {viewingAsset.id === 'website' ? (
+                                <div className="w-full h-full bg-white rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.05)] overflow-hidden border border-slate-200">
+                                    <div className="bg-slate-100 py-2 px-4 border-b border-slate-200 flex items-center gap-2">
+                                        <div className="flex gap-1.5"><div className="w-3 h-3 rounded-full bg-red-400"></div><div className="w-3 h-3 rounded-full bg-amber-400"></div><div className="w-3 h-3 rounded-full bg-green-400"></div></div>
+                                        <div className="mx-auto bg-white border border-slate-200 rounded-md px-4 py-0.5 text-[11px] text-slate-500 w-1/2 text-center truncate">
+                                            https://{bizCtx.businessName ? bizCtx.businessName.toLowerCase().replace(/\s+/g, '') : 'startup'}.setmybizz.com
+                                        </div>
+                                    </div>
+                                    <iframe 
+                                        srcDoc={viewingAsset.result}
+                                        className="w-full h-[calc(100%-36px)]"
+                                        title="Website Preview"
+                                    />
+                                </div>
+                            ) : viewingAsset.id === 'logo' ? (
+                                <div className="max-w-2xl w-full aspect-square bg-[#1c1f3b] rounded-3xl flex items-center justify-center shadow-2xl relative overflow-hidden group">
+                                     <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.05)_50%,transparent_75%)] bg-[length:400%_400%] animate-shine pointer-events-none"></div>
+                                     {viewingAsset.result ? (
+                                        <div className="w-3/4 h-3/4 p-10 drop-shadow-[0_0_30px_rgba(255,255,255,0.1)] transition-transform duration-500 group-hover:scale-105" dangerouslySetInnerHTML={{ __html: viewingAsset.result }} />
+                                     ) : (
+                                         <span className="text-white">SVG Failed to render</span>
+                                     )}
+                                </div>
+                            ) : (
+                                <div className="w-full max-w-4xl min-h-full bg-white shadow-xl p-10 rounded-2xl border border-slate-200 font-serif">
+                                    <div className="prose prose-slate max-w-none whitespace-pre-wrap">
+                                        {viewingAsset.result}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
             <style jsx>{`
                 .font-outfit { font-family: 'Outfit', sans-serif; }
                 @keyframes voice-wave {

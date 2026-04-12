@@ -224,6 +224,12 @@ const AppContent: React.FC = () => {
         setView('dashboard');
     };
 
+    useEffect(() => {
+        if (view === 'dashboard') {
+            router.push('/os');
+        }
+    }, [view, router]);
+
     if (loading) {
         return (
             <div className="flex h-screen items-center justify-center bg-slate-50">
@@ -246,12 +252,6 @@ const AppContent: React.FC = () => {
             setDashboardConfig({ tab: 'Hook' });
         }} />;
     }
-
-    useEffect(() => {
-        if (view === 'dashboard') {
-            router.push('/os');
-        }
-    }, [view, router]);
 
     if (view === 'dashboard') {
         return (
