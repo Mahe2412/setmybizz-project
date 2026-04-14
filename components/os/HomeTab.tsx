@@ -367,7 +367,28 @@ export default function HomeTab({ data }: { data: any }) {
 
                   <div className="w-full max-w-4xl mx-auto space-y-6">
                      <AnimatePresence mode="popLayout">
-                        {msgs.map(m => (
+                        {msgs.length === 0 ? (
+                           <motion.div 
+                              initial={{ opacity: 0, y: 30 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="grid grid-cols-2 lg:grid-cols-4 gap-4 py-8"
+                           >
+                              {[
+                                 { title: 'Create Task', desc: 'Add new task', icon: 'content_copy' },
+                                 { title: 'Brainstorm Ideas', desc: 'Generate project ideas', icon: 'psychology' },
+                                 { title: 'Set Reminder', desc: 'Create a new reminder', icon: 'notifications' },
+                                 { title: 'Search Workspace', desc: 'Find anything in BizOS', icon: 'search' }
+                              ].map((tile, i) => (
+                                 <button key={i} className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all text-left group">
+                                    <div className="mb-4 text-slate-900">
+                                       <span className="material-symbols-rounded text-[21px]">{tile.icon}</span>
+                                    </div>
+                                    <h4 className="text-[15px] font-bold text-slate-900 mb-1 leading-tight">{tile.title}</h4>
+                                    <p className="text-[12px] font-medium text-slate-400 leading-relaxed">{tile.desc}</p>
+                                 </button>
+                              ))}
+                           </motion.div>
+                        ) : msgs.map(m => (
                            <motion.div key={m.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                               <div className={`p-6 rounded-[28px] text-[16px] md:text-[18px] leading-relaxed max-w-[90%] font-medium shadow-xl border ${m.role === 'user' ? 'bg-slate-900 text-white border-slate-800' : 'bg-white text-slate-900 border-slate-100'}`}>{m.content}</div>
                            </motion.div>
