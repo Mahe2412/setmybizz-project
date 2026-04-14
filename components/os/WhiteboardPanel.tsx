@@ -13,16 +13,7 @@ export default function WhiteboardPanel({ isOpen, onClose }: { isOpen: boolean; 
     <AnimatePresence>
       {isOpen && (
         <React.Fragment>
-          {/* Backdrop */}
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-slate-900/10 backdrop-blur-[2px] z-[50]"
-          />
-          
-          {/* Dropdown Panel */}
+          {/* Dropdown Panel - No Backdrop Blur */}
           <motion.div
             initial={{ opacity: 0, y: -20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -30,7 +21,7 @@ export default function WhiteboardPanel({ isOpen, onClose }: { isOpen: boolean; 
             className="fixed top-16 right-4 w-96 bg-white rounded-3xl border border-slate-200 shadow-2xl z-[60] overflow-hidden"
           >
             <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-              <h3 className="text-xs font-black text-slate-900 uppercase tracking-[0.2em]">Neural Whiteboard</h3>
+              <h3 className="text-xs font-black text-slate-900 uppercase tracking-[0.2em]">Notifications & Tasks</h3>
               <div className="flex items-center gap-1.5">
                  <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
                  <span className="text-[10px] font-black text-blue-600 uppercase">Live Updates</span>

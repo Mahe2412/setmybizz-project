@@ -55,6 +55,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
     const [isNewUser, setIsNewUser] = useState(false);
     const [showNewUserPopup, setShowNewUserPopup] = useState(false);
     const [currentView, setCurrentView] = useState<'main' | 'gst' | 'legal' | 'banking'>('main');
+    const [isAgentMode, setIsAgentMode] = useState(false);
 
     // Check if user is new (no workspace profile)
     useEffect(() => {
@@ -200,99 +201,148 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
                     </div>
                     <div className="flex-1 overflow-y-auto py-4 px-3 space-y-8 scrollbar-hide">
                         {/* Navigation removed as per user request */}
-                        {/* Google Workspace Quick Access */}
-                        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-2.5 border border-blue-100">
-                            <div className="flex items-center gap-1.5 mb-1.5">
-                                <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google" className="w-3 h-3" />
-                                <span className="text-[9px] font-black text-slate-700 uppercase tracking-wider">Workspace</span>
+                        {/* Google Workspace Quick Access - STREAMLINED */}
+                        <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-xs">
+                            <div className="flex items-center justify-between mb-3 px-1">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-5 h-5 bg-white rounded-md border border-slate-50 flex items-center justify-center shadow-xs">
+                                        <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google" className="w-3.5 h-3.5" />
+                                    </div>
+                                    <span className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Workspace</span>
+                                </div>
                                 <button
                                     onClick={() => setShowGoogleDashboard(true)}
-                                    className="ml-auto p-0.5 hover:bg-white/50 rounded transition-colors"
+                                    className="p-1 hover:bg-slate-50 rounded-lg transition-colors group"
                                     title="Open Full Dashboard"
                                 >
-                                    <span className="material-icons text-[10px] text-slate-500">open_in_new</span>
+                                    <span className="material-icons text-sm text-slate-300 group-hover:text-blue-600 transition-colors">launch</span>
                                 </button>
                             </div>
-                            <div className="flex flex-wrap gap-1">
+                            <div className="flex flex-wrap gap-1.5">
                                 {pinnedApps.slice(0, 6).map((app) => (
                                     <button
                                         key={app.id}
                                         onClick={() => handleOpenApp(app)}
-                                        className={`flex items-center gap-1 px-1.5 py-1 bg-white hover:bg-${app.color}-50 rounded-md transition-colors group text-left flex-1 min-w-[45%]`}
+                                        className="h-9 w-9 flex items-center justify-center bg-slate-50 hover:bg-white hover:shadow-md border border-transparent hover:border-slate-100 rounded-[10px] transition-all duration-300 group"
                                         title={app.label}
                                     >
-                                        <span className={`material-icons text-sm text-${app.color}-600`}>{app.icon}</span>
-                                        <span className="text-[9px] font-bold text-slate-600 truncate">{app.label}</span>
+                                        <span className={`material-icons text-[18px] text-${app.color}-600 group-hover:scale-110 transition-transform`}>{app.icon}</span>
                                     </button>
                                 ))}
                                 <button
                                     onClick={() => setShowAppSelector(true)}
-                                    className="flex items-center justify-center px-1.5 py-1 border border-dashed border-slate-300 hover:border-blue-400 hover:bg-blue-50 rounded-md transition-colors group flex-1"
+                                    className="h-9 w-9 flex items-center justify-center border border-dashed border-slate-200 hover:border-blue-300 hover:bg-blue-50/50 rounded-[10px] transition-all duration-300 group"
                                     title="Add App"
                                 >
-                                    <span className="material-icons text-sm text-slate-400 group-hover:text-blue-500">add</span>
+                                    <span className="material-icons text-[18px] text-slate-300 group-hover:text-blue-500">add</span>
                                 </button>
                             </div>
                         </div>
 
+                        {/* 1. Sales & CRM Hub */}
                         <div>
-                            <h3 className="px-3 text-[9px] font-black text-slate-400 mb-2 uppercase tracking-[0.2em]">Operational Nodes</h3>
-                            <nav className="space-y-0.5">
+                            <h3 className="px-3 text-[10px] font-black text-slate-400 mb-3 uppercase tracking-[0.2em] flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                                Sales & CRM Hub
+                            </h3>
+                            <nav className="space-y-1">
                                 {[
-                                    { label: 'Store Management', icon: 'storefront', color: 'indigo' },
-                                    { label: 'Legal Audit', icon: 'gavel', color: 'purple', view: 'legal' },
-                                    { label: 'Inventory (WMS)', icon: 'inventory_2', color: 'emerald' },
+                                    { label: 'Leads Pipeline', icon: 'account_tree', color: 'blue' },
+                                    { label: 'AI Prospector', icon: 'manage_search', color: 'indigo' },
+                                    { label: 'Sales Playbooks', icon: 'menu_book', color: 'violet' },
+                                    { label: 'CRM Insights', icon: 'psychology', color: 'blue' }
                                 ].map((item: any, idx) => (
                                     <button 
                                         key={idx} 
-                                        onClick={() => item.view && setCurrentView(item.view)}
-                                        className={`w-full flex items-center gap-2 px-3 py-1.5 hover:bg-white hover:shadow-sm rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 group ${currentView === item.view ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-900'}`}
+                                        className={`w-full flex items-center gap-3 px-3 py-2 hover:bg-white hover:border-slate-100 hover:shadow-lg rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-300 group border border-transparent text-slate-500 hover:text-slate-900`}
                                     >
-                                        <div className={`p-1 rounded-md ${colorVariants[item.color]?.bg || colorVariants.blue.bg} ${colorVariants[item.color]?.text || colorVariants.blue.text} group-hover:scale-105 transition-transform duration-300`}>
-                                            <span className="material-icons text-base">{item.icon}</span>
+                                        <div className={`p-1.5 rounded-lg ${colorVariants[item.color]?.bg || colorVariants.blue.bg} ${colorVariants[item.color]?.text || colorVariants.blue.text} group-hover:scale-105 transition-transform duration-300 shadow-xs font-normal`}>
+                                            <span className="material-icons text-lg">{item.icon}</span>
                                         </div>
-                                        {item.label}
+                                        <span className="flex-1 text-left">{item.label}</span>
+                                        <span className="material-icons text-slate-300 text-sm opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-0.5">chevron_right</span>
                                     </button>
                                 ))}
                             </nav>
                         </div>
-                        {/* Finance & Accounting */}
+
+                        {/* 2. Marketing Automation */}
                         <div>
-                            <h3 className="px-3 text-[9px] font-black text-slate-400 mb-2 uppercase tracking-[0.2em]">Finance</h3>
-                            <nav className="space-y-0.5">
+                            <h3 className="px-3 text-[10px] font-black text-slate-400 mb-3 uppercase tracking-[0.2em] flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full border border-emerald-400 flex items-center justify-center p-[2px]"><span className="w-full h-full bg-emerald-500 rounded-full"></span></span>
+                                Marketing Automation
+                            </h3>
+                            <nav className="space-y-1">
                                 {[
-                                    { label: 'Invoices', icon: 'description', color: 'blue' },
-                                    { label: 'Tax Filings', icon: 'receipt_long', color: 'red', view: 'gst' },
-                                    { label: 'Bills', icon: 'receipt', color: 'violet' },
-                                    { label: 'Banking', icon: 'account_balance', color: 'emerald', view: 'banking' }
+                                    { label: 'WhatsApp Campaigns', icon: 'chat', color: 'emerald' },
+                                    { label: 'Email Sequences', icon: 'alternate_email', color: 'rose' },
+                                    { label: 'Bulk Broadcasts', icon: 'send', color: 'teal' },
+                                    { label: 'Content Scheduler', icon: 'event', color: 'indigo' }
                                 ].map((item: any, idx) => (
                                     <button 
                                         key={idx} 
-                                        onClick={() => item.view && setCurrentView(item.view)}
-                                        className={`w-full flex items-center gap-2 px-3 py-1.5 hover:bg-white hover:shadow-sm rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 group ${currentView === item.view ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-900'}`}
+                                        className={`w-full flex items-center gap-3 px-3 py-2 hover:bg-white hover:border-slate-100 hover:shadow-lg rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-300 group border border-transparent text-slate-500 hover:text-slate-900`}
                                     >
-                                        <div className={`p-1 rounded-md ${colorVariants[item.color]?.bg || colorVariants.blue.bg} ${colorVariants[item.color]?.text || colorVariants.blue.text} group-hover:scale-105 transition-transform duration-300`}>
-                                            <span className="material-icons text-base">{item.icon}</span>
+                                        <div className={`p-1.5 rounded-lg ${colorVariants[item.color]?.bg || colorVariants.blue.bg} ${colorVariants[item.color]?.text || colorVariants.blue.text} group-hover:scale-105 transition-transform duration-300 shadow-xs font-normal`}>
+                                            <span className="material-icons text-lg">{item.icon}</span>
                                         </div>
-                                        {item.label}
+                                        <span className="flex-1 text-left">{item.label}</span>
+                                        <span className="material-icons text-slate-300 text-sm opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-0.5">chevron_right</span>
                                     </button>
                                 ))}
                             </nav>
                         </div>
-                        {/* Sales & CRM */}
+
+                        {/* 3. Inventory & ERP */}
                         <div>
-                            <h3 className="px-3 text-[9px] font-black text-slate-400 mb-2 uppercase tracking-[0.2em]">Sales & CRM</h3>
-                            <nav className="space-y-0.5">
+                            <h3 className="px-3 text-[10px] font-black text-slate-400 mb-3 uppercase tracking-[0.2em] flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                                Inventory & ERP
+                            </h3>
+                            <nav className="space-y-1">
                                 {[
-                                    { label: 'Leads', icon: 'leaderboard', color: 'rose' },
-                                    { label: 'CRM', icon: 'people', color: 'pink' }
-                                ].map((item, idx) => (
-                                    <a key={idx} className="flex items-center gap-2 px-3 py-1.5 text-slate-500 hover:text-slate-900 hover:bg-white hover:shadow-sm rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 group" href="#">
-                                        <div className={`p-1 rounded-md ${colorVariants[item.color]?.bg || colorVariants.blue.bg} ${colorVariants[item.color]?.text || colorVariants.blue.text} group-hover:scale-105 transition-transform duration-300`}>
-                                            <span className="material-icons text-base">{item.icon}</span>
+                                    { label: 'Stock Manager', icon: 'inventory_2', color: 'amber' },
+                                    { label: 'Order Tracking', icon: 'receipt_long', color: 'orange' },
+                                    { label: 'Vendor Portal', icon: 'local_shipping', color: 'teal' },
+                                    { label: 'Procurement', icon: 'shopping_cart', color: 'rose' }
+                                ].map((item: any, idx) => (
+                                    <button 
+                                        key={idx} 
+                                        className={`w-full flex items-center gap-3 px-3 py-2 hover:bg-white hover:border-slate-100 hover:shadow-lg rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-300 group border border-transparent text-slate-500 hover:text-slate-900`}
+                                    >
+                                        <div className={`p-1.5 rounded-lg ${colorVariants[item.color]?.bg || colorVariants.blue.bg} ${colorVariants[item.color]?.text || colorVariants.blue.text} group-hover:scale-105 transition-transform duration-300 shadow-xs font-normal`}>
+                                            <span className="material-icons text-lg">{item.icon}</span>
                                         </div>
-                                        {item.label}
-                                    </a>
+                                        <span className="flex-1 text-left">{item.label}</span>
+                                        <span className="material-icons text-slate-300 text-sm opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-0.5">chevron_right</span>
+                                    </button>
+                                ))}
+                            </nav>
+                        </div>
+
+                        {/* 4. Financial Control */}
+                        <div>
+                            <h3 className="px-3 text-[10px] font-black text-slate-400 mb-3 uppercase tracking-[0.2em] flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                                Financial Control
+                            </h3>
+                            <nav className="space-y-1 mb-8">
+                                {[
+                                    { label: 'Banking Flow', icon: 'account_balance', color: 'emerald' },
+                                    { label: 'GST Tracking', icon: 'receipt', color: 'blue' },
+                                    { label: 'ROI Analytics', icon: 'show_chart', color: 'fuchsia' },
+                                    { label: 'Expenditure', icon: 'payments', color: 'rose' }
+                                ].map((item: any, idx) => (
+                                    <button 
+                                        key={idx} 
+                                        className={`w-full flex items-center gap-3 px-3 py-2 hover:bg-white hover:border-slate-100 hover:shadow-lg rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-300 group border border-transparent text-slate-500 hover:text-slate-900`}
+                                    >
+                                        <div className={`p-1.5 rounded-lg ${colorVariants[item.color]?.bg || colorVariants.blue.bg} ${colorVariants[item.color]?.text || colorVariants.blue.text} group-hover:scale-105 transition-transform duration-300 shadow-xs font-normal`}>
+                                            <span className="material-icons text-lg">{item.icon}</span>
+                                        </div>
+                                        <span className="flex-1 text-left">{item.label}</span>
+                                        <span className="material-icons text-slate-300 text-sm opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-0.5">chevron_right</span>
+                                    </button>
                                 ))}
                             </nav>
                         </div>
@@ -312,6 +362,23 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
                         </button>
                     </div>
                     <div className="flex items-center gap-3">
+                        {/* Mode Switcher */}
+                        <div className="flex bg-slate-100 p-1.5 rounded-2xl items-center gap-1 shadow-inner border border-slate-200/50 mr-4 scale-90 lg:scale-100">
+                            <button 
+                                onClick={() => setIsAgentMode(false)}
+                                className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${!isAgentMode ? 'bg-white text-slate-900 shadow-md' : 'text-slate-400 hover:text-slate-600'}`}
+                            >
+                                Manual
+                            </button>
+                            <button 
+                                onClick={() => setIsAgentMode(true)}
+                                className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${isAgentMode ? 'bg-slate-900 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-400 hover:text-slate-600'}`}
+                            >
+                                <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-pulse"></span>
+                                Agent
+                            </button>
+                        </div>
+
                         <button
                             onClick={() => setRightSidebarOpen(!rightSidebarOpen)}
                             className="hidden lg:flex items-center gap-2 text-slate-600 hover:bg-slate-100 px-3 py-2 rounded-lg transition-colors font-medium text-sm"
@@ -333,6 +400,31 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
 
                 <div className="flex-1 overflow-y-auto overflow-x-hidden relative z-10 w-full" id="main-scroll-container">
                     <div className="absolute top-0 left-0 w-full h-full bg-white z-0"></div>
+
+                    {/* Operational Metrics Bar */}
+                    <div className="relative z-20 px-4 lg:px-8 pt-6 pb-2">
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                            {[
+                                { label: 'Active Leads', value: '42', delta: '+12%', icon: 'groups', color: 'blue' },
+                                { label: 'Running Campaigns', value: '08', delta: 'Live', icon: 'campaign', color: 'emerald' },
+                                { label: 'Stock Alerts', value: '03', delta: 'Low', icon: 'inventory_2', color: 'amber' },
+                                { label: 'Net ROI', value: '28%', delta: '+5%', icon: 'show_chart', color: 'fuchsia' }
+                            ].map((stat, i) => (
+                                <div key={i} className="bg-white/50 backdrop-blur-md border border-slate-200/60 p-3.5 rounded-2xl hover:shadow-lg transition-all group cursor-pointer hover:border-slate-300">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className={`p-1.5 rounded-xl bg-${stat.color}-50 text-${stat.color}-600`}>
+                                            <span className="material-icons text-lg">{stat.icon}</span>
+                                        </div>
+                                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${stat.delta === 'Live' ? 'bg-emerald-100 text-emerald-600 animate-pulse' : stat.delta === 'Low' ? 'bg-rose-100 text-rose-600' : 'bg-slate-100 text-slate-600'}`}>
+                                            {stat.delta}
+                                        </span>
+                                    </div>
+                                    <div className="text-2xl font-black text-slate-900 leading-none mb-1 tabular-nums">{stat.value}</div>
+                                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
 
                     {/* Content Section 1: AI Co-Founder (Top View) */}
                     <div className="relative z-10 p-4 lg:p-6 flex flex-col items-center justify-start lg:justify-center min-w-0 transition-all duration-300">
@@ -373,8 +465,15 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
                                             label={tool.label}
                                             icon={tool.icon}
                                             color={tool.color}
+                                            isAgentActive={isAgentMode}
                                             onContextMenu={handleContextMenu}
-                                            onClick={() => console.log('Clicked', tool.label)}
+                                            onClick={() => {
+                                                if (isAgentMode) {
+                                                    alert(`Arkle Agent: Initializing autonomous execution for ${tool.label}...`);
+                                                } else {
+                                                    console.log('Clicked', tool.label);
+                                                }
+                                            }}
                                         />
                                     ))}
                                 </div>

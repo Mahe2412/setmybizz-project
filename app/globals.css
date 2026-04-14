@@ -195,11 +195,9 @@ textarea {
   font-family: inherit;
 }
 
-/* Focus ring */
+/* Focus ring - DISABLED GLOBAL OUTLINE FOR CLEANER UI */
 :focus-visible {
-  outline: 2px solid #40c4ff;
-  outline-offset: 3px;
-  border-radius: 4px;
+  outline: none;
 }
 
 p {
