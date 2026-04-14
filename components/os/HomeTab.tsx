@@ -175,24 +175,28 @@ export default function HomeTab({ data }: { data: any }) {
                   <div className="flex items-center ml-0 gap-1 mb-[-1px] relative z-20">
                      <button
                         onClick={() => setActiveChatTab('ask')}
-                        className={`px-7 py-3 rounded-t-[22px] rounded-tl-none flex items-center gap-3 transition-all duration-300 font-bold text-[14px] relative overflow-hidden group ${activeChatTab === 'ask' ? 'bg-linear-to-br from-blue-500 to-indigo-600 text-white shadow-[0_4px_20px_rgba(59,130,246,0.4)]' : 'text-slate-400 hover:text-slate-600'}`}
+                        className={`px-8 py-3 rounded-tr-[24px] rounded-tl-none flex items-center gap-3 transition-all duration-500 font-black text-[14px] relative overflow-hidden group border-b-0 ${activeChatTab === 'ask' 
+                           ? 'bg-gradient-to-br from-purple-600 via-rose-800 to-emerald-500 text-white shadow-[0_10px_25px_-5px_rgba(157,23,77,0.4)] z-30' 
+                           : 'bg-white/50 text-slate-400 hover:text-slate-600 hover:bg-white z-10'}`}
                      >
-                        <svg className={`w-4 h-4 ${activeChatTab === 'ask' ? 'text-white' : 'text-slate-400 group-hover:text-blue-500'}`} fill="currentColor" viewBox="0 0 24 24"><path d="M19 9l1.25-2.75L23 5l-2.75-1.25L19 1l-1.25 2.75L15 5l2.75 1.25L19 9zm-7.5.5L9 4 6.5 9.5 1 12l5.5 2.5L9 20l2.5-5.5L17 12l-5.5-2.5zM19 15l-1.25 2.75L15 19l2.75 1.25L19 23l1.25-2.75L23 19l-2.75-1.25L19 15z" /></svg>
-                        Ask
-                        {activeChatTab === 'ask' && <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />}
+                        <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                        <svg className={`w-4 h-4 transition-transform duration-500 group-hover:rotate-12 ${activeChatTab === 'ask' ? 'text-white' : 'text-slate-400 group-hover:text-purple-500'}`} fill="currentColor" viewBox="0 0 24 24"><path d="M19 9l1.25-2.75L23 5l-2.75-1.25L19 1l-1.25 2.75L15 5l2.75 1.25L19 9zm-7.5.5L9 4 6.5 9.5 1 12l5.5 2.5L9 20l2.5-5.5L17 12l-5.5-2.5zM19 15l-1.25 2.75L15 19l2.75 1.25L19 23l1.25-2.75L23 19l-2.75-1.25L19 15z" /></svg>
+                        <span className="relative z-10 uppercase tracking-widest text-[11px]">Ask</span>
                      </button>
                      <button
                         onClick={() => setActiveChatTab('agents')}
-                        className={`px-7 py-3 rounded-t-[22px] flex items-center gap-3 transition-all duration-300 font-bold text-[14px] relative overflow-hidden group ${activeChatTab === 'agents' ? 'bg-linear-to-br from-slate-800 to-slate-950 text-white shadow-[0_4px_20px_rgba(30,41,59,0.4)]' : 'text-slate-400 hover:text-slate-600'}`}
+                        className={`px-8 py-3 rounded-tl-[24px] rounded-tr-none flex items-center gap-3 transition-all duration-500 font-black text-[14px] relative overflow-hidden group border-b-0 ml-[-4px] ${activeChatTab === 'agents' 
+                           ? 'bg-gradient-to-br from-emerald-500 via-rose-800 to-purple-600 text-white shadow-[0_10px_25px_-5px_rgba(16,185,129,0.3)] z-30' 
+                           : 'bg-white/50 text-slate-400 hover:text-slate-600 hover:bg-white z-10'}`}
                      >
-                        <svg className={`w-4 h-4 ${activeChatTab === 'agents' ? 'text-white' : 'text-slate-400 group-hover:text-slate-900'}`} fill="currentColor" viewBox="0 0 24 24"><path d="M15,9H9V11H15V9M12,13H7V15H12V13M21,6V15C21,16.1 20.1,17 19,17H5C3.9,17 3,16.1 3,15V6C3,4.9 3.9,4 5,4H19C20.1,4 21,4.9 21,6M19,6H5V15H19V6Z" /></svg>
-                        Agent
-                        {activeChatTab === 'agents' && <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />}
+                        <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                        <svg className={`w-4 h-4 transition-transform duration-500 group-hover:-rotate-12 ${activeChatTab === 'agents' ? 'text-white' : 'text-slate-400 group-hover:text-emerald-500'}`} fill="currentColor" viewBox="0 0 24 24"><path d="M15,9H9V11H15V9M12,13H7V15H12V13M21,6V15C21,16.1 20.1,17 19,17H5C3.9,17 3,16.1 3,15V6C3,4.9 3.9,4 5,4H19C20.1,4 21,4.9 21,6M19,6H5V15H19V6Z" /></svg>
+                        <span className="relative z-10 uppercase tracking-widest text-[11px]">Agent</span>
                      </button>
                   </div>
 
                   {/* THICK MULTI-GLOSS VIBRANT BORDER */}
-                  <div className="relative p-[3.5px] rounded-[34px] rounded-tl-none bg-linear-to-r from-blue-600 via-indigo-600 via-purple-600 to-pink-500 shadow-[0_30px_90px_-20px_rgba(79,70,229,0.35)] transition-all duration-500">
+                  <div className="relative p-[3.5px] rounded-[34px] rounded-tl-none bg-gradient-to-r from-purple-600 via-rose-800 via-emerald-500 to-purple-600 shadow-[0_30px_90px_-20px_rgba(157,23,77,0.35)] transition-all duration-500">
                      <div className="bg-white rounded-[31px] rounded-tl-none flex flex-col min-h-[170px] overflow-visible">
 
                         {/* PURE SEAMLESS CONTENT AREA */}

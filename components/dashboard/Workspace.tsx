@@ -363,18 +363,23 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
                     </div>
                     <div className="flex items-center gap-3">
                         {/* Mode Switcher */}
-                        <div className="flex bg-slate-100 p-1.5 rounded-2xl items-center gap-1 shadow-inner border border-slate-200/50 mr-4 scale-90 lg:scale-100">
+                        <div className="flex items-center gap-0 mr-4 scale-90 lg:scale-100 relative z-20">
                             <button 
                                 onClick={() => setIsAgentMode(false)}
-                                className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${!isAgentMode ? 'bg-white text-slate-900 shadow-md' : 'text-slate-400 hover:text-slate-600'}`}
+                                className={`px-5 py-2 rounded-tr-[18px] rounded-tl-none text-[10px] font-black uppercase tracking-widest transition-all duration-500 flex items-center gap-2 ${!isAgentMode 
+                                    ? 'bg-gradient-to-br from-purple-600 via-rose-800 to-emerald-500 text-white shadow-[0_8px_20px_-5px_rgba(157,23,77,0.4)] z-30' 
+                                    : 'bg-slate-100 text-slate-400 hover:text-slate-600 z-10'}`}
                             >
+                                <span className={`w-1.5 h-1.5 rounded-full ${!isAgentMode ? 'bg-white animate-pulse' : 'bg-slate-300'}`}></span>
                                 Manual
                             </button>
                             <button 
                                 onClick={() => setIsAgentMode(true)}
-                                className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${isAgentMode ? 'bg-slate-900 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-400 hover:text-slate-600'}`}
+                                className={`px-5 py-2 rounded-tl-[18px] rounded-tr-none text-[10px] font-black uppercase tracking-widest transition-all duration-500 flex items-center gap-2 ml-[-2px] ${isAgentMode 
+                                    ? 'bg-gradient-to-br from-emerald-500 via-rose-800 to-purple-600 text-white shadow-[0_8px_20px_-5px_rgba(16,185,129,0.3)] z-30' 
+                                    : 'bg-slate-100 text-slate-400 hover:text-slate-600 z-10'}`}
                             >
-                                <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-pulse"></span>
+                                <span className={`w-1.5 h-1.5 rounded-full ${isAgentMode ? 'bg-white animate-pulse' : 'bg-slate-300'}`}></span>
                                 Agent
                             </button>
                         </div>
