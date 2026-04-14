@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { getArkleContext } from '@/lib/arkleBrain';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 export async function POST(req: Request) {
     try {
         const { assetType, context } = await req.json();
+        const arkleContext = await getArkleContext();
 
         if (!process.env.GEMINI_API_KEY) {
             return NextResponse.json({ error: 'Gemini API Key missing' }, { status: 500 });
@@ -13,14 +15,17 @@ export async function POST(req: Request) {
 
         const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
-        let prompt = '';
+        let prompt = `You are Arkle, the AI Co-Founder and Developer within the BIZOS (Business Operating System).
+        
+        === OUR STRATEGIC CONTEXT ===
+        ${arkleContext}
+        
+        Your task is to generate a professional ${assetType} for the business: ${context.businessName || 'Startup'}.
+        Industry: ${context.industry || 'Tech'}.`;
 
         if (assetType === 'website') {
-            prompt = `
-You are an expert web developer and designer. 
-Create a complete, responsive, modern, single-page HTML website for the following business:
-Business Name: ${context.businessName || 'Startup'}
-Industry: ${context.industry || 'Tech'}
+            prompt += `
+Create a complete, responsive, modern, single-page HTML website.
 Idea: ${context.idea || ''}
 Target Audience: ${context.audience || ''}
 Design Taste/Vibe: ${context.designTaste || 'Modern'}
@@ -34,11 +39,8 @@ Requirements:
 - Be creative with colors that match the Design Taste.
 `;
         } else if (assetType === 'logo') {
-            prompt = `
-You are an expert logo designer. 
-Create a professional SVG logo for the following business:
-Business Name: ${context.businessName || 'Startup'}
-Industry: ${context.industry || 'Tech'}
+            prompt += `
+Create a professional SVG logo.
 Design Taste/Vibe: ${context.designTaste || 'Modern'}
 
 Requirements:

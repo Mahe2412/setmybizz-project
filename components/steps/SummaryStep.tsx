@@ -77,7 +77,16 @@ const SummaryStep: React.FC<SummaryStepProps> = ({ data, onBack, onDashboard }) 
             <div className="flex flex-col gap-16">
                 {/* Top Section: Essential Services List */}
                 <div className="flex flex-col gap-6">
-                    <h3 className="text-2xl font-bold text-slate-900">All MyBizz Services</h3>
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                        <div className="space-y-1">
+                            <h3 className="text-3xl font-black text-slate-900 tracking-tight">The Startup Store</h3>
+                            <p className="text-slate-500 font-medium">Acquire high-performance business protocols & elite professional consultations.</p>
+                        </div>
+                        <div className="px-4 py-2 bg-emerald-50 border border-emerald-100 rounded-xl flex items-center gap-2">
+                           <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                           <span className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">Sourcing Real-time Pricing</span>
+                        </div>
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {filteredServices.map((step, idx) => {
                             const isSelected = isInCart(step.id);
@@ -99,6 +108,26 @@ const SummaryStep: React.FC<SummaryStepProps> = ({ data, onBack, onDashboard }) 
                                 </div>
                             );
                         })}
+
+                        {/* NEW: BOOK PROFESSIONAL FEATURE CARD */}
+                        <div 
+                            className={`bg-linear-to-br from-slate-900 to-indigo-950 border-2 rounded-2xl p-5 shadow-xl transition-all flex items-start gap-4 cursor-pointer group hover:scale-[1.02] border-indigo-500/30`}
+                            onClick={() => toggleCartItem({ id: 'prof-booking', name: 'Elite CA/Legal Consultation', price: 999, type: 'service' })}
+                        >
+                            <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0 border border-white/20 group-hover:bg-blue-600 transition-colors">
+                                <Users className="w-6 h-6 text-white" />
+                            </div>
+                            <div className="flex-grow">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-blue-400 mb-1 block">Elite Support</span>
+                                <h4 className="text-base font-bold text-white leading-tight mb-1">Book a Professional</h4>
+                                <div className="flex justify-between items-center mt-2">
+                                    <span className="text-sm font-black text-white/90">₹999 / Session</span>
+                                </div>
+                            </div>
+                            <button className={`flex-shrink-0 p-1.5 rounded-full transition-colors mt-1 ${isInCart('prof-booking') ? 'text-blue-400' : 'text-white/20'}`}>
+                                {isInCart('prof-booking') ? <CheckCircle2 className="w-6 h-6" /> : <PlusCircle className="w-6 h-6" />}
+                            </button>
+                        </div>
                     </div>
                 </div>
 

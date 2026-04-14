@@ -18,6 +18,7 @@ import { useAuth } from '@/context/AuthContext';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import Toast from './ToastNotification';
+import VibeCommandBar from './vibe-studio/VibeCommandBar';
 
 interface DashboardProps {
     data: BusinessData;
@@ -261,16 +262,13 @@ const Dashboard: React.FC<DashboardProps> = ({ data, initialTab = 'A', onNavigat
                             { label: 'Logo Designer', icon: 'brush' },
                             { label: 'Domain & SSL', icon: 'language' },
                             { label: 'Web Builder', icon: 'web' },
-                            { label: 'Ad Strategy', icon: 'ads_click' }
                         ] : activeDash === 'D3' ? [
                             { label: 'Academy', icon: 'school', active: activeTab === 'LearnerStudio', tab: 'LearnerStudio' },
-                            { label: 'Hiring Kit', icon: 'person_add' },
-                            { label: 'Project Mgmt', icon: 'list_alt' }
+                            { label: 'Hiring Kit', icon: 'person_add' }
                         ] : [
                             { label: 'Workspace', icon: 'dashboard', active: activeTab === 'Workspace', tab: 'Workspace' },
-                            { label: 'Inbox', icon: 'inbox' },
-                            { label: 'File Vault', icon: 'folder' },
-                            { label: 'Team Space', icon: 'hub' }
+                            { label: 'Business Vault', icon: 'folder_shared', tab: 'Company' },
+                            { label: 'Directives', icon: 'terminal' }
                         ]).map((item: any, i) => (
                             <button
                                 key={i}
@@ -483,6 +481,8 @@ const Dashboard: React.FC<DashboardProps> = ({ data, initialTab = 'A', onNavigat
                 <AIProjectReportTool businessData={data} onClose={() => setShowDPRTool(false)} />
             )}
 
+            <VibeCommandBar />
+            
             <Toast message={toast.message} subMessage={toast.sub} isVisible={toast.visible} onClose={() => setToast(prev => ({ ...prev, visible: false }))} />
             
             {activeTab === 'A' && (

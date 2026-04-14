@@ -11,6 +11,10 @@ import GoogleWorkspaceDashboard, { GoogleApp } from './GoogleWorkspaceDashboard'
 import AiCoFounderChat from './AiCoFounderChat';
 import AdvancedOnboarding from '../AdvancedOnboarding';
 import CenterChat from '../ai-studio/CenterChat';
+import BizDeskPulseBoard from './BizDeskPulseBoard';
+import GSTTab from '../os/GSTTab';
+import LegalTab from '../os/LegalTab';
+import BankingTab from '../os/BankingTab';
 
 interface WorkspaceProps {
     onNavigate: (tab: 'A' | 'B' | 'LearnerStudio' | 'Workspace') => void;
@@ -50,6 +54,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
     const [showAIWorkspaceSetup, setShowAIWorkspaceSetup] = useState(false);
     const [isNewUser, setIsNewUser] = useState(false);
     const [showNewUserPopup, setShowNewUserPopup] = useState(false);
+    const [currentView, setCurrentView] = useState<'main' | 'gst' | 'legal' | 'banking'>('main');
 
     // Check if user is new (no workspace profile)
     useEffect(() => {
@@ -230,24 +235,24 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
                             </div>
                         </div>
 
-                        {/* Operations */}
                         <div>
-                            <h3 className="px-3 text-[9px] font-black text-slate-400 mb-2 uppercase tracking-[0.2em]">Operations</h3>
+                            <h3 className="px-3 text-[9px] font-black text-slate-400 mb-2 uppercase tracking-[0.2em]">Operational Nodes</h3>
                             <nav className="space-y-0.5">
                                 {[
-                                    { label: 'Website Management', icon: 'language', color: 'blue' },
-                                    { label: 'Store', icon: 'storefront', color: 'indigo' },
-                                    { label: 'Orders', icon: 'receipt_long', color: 'orange' },
-                                    { label: 'Inventory', icon: 'inventory_2', color: 'emerald' },
-                                    { label: 'Stock Management', icon: 'warehouse', color: 'teal' },
-                                    { label: 'Suppliers', icon: 'local_shipping', color: 'cyan' }
-                                ].map((item, idx) => (
-                                    <a key={idx} className="flex items-center gap-2 px-3 py-1.5 text-slate-500 hover:text-slate-900 hover:bg-white hover:shadow-sm rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 group" href="#">
+                                    { label: 'Store Management', icon: 'storefront', color: 'indigo' },
+                                    { label: 'Legal Audit', icon: 'gavel', color: 'purple', view: 'legal' },
+                                    { label: 'Inventory (WMS)', icon: 'inventory_2', color: 'emerald' },
+                                ].map((item: any, idx) => (
+                                    <button 
+                                        key={idx} 
+                                        onClick={() => item.view && setCurrentView(item.view)}
+                                        className={`w-full flex items-center gap-2 px-3 py-1.5 hover:bg-white hover:shadow-sm rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 group ${currentView === item.view ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-900'}`}
+                                    >
                                         <div className={`p-1 rounded-md ${colorVariants[item.color]?.bg || colorVariants.blue.bg} ${colorVariants[item.color]?.text || colorVariants.blue.text} group-hover:scale-105 transition-transform duration-300`}>
                                             <span className="material-icons text-base">{item.icon}</span>
                                         </div>
                                         {item.label}
-                                    </a>
+                                    </button>
                                 ))}
                             </nav>
                         </div>
@@ -257,16 +262,20 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
                             <nav className="space-y-0.5">
                                 {[
                                     { label: 'Invoices', icon: 'description', color: 'blue' },
-                                    { label: 'Quotations', icon: 'request_quote', color: 'indigo' },
+                                    { label: 'Tax Filings', icon: 'receipt_long', color: 'red', view: 'gst' },
                                     { label: 'Bills', icon: 'receipt', color: 'violet' },
-                                    { label: 'Expenses', icon: 'payments', color: 'fuchsia' }
-                                ].map((item, idx) => (
-                                    <a key={idx} className="flex items-center gap-2 px-3 py-1.5 text-slate-500 hover:text-slate-900 hover:bg-white hover:shadow-sm rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 group" href="#">
+                                    { label: 'Banking', icon: 'account_balance', color: 'emerald', view: 'banking' }
+                                ].map((item: any, idx) => (
+                                    <button 
+                                        key={idx} 
+                                        onClick={() => item.view && setCurrentView(item.view)}
+                                        className={`w-full flex items-center gap-2 px-3 py-1.5 hover:bg-white hover:shadow-sm rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 group ${currentView === item.view ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-900'}`}
+                                    >
                                         <div className={`p-1 rounded-md ${colorVariants[item.color]?.bg || colorVariants.blue.bg} ${colorVariants[item.color]?.text || colorVariants.blue.text} group-hover:scale-105 transition-transform duration-300`}>
                                             <span className="material-icons text-base">{item.icon}</span>
                                         </div>
                                         {item.label}
-                                    </a>
+                                    </button>
                                 ))}
                             </nav>
                         </div>
@@ -327,16 +336,26 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
 
                     {/* Content Section 1: AI Co-Founder (Top View) */}
                     <div className="relative z-10 p-4 lg:p-6 flex flex-col items-center justify-start lg:justify-center min-w-0 transition-all duration-300">
-                        {/* Oracle AI Studio Chat - Hero Section */}
-                        <div className="w-full h-[450px] bg-white rounded-2xl border border-slate-200 shadow-lg overflow-hidden">
-                            <CenterChat
-                                chatId="workspace-main"
-                                leftSidebarOpen={leftSidebarOpen}
-                                rightSidebarOpen={rightSidebarOpen}
-                                onToggleLeftSidebar={() => setLeftSidebarOpen(!leftSidebarOpen)}
-                                onToggleRightSidebar={() => setRightSidebarOpen(!rightSidebarOpen)}
-                            />
-                        </div>
+                        {currentView === 'main' ? (
+                            <div className="w-full h-[450px] bg-white rounded-2xl border border-slate-200 shadow-lg overflow-hidden">
+                                <CenterChat
+                                    chatId="workspace-main"
+                                    leftSidebarOpen={leftSidebarOpen}
+                                    rightSidebarOpen={rightSidebarOpen}
+                                    onToggleLeftSidebar={() => setLeftSidebarOpen(!leftSidebarOpen)}
+                                    onToggleRightSidebar={() => setRightSidebarOpen(!rightSidebarOpen)}
+                                />
+                            </div>
+                        ) : (
+                            <div className="w-full bg-white rounded-2xl border border-slate-200 shadow-lg p-8 animate-in fade-in slide-in-from-bottom-4">
+                                <button onClick={() => setCurrentView('main')} className="mb-6 flex items-center gap-2 text-[10px] font-black uppercase text-indigo-600 hover:translate-x-[-4px] transition-transform">
+                                    <span className="material-symbols-outlined text-sm">west</span> Back to Hub
+                                </button>
+                                {currentView === 'gst' && <GSTTab />}
+                                {currentView === 'legal' && <LegalTab />}
+                                {currentView === 'banking' && <BankingTab />}
+                            </div>
+                        )}
                     </div>
 
                     {/* Interactive Operations Grid */}
@@ -365,7 +384,10 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
 
 
 
-                    {/* Add Iterations Section */}
+                    {/* Monday.com Style Integrated Pulse Board */}
+                    <section className="mb-12 px-4 lg:px-8">
+                        <BizDeskPulseBoard />
+                    </section>
                     <section className="mb-12 px-8">
                         <div className="flex items-center justify-between mb-4 px-2">
                             <h2 className="text-sm font-bold text-slate-900 font-serif">Add Iterations</h2>

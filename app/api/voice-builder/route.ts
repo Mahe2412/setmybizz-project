@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { getArkleContext } from '@/lib/arkleBrain';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 export async function POST(req: Request) {
     try {
         const { message, history, context, currentCode } = await req.json();
+        const arkleContext = await getArkleContext();
 
         if (!process.env.GEMINI_API_KEY) {
             return NextResponse.json({ error: 'GEMINI_API_KEY missing' }, { status: 500 });
@@ -14,15 +16,19 @@ export async function POST(req: Request) {
         const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
         const prompt = `
-You are Arkle, an expert AI Web Developer and Business Advisor. You are talking to a user via voice mode.
-Context about their business:
-Name: ${context?.businessName || 'Unknown'}
-Idea: ${context?.idea || 'Unknown'}
-Industry: ${context?.industry || 'Unknown'}
+You are Arkle, the AI Co-Founder and Developer within the BIZOS (Business Operating System).
+        
+=== OUR STRATEGIC CONTEXT ===
+${arkleContext}
+
+You are in a LIVE VOICE session with the user.
+Your personality: Helpful, visionary, quick, and technically elite.
+Current Business Name: ${context?.businessName || 'the startup'}
+Industry: ${context?.industry || 'Modern Tech'}
 
 The user said: "${message}"
 
-You have two tasks:
+Your Task:
 1. "reply": A short, conversational reply to the user (like you are on a phone call). Give advice on colors, design, or layout if needed. Maximum 2-3 sentences.
 2. "code": If the user is asking to build or update the website, output the full, single-file HTML code with Tailwind CSS to match their request. 
    - If they are just chatting and NOT asking for a website change, leave "code" empty ("").
