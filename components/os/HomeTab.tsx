@@ -17,11 +17,15 @@ const ARCADE_SLIDES = [
 ];
 
 const QUICK_TRAY_APPS = [
-  { id: 'gmail', icon: 'mail', label: 'Gmail', count: 4, color: 'text-red-500' },
+  { id: 'mail', icon: 'mail', label: 'Gmail', count: 4, color: 'text-red-500' },
   { id: 'docs', icon: 'description', label: 'Documents', color: 'text-blue-500' },
-  { id: 'drive', icon: 'add_to_drive', label: 'Drive', color: 'text-green-500' },
-  { id: 'tasks', icon: 'task_alt', label: 'Tasks', count: 12, color: 'text-indigo-500' },
-  { id: 'whatsapp', icon: 'chat', label: 'WhatsApp AI', color: 'text-emerald-500' },
+  { id: 'integrations', icon: 'grid_view', label: 'Apps', color: 'text-green-500' },
+  { id: 'notes', icon: 'edit_note', label: 'Notes', color: 'text-orange-500' },
+  { id: 'tasks', icon: 'check_circle', label: 'Tasks', count: 12, color: 'text-indigo-600' },
+  { id: 'marketing', icon: 'campaign', label: 'Marketing', color: 'text-pink-500' },
+  { id: 'calendar', icon: 'calendar_month', label: 'Calendar', color: 'text-sky-500' },
+  { id: 'alerts', icon: 'notifications', label: 'Alerts', count: 2, color: 'text-orange-500' },
+  { id: 'whatsapp', icon: 'chat', label: 'WhatsApp', color: 'text-emerald-500' },
 ];
 
 export default function HomeTab({ data }: { data: any }) {
@@ -60,47 +64,75 @@ export default function HomeTab({ data }: { data: any }) {
 
   return (
     <div className="flex h-full bg-[#f8fafc] overflow-y-auto relative no-scrollbar">
-      {/* SIDEBAR */}
-      <motion.div animate={{ width: isSidebarOpen ? 240 : 0 }} className="h-full bg-slate-50 border-r border-slate-200 overflow-hidden flex flex-col shrink-0 z-20">
-        <div className="p-6 h-full flex flex-col">
-          <div className="flex flex-col gap-0 px-2 mb-10">
-            <h1 className="text-slate-900 font-black text-[22px] tracking-tight leading-none">Arkle <span className="text-blue-600">Brain</span></h1>
-            <p className="text-slate-400 text-[8px] font-black uppercase tracking-widest mt-1.5 leading-tight">BizOS <br/> <span className="text-[7px] opacity-60">World's First Business Operating System</span></p>
-          </div>
-
-          <div className="space-y-3 mb-10">
-             <button onClick={() => setMsgs([])} className="w-full flex items-center gap-3 bg-white hover:bg-slate-100 border border-slate-200 p-4 rounded-xl transition-all shadow-sm">
-               <span className="material-symbols-outlined text-slate-400 text-[18px]">add_comment</span>
-               <span className="text-slate-900 font-bold text-[10px] uppercase tracking-widest">New Session</span>
-             </button>
-             <button onClick={() => bizBoardRef.current?.scrollIntoView({ behavior: 'smooth' })} className="w-full flex items-center gap-3 bg-slate-900 hover:bg-slate-800 p-4 rounded-xl transition-all shadow-xl">
-               <span className="material-symbols-outlined text-white/50 text-[18px]">campaign</span>
-               <span className="text-white font-bold text-[10px] uppercase tracking-widest">Biz Spotlight</span>
-             </button>
-          </div>
-
-          <div className="flex-1 overflow-y-auto space-y-12 no-scrollbar pr-1 px-1">
-             <div className="space-y-5">
-                <header className="px-1 flex items-center justify-between"><h3 className="text-slate-400 text-[9px] font-black uppercase tracking-[0.3em]">Business Threads</h3><span className="material-symbols-outlined text-slate-300 text-[15px]">folder_open</span></header>
-                <div className="space-y-2">
-                   {['TechNova Scaling', 'Q4 GSTR Plan'].map((p, i) => (
-                      <button key={i} className="w-full p-3 rounded-xl bg-white border border-slate-100 hover:border-blue-500 hover:bg-blue-50 transition-all text-left shadow-sm group">
-                         <p className="text-slate-700 font-bold text-[11px] truncate leading-none">{p}</p>
-                         <p className="text-slate-300 text-[8px] font-black uppercase mt-1.5 italic group-hover:text-blue-400">Active Thread</p>
-                      </button>
-                   ))}
+      <motion.div 
+        onHoverStart={() => setIsSidebarOpen(true)}
+        onHoverEnd={() => setIsSidebarOpen(false)}
+        animate={{ 
+          width: isSidebarOpen ? 280 : 68,
+          boxShadow: isSidebarOpen ? '20px 0 50px rgba(0,0,0,0.1)' : '0 0 0 rgba(0,0,0,0)'
+        }} 
+        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        className="h-full bg-white border-r border-slate-100 overflow-hidden flex flex-col shrink-0 z-50 relative"
+      >
+        <div className="flex flex-col h-full py-8">
+          {/* LOGO AREA */}
+          <div className="px-5 mb-10 overflow-hidden whitespace-nowrap">
+             <div className="flex items-center gap-4">
+                <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center shrink-0">
+                   <span className="material-symbols-rounded text-white text-[18px]">auto_awesome</span>
                 </div>
+                {isSidebarOpen && (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col">
+                    <h1 className="text-slate-900 font-black text-[18px] tracking-tight leading-none">Arkle <span className="text-blue-600">Brain</span></h1>
+                    <p className="text-slate-400 text-[8px] font-black uppercase tracking-widest mt-1">BizOS Operating System</p>
+                  </motion.div>
+                )}
              </div>
+          </div>
+
+          <div className="space-y-4 mb-10 px-3">
+             <button onClick={() => setMsgs([])} className="w-full flex items-center gap-4 hover:bg-slate-50 p-3 rounded-xl transition-all group">
+               <span className="material-symbols-outlined text-slate-400 text-[22px] group-hover:text-blue-600">add_comment</span>
+               {isSidebarOpen && <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-slate-900 font-bold text-[11px] uppercase tracking-widest whitespace-nowrap">New Session</motion.span>}
+             </button>
+             <button onClick={() => bizBoardRef.current?.scrollIntoView({ behavior: 'smooth' })} className="w-full flex items-center gap-4 hover:bg-slate-50 p-3 rounded-xl transition-all group">
+               <span className="material-symbols-outlined text-slate-400 text-[22px] group-hover:text-slate-900">campaign</span>
+               {isSidebarOpen && <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-slate-900 font-bold text-[11px] uppercase tracking-widest whitespace-nowrap">Biz Spotlight</motion.span>}
+             </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto space-y-12 no-scrollbar px-3">
              <div className="space-y-5">
-                <header className="px-1 flex items-center justify-between"><h3 className="text-slate-400 text-[9px] font-black uppercase tracking-[0.3em]">Knowledge Vault</h3><span className="material-symbols-outlined text-slate-300 text-[15px]">description</span></header>
-                <div className="space-y-2">
-                   {['Incorporation_Cert.pdf', 'Sales_Performance.doc'].map((f, i) => (
-                      <button key={i} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-100 transition-all text-left">
-                         <span className="material-symbols-outlined text-slate-400 text-[18px]">article</span>
-                         <span className="text-slate-600 font-medium text-[10px] truncate">{f}</span>
-                      </button>
-                   ))}
-                </div>
+                <header className="px-2 flex items-center justify-between">
+                   <span className="material-symbols-outlined text-slate-300 text-[20px]">folder_open</span>
+                   {isSidebarOpen && <motion.h3 initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-slate-400 text-[9px] font-black uppercase tracking-[0.2em] flex-1 ml-4">Threads</motion.h3>}
+                </header>
+                {isSidebarOpen && (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-2">
+                    {['TechNova Scaling', 'Q4 GSTR Plan'].map((p, i) => (
+                        <button key={i} className="w-full p-3 rounded-xl hover:bg-slate-50 transition-all text-left group">
+                          <p className="text-slate-700 font-bold text-[11px] truncate">{p}</p>
+                          <p className="text-slate-300 text-[8px] font-black uppercase mt-1 italic">Active</p>
+                        </button>
+                    ))}
+                  </motion.div>
+                )}
+             </div>
+             
+             <div className="space-y-5">
+                <header className="px-2 flex items-center justify-between">
+                   <span className="material-symbols-outlined text-slate-300 text-[20px]">description</span>
+                   {isSidebarOpen && <motion.h3 initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-slate-400 text-[9px] font-black uppercase tracking-[0.2em] flex-1 ml-4">Knowledge</motion.h3>}
+                </header>
+                {isSidebarOpen && (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-2">
+                    {['Incorporation_Cert.pdf', 'Sales_Perf.doc'].map((f, i) => (
+                        <button key={i} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-100 transition-all text-left">
+                          <span className="text-slate-600 font-medium text-[10px] truncate">{f}</span>
+                        </button>
+                    ))}
+                  </motion.div>
+                )}
              </div>
           </div>
         </div>
@@ -126,59 +158,86 @@ export default function HomeTab({ data }: { data: any }) {
           </div>
 
           {/* CHAT INTERFACE */}
-          <div className="max-w-[800px] mx-auto w-full">
-            <div className="flex items-center ml-10 overflow-hidden">
+          <div className="max-w-[850px] mx-auto w-full">
+            {/* CURVED TABS OUTSIDE */}
+            <div className="flex items-center ml-12 gap-1 mb-[-1px] relative z-20">
                <button 
                   onClick={() => setActiveChatTab('ask')}
-                  className={`px-6 py-2 border border-slate-200 border-b-0 rounded-t-[14px] flex items-center gap-2.5 relative z-10 transition-all ${activeChatTab === 'ask' ? 'bg-linear-to-b from-white to-slate-50 text-slate-900 shadow-[0_-5px_15px_rgba(0,0,0,0.02)] before:absolute before:inset-0 before:bg-linear-to-b before:from-white/40 before:to-transparent before:rounded-t-[14px]' : 'bg-transparent text-slate-400 border-transparent hover:text-slate-600'}`}
+                  className={`px-7 py-3 rounded-t-[22px] flex items-center gap-3 transition-all duration-300 font-bold text-[14px] relative overflow-hidden group ${activeChatTab === 'ask' ? 'bg-linear-to-br from-blue-500 to-indigo-600 text-white shadow-[0_4px_20px_rgba(59,130,246,0.4)]' : 'text-slate-400 hover:text-slate-600'}`}
                >
-                  <svg className={`w-3 h-3 ${activeChatTab === 'ask' ? 'text-blue-500' : 'text-slate-400'}`} fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M19 9l1.25-2.75L23 5l-2.75-1.25L19 1l-1.25 2.75L15 5l2.75 1.25L19 9zm-7.5.5L9 4 6.5 9.5 1 12l5.5 2.5L9 20l2.5-5.5L17 12l-5.5-2.5zM19 15l-1.25 2.75L15 19l2.75 1.25L19 23l1.25-2.75L23 19l-2.75-1.25L19 15z" />
-                  </svg>
-                  <span className="text-[12.5px] font-black uppercase tracking-wider relative z-10">Ask Arkle</span>
+                  <svg className={`w-4 h-4 ${activeChatTab === 'ask' ? 'text-white' : 'text-slate-400 group-hover:text-blue-500'}`} fill="currentColor" viewBox="0 0 24 24"><path d="M19 9l1.25-2.75L23 5l-2.75-1.25L19 1l-1.25 2.75L15 5l2.75 1.25L19 9zm-7.5.5L9 4 6.5 9.5 1 12l5.5 2.5L9 20l2.5-5.5L17 12l-5.5-2.5zM19 15l-1.25 2.75L15 19l2.75 1.25L19 23l1.25-2.75L23 19l-2.75-1.25L19 15z" /></svg>
+                  Ask
+                  {activeChatTab === 'ask' && <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />}
                </button>
                <button 
                   onClick={() => setActiveChatTab('agents')}
-                  className={`px-6 py-2 border border-slate-200 border-b-0 rounded-t-[14px] flex items-center gap-2.5 transition-all ${activeChatTab === 'agents' ? 'bg-linear-to-b from-white to-slate-50 text-slate-900 shadow-[0_-5px_15px_rgba(0,0,0,0.02)] before:absolute before:inset-0 before:bg-linear-to-b before:from-white/40 before:to-transparent before:rounded-t-[14px]' : 'bg-transparent text-slate-400 border-transparent hover:text-slate-600'}`}
+                  className={`px-7 py-3 rounded-t-[22px] flex items-center gap-3 transition-all duration-300 font-bold text-[14px] relative overflow-hidden group ${activeChatTab === 'agents' ? 'bg-linear-to-br from-slate-800 to-slate-950 text-white shadow-[0_4px_20px_rgba(30,41,59,0.4)]' : 'text-slate-400 hover:text-slate-600'}`}
                >
-                  <svg className={`w-3 h-3 ${activeChatTab === 'agents' ? 'text-blue-500' : 'text-slate-400'}`} fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M15,9H9V11H15V9M12,13H7V15H12V13M21,6V15C21,16.1 20.1,17 19,17H5C3.9,17 3,16.1 3,15V6C3,4.9 3.9,4 5,4H19C20.1,4 21,4.9 21,6M19,6H5V15H19V6Z" />
-                  </svg>
-                  <span className="text-[12.5px] font-black uppercase tracking-wider relative z-10">Agents</span>
+                  <svg className={`w-4 h-4 ${activeChatTab === 'agents' ? 'text-white' : 'text-slate-400 group-hover:text-slate-900'}`} fill="currentColor" viewBox="0 0 24 24"><path d="M15,9H9V11H15V9M12,13H7V15H12V13M21,6V15C21,16.1 20.1,17 19,17H5C3.9,17 3,16.1 3,15V6C3,4.9 3.9,4 5,4H19C20.1,4 21,4.9 21,6M19,6H5V15H19V6Z" /></svg>
+                  Agents
+                  {activeChatTab === 'agents' && <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />}
                </button>
             </div>
 
-            {/* COLORFUL GRADIENT BORDER CONTAINER */}
-            <div className="relative p-[2px] rounded-[36px] rounded-tl-none bg-linear-to-r from-blue-500 via-indigo-500 to-purple-500 shadow-[0_25px_80px_-20px_rgba(79,70,229,0.3)]">
-               <div className="bg-white rounded-[34px] rounded-tl-none overflow-hidden flex flex-col min-h-[170px] transition-all ease-out duration-500">
+            {/* THICK MULTI-GLOSS VIBRANT BORDER */}
+            <div className="relative p-[3.5px] rounded-[34px] rounded-tl-none bg-linear-to-r from-blue-600 via-indigo-600 via-purple-600 to-pink-500 shadow-[0_30px_90px_-20px_rgba(79,70,229,0.35)] transition-all duration-500">
+               <div className="bg-white rounded-[31px] rounded-tl-none flex flex-col min-h-[170px] overflow-hidden">
+                  
+                  {/* PURE SEAMLESS CONTENT AREA */}
                   <textarea 
                     value={input} 
                     onChange={e => setInput(e.target.value)} 
-                    className="w-full bg-transparent border-none outline-none focus:ring-0 text-slate-800 text-[18px] md:text-[22px] font-medium px-10 pt-10 pb-6 resize-none no-scrollbar placeholder:text-slate-300 placeholder:font-light" 
-                    placeholder="Hi I'm Arkle Your co founder and Business Advisor" 
+                    className="w-full bg-white border-none outline-none focus:outline-none focus:border-none focus:ring-0 text-slate-600 text-[18px] md:text-[21px] font-normal px-12 pt-12 pb-2 resize-none no-scrollbar placeholder:text-slate-300 placeholder:font-light" 
+                    placeholder="Hi Im Arkle your Co founder and Business advisor" 
                   />
                   
-                  <div className="flex items-center justify-between px-8 pb-6 mt-auto">
-                     <div className="flex items-center gap-4">
-                        <button className="w-10 h-10 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 hover:bg-white hover:border-blue-400 hover:text-blue-600 transition-all shadow-sm">
-                           <span className="material-symbols-rounded text-[24px]">add</span>
+                  <div className="flex items-center justify-between px-10 pb-10 bg-white border-none">
+                     <div className="flex items-center gap-3">
+                        <button className="w-9 h-9 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-all">
+                           <span className="material-symbols-rounded text-[22px]">add</span>
                         </button>
-                        <button className="px-5 h-10 rounded-2xl bg-white border border-slate-200 flex items-center gap-3 text-[10px] font-black uppercase text-slate-900 hover:border-indigo-400 transition-all shadow-sm">
-                           <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" /> Arkle Brain <span className="material-symbols-rounded text-[16px] text-slate-400">expand_more</span>
+                        <button className="px-4 h-9 rounded-full bg-white border border-slate-100 flex items-center gap-2.5 text-[11px] font-bold text-slate-800 hover:border-blue-400 transition-all shadow-xs">
+                           <svg className="w-3.5 h-3.5 text-blue-500" fill="currentColor" viewBox="0 0 24 24"><path d="M19 9l1.25-2.75L23 5l-2.75-1.25L19 1l-1.25 2.75L15 5l2.75 1.25L19 9zm-7.5.5L9 4 6.5 9.5 1 12l5.5 2.5L9 20l2.5-5.5L17 12l-5.5-2.5zM19 15l-1.25 2.75L15 19l2.75 1.25L19 23l1.25-2.75L23 19l-2.75-1.25L19 15z" /></svg>
+                           Arkle Brain <span className="material-symbols-rounded text-[18px] text-slate-200">expand_more</span>
                         </button>
                      </div>
-                     <button onClick={() => sendMessage()} className="w-12 h-12 rounded-full bg-slate-900 text-white flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-all">
-                         <span className="material-symbols-rounded text-[24px]">arrow_forward</span>
-                     </button>
+                     <div className="flex items-center gap-5">
+                        <span className="material-symbols-rounded text-slate-300 text-[20px] cursor-pointer hover:text-slate-900 transition-all">language</span>
+                        <button onClick={() => sendMessage()} className="w-10 h-10 rounded-full bg-slate-50 text-slate-300 flex items-center justify-center hover:bg-slate-900 hover:text-white transition-all shadow-xs">
+                            <span className="material-symbols-rounded text-[22px]">arrow_forward</span>
+                        </button>
+                     </div>
                   </div>
+
                </div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-8 pb-12">
-               {['Create Task', 'Brainstorm', 'Set Reminder', 'Search OS'].map((label, i) => (
-                  <button key={i} className="flex flex-col items-center p-4 bg-white border border-slate-100 hover:border-blue-300 hover:shadow-xl transition-all rounded-[22px] group">
-                     <span className="material-symbols-rounded text-slate-300 group-hover:text-blue-500 mb-2 text-[22px] transition-all group-hover:scale-110">{['check_circle','psychology','notifications_active','search'][i]}</span>
-                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-900 leading-none">{label}</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-5 pt-12 pb-16">
+               {[
+                  { label: 'Create Task', desc: 'Add new task', icon: 'auto_awesome_motion' },
+                  { label: 'Brainstorm Ideas', desc: 'Generate project ideas', icon: 'psychology_alt' },
+                  { label: 'Set Reminder', desc: 'Create a new reminder', icon: 'notifications' },
+                  { label: 'Search Workspace', desc: 'Find anything in BizOS', icon: 'search' }
+               ].map((card, i) => (
+                  <button key={i} className="flex flex-col items-start p-7 bg-white border border-slate-100 hover:border-blue-200 hover:shadow-xl transition-all rounded-[28px] group text-left">
+                     <span className="material-symbols-rounded text-slate-900 mb-6 text-[24px] transition-all group-hover:scale-110">{card.icon}</span>
+                     <p className="text-[15px] font-bold text-slate-900 mb-1 leading-none">{card.label}</p>
+                     <p className="text-[12px] text-slate-400 font-medium">{card.desc}</p>
+                  </button>
+               ))}
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-12 pb-16">
+               {[
+                  { label: 'Create Task', desc: 'Add new task', icon: 'auto_awesome_motion' },
+                  { label: 'Brainstorm Ideas', desc: 'Generate project ideas', icon: 'psychology_alt' },
+                  { label: 'Set Reminder', desc: 'Create a new reminder', icon: 'notifications' },
+                  { label: 'Search Workspace', desc: 'Find anything in BizOS', icon: 'search' }
+               ].map((card, i) => (
+                  <button key={i} className="flex flex-col items-start p-6 bg-white border border-slate-100 hover:border-blue-200 hover:shadow-xl transition-all rounded-[24px] group text-left">
+                     <span className="material-symbols-rounded text-slate-900 mb-6 text-[22px] transition-all group-hover:scale-110">{card.icon}</span>
+                     <p className="text-[14px] font-bold text-slate-900 mb-1 leading-none">{card.label}</p>
+                     <p className="text-[12px] text-slate-400 font-medium">{card.desc}</p>
                   </button>
                ))}
             </div>
@@ -215,14 +274,23 @@ export default function HomeTab({ data }: { data: any }) {
       </div>
 
       {/* QUICK TRAY */}
-      <div className="w-[66px] bg-slate-50 border-l border-slate-200 flex flex-col items-center py-6 z-40">
-        <div className="flex flex-col gap-4">
-          {QUICK_TRAY_APPS.map(app => (
-            <button key={app.id} className={`w-12 h-12 rounded-[16px] bg-white border border-slate-200 flex items-center justify-center shadow-md transition-all hover:scale-110 ${app.color}`}>
-              <span className="material-symbols-outlined text-[20px]">{app.icon}</span>
-            </button>
-          ))}
-        </div>
+      <div className="w-[74px] bg-slate-50/50 border-l border-slate-100 flex flex-col items-center py-8 z-40 gap-5">
+        {QUICK_TRAY_APPS.map(app => (
+          <button key={app.id} className="relative group">
+            <div className={`w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.08)] transition-all hover:scale-110 active:scale-95 cursor-pointer ${app.color}`}>
+              <span className="material-symbols-outlined text-[22px]">{app.icon}</span>
+            </div>
+            {app.count && (
+              <div className="absolute -top-1 -right-1 w-5 h-5 bg-[#3b82f6] text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                {app.count}
+              </div>
+            )}
+            {/* Tooltip on hover */}
+            <div className="absolute right-full mr-3 px-2 py-1 bg-slate-800 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
+               {app.label}
+            </div>
+          </button>
+        ))}
       </div>
       
       <ArkleVoiceOrb isOpen={isLiveVoice} onClose={() => setIsLiveVoice(false)} isListening={true} msgs={msgs} />
