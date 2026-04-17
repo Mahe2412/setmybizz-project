@@ -1,0 +1,125 @@
+﻿
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\os\CompanyTab.tsx
+   54:8  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\os\CompanyTab.tsx:54:8
+  52 |
+  53 |       {/* Accordion A: Company Details */}
+> 54 |       <AccordionItem id="details" emoji="≡ƒôï" title="Company Details">
+     |        ^^^^^^^^^^^^^ This component is created during render
+  55 |         <div className="grid grid-cols-2 gap-3 mt-2">
+  56 |           {[
+  57 |             { label: '≡ƒ¬¬ Company Number (CIN)', value: BIZ.cin },
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\os\CompanyTab.tsx:12:25
+  10 |   const toggle = (s: Section) => setOpen(o => o === s ? null : s);
+  11 |
+> 12 |   const AccordionItem = ({
+     |                         ^^
+> 13 |     id, emoji, title, badge, children,
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 14 |   }: { id: Section; emoji: string; title: string; badge?: React.ReactNode; children: React.ReactNode }) => (
+     ΓÇª
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 27 |     </div>
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 28 |   );
+     | ^^^^ The component is created during render here
+  29 |
+  30 |   return (
+  31 |     <div className="max-w-2xl mx-auto space-y-4">                                                               react-hooks/static-components
+   80:8  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\os\CompanyTab.tsx:80:8
+  78 |
+  79 |       {/* Accordion B: Directors */}
+> 80 |       <AccordionItem id="directors" emoji="≡ƒæÑ" title="Directors & Owners">
+     |        ^^^^^^^^^^^^^ This component is created during render
+  81 |         <div className="space-y-3 mt-2">
+  82 |           {BIZ.directors.map((d, i) => (
+  83 |             <div key={i} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\os\CompanyTab.tsx:12:25
+  10 |   const toggle = (s: Section) => setOpen(o => o === s ? null : s);
+  11 |
+> 12 |   const AccordionItem = ({
+     |                         ^^
+> 13 |     id, emoji, title, badge, children,
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 14 |   }: { id: Section; emoji: string; title: string; badge?: React.ReactNode; children: React.ReactNode }) => (
+     ΓÇª
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 27 |     </div>
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 28 |   );
+     | ^^^^ The component is created during render here
+  29 |
+  30 |   return (
+  31 |     <div className="max-w-2xl mx-auto space-y-4">  react-hooks/static-components
+   98:8  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\os\CompanyTab.tsx:98:8
+   96 |
+   97 |       {/* Accordion C: Compliance */}
+>  98 |       <AccordionItem
+      |        ^^^^^^^^^^^^^ This component is created during render
+   99 |         id="compliance"
+  100 |         emoji="Γ£à"
+  101 |         title="Compliance Checklist"
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\os\CompanyTab.tsx:12:25
+  10 |   const toggle = (s: Section) => setOpen(o => o === s ? null : s);
+  11 |
+> 12 |   const AccordionItem = ({
+     |                         ^^
+> 13 |     id, emoji, title, badge, children,
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 14 |   }: { id: Section; emoji: string; title: string; badge?: React.ReactNode; children: React.ReactNode }) => (
+     ΓÇª
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 27 |     </div>
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 28 |   );
+     | ^^^^ The component is created during render here
+  29 |
+  30 |   return (
+  31 |     <div className="max-w-2xl mx-auto space-y-4">                                                                                                                                                                    react-hooks/static-components
+  122:8  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\os\CompanyTab.tsx:122:8
+  120 |
+  121 |       {/* Accordion D: Startup India */}
+> 122 |       <AccordionItem
+      |        ^^^^^^^^^^^^^ This component is created during render
+  123 |         id="startup"
+  124 |         emoji="≡ƒÜÇ"
+  125 |         title="Startup India (DPIIT)"
+
+C:\Users\mahen\OneDrive\Desktop\setmybizz-project\components\os\CompanyTab.tsx:12:25
+  10 |   const toggle = (s: Section) => setOpen(o => o === s ? null : s);
+  11 |
+> 12 |   const AccordionItem = ({
+     |                         ^^
+> 13 |     id, emoji, title, badge, children,
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 14 |   }: { id: Section; emoji: string; title: string; badge?: React.ReactNode; children: React.ReactNode }) => (
+     ΓÇª
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 27 |     </div>
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 28 |   );
+     | ^^^^ The component is created during render here
+  29 |
+  30 |   return (
+  31 |     <div className="max-w-2xl mx-auto space-y-4">                                                                                                                                                                 react-hooks/static-components
+
+Γ£û 4 problems (4 errors, 0 warnings)
+

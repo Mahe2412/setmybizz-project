@@ -1,0 +1,31 @@
+# ARKIA SYSTEM BRAIN MAP (GPS)
+
+## 1. CORE DASHBOARDS (ENTRY POINTS)
+- **BizDesk OS:** `app/os/page.tsx` (Layout) -> `components/os/HomeTab.tsx` (Home)
+- **LaunchPad OS:** `components/os/LaunchPadTab.tsx`
+- **Modern Workspace:** `components/dashboard/Workspace.tsx`
+
+## 2. BIZDESK FEATURE MODULES
+- **Company/Vault:** `components/os/CompanyTab.tsx`
+- **Banking/Finance:** `components/os/BankingTab.tsx`
+- **GST/Compliance:** `components/os/GSTTab.tsx`
+- **Services Store:** `components/os/StartupStoreTab.tsx`
+- **Global Expansion:** `components/os/GlobalTab.tsx`
+- **E-Commerce:** `components/os/SellCommerceTab.tsx`
+- **Networking:** `components/os/NetworkingTab.tsx`
+
+## 3. ARKLE AI ENGINE
+- **Universal Chat Box:** `components/os/HomeTab.tsx` (Conversation UI Section)
+- **AI Context Logic:** `lib/useBizStore.ts` (State management)
+- **Voice Intelligence:** `components/os/ArkleVoiceOrb.tsx`
+- **Knowledge Core:** `components/os/ArklePanel.tsx`
+
+## 4. UI COMPONENTS (VISUALS)
+- **Theme/Global CSS:** `app/globals.css`
+- **Layout Shell:** `app/layout.tsx`
+- **Icons:** Material Symbols Round (Google Fonts)
+
+## 5. RECENT FLOWS (IMPORTANT)
+- **Mode Toggle:** `activeChatTab` (Ask vs Agents)
+- **Context Switch:** `selectedContext` (Gmail, GST, Marketing, etc.)
+- **Auto-Resize Box:** `adjustHeight` in `HomeTab.tsx`

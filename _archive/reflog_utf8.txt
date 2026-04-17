@@ -1,0 +1,15 @@
+﻿cc9b11b HEAD@{0}: commit: Integrated GPT-5 specific Model Matrix into Codex v1.6
+64f1382 HEAD@{1}: commit: Added Master BizOS Codex documentation
+14a7ab6 HEAD@{2}: commit: Added Quick Chat Suggested Tiles grid to HomeTab
+c2fc203 HEAD@{3}: commit: Unified Agent Switcher Design with M-Shape Symmetry & Glossy Gradient
+38c8d9a HEAD@{4}: commit: Added Project Codex documentation
+f5edd7a HEAD@{5}: commit: Modernized AI Workspace & Integrated Arkle Agent Mode
+1f2a82b HEAD@{6}: checkout: moving from codex-v2 to main
+1f2a82b HEAD@{7}: merge main: Fast-forward
+ab250b5 HEAD@{8}: checkout: moving from main to codex-v2
+1f2a82b HEAD@{9}: commit: Upgrade: Arkle Brain premium UI with glossy border and expanding sidebar
+ab250b5 HEAD@{10}: commit: feat: Arkle Brain UI Modernized & Clean Visuals
+370196c HEAD@{11}: commit: BizOS Architecture Update: Master Blueprint, Arkle Brain Config, and Live Voice Studio
+a6fe9b3 HEAD@{12}: commit: Fix: Correct topTab string comparisons in LaunchPadTab.tsx
+4c8841e HEAD@{13}: commit: Fix: Add missing AnimatePresence and motion imports to LaunchPadTab.tsx
+0dc12b9 HEAD@{14}: commit: Fix: Update TopTab type to include 'launchpad' in LaunchPadTab.tsx

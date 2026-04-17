@@ -21,8 +21,6 @@ import SettingsTab from '@/components/os/SettingsTab';
 import SellCommerceTab from '@/components/os/SellCommerceTab';
 import SuppliersTab from '@/components/os/SuppliersTab';
 import LearnTab from '@/components/os/LearnTab';
-import StartupStoreTab from '@/components/os/StartupStoreTab';
-import RetailerTab from '@/components/os/RetailerTab';
 import { useBizStore } from '@/lib/useBizStore';
 import LaunchPadTab from '@/components/os/LaunchPadTab';
 import Workspace from '@/components/dashboard/Workspace';
