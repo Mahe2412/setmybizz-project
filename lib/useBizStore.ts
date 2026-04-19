@@ -21,6 +21,10 @@ interface BizState {
     addTask: (task: Partial<OperationalTask>) => void;
     updateTask: (id: string, updates: Partial<OperationalTask>) => void;
     deleteTask: (id: string) => void;
+    conversationMode: boolean;
+    setConversationMode: (mode: boolean) => void;
+    sidebarOpen: boolean;
+    setSidebarOpen: (open: boolean) => void;
 }
 
 export const useBizStore = create<BizState>()(
@@ -56,9 +60,14 @@ export const useBizStore = create<BizState>()(
             deleteTask: (id) => set((state) => ({
                 tasks: state.tasks.filter((t) => t.id !== id)
             })),
+            conversationMode: false,
+            setConversationMode: (mode) => set({ conversationMode: mode }),
+            sidebarOpen: true,
+            setSidebarOpen: (open) => set({ sidebarOpen: open }),
         }),
         {
             name: 'bizos-operational-store',
         }
     )
 );
+

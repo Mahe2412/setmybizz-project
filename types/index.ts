@@ -28,8 +28,13 @@ export interface Director {
 }
 
 export interface BusinessData {
-    name: string;
-    businessName?: string;
+    userId?: string;
+    userName?: string;
+    name: string; // This is the Business/Project Name
+    country?: string;
+    state?: string;
+    email?: string;
+    phone?: string;
     cin?: string;
     gstin?: string;
     pan?: string;
@@ -40,8 +45,6 @@ export interface BusinessData {
     address?: string;
     directors?: Director[];
     healthScore?: number;
-    email?: string;
-    phone?: string;
     website?: string;
     offeringType: OfferingType;
     offeringOther: string;
