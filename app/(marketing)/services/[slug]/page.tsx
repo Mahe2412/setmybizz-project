@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { CheckCircle, Clock, ArrowRight, MessageCircle, ChevronLeft, Zap } from 'lucide-react';
 import { getServiceBySlug, SERVICES, CATEGORY_META } from '@/lib/services-data';
-import ServiceLeadForm from '@/components/ServiceLeadForm';
+import ServiceLeadForm from '@/components/marketing/ServiceLeadForm';
 
 export async function generateStaticParams() {
     return SERVICES.map(s => ({ slug: s.slug }));

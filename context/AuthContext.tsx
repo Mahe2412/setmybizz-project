@@ -1,100 +1,104 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, onAuthStateChanged } from 'firebase/auth';
-import { doc, onSnapshot } from 'firebase/firestore';
-import { auth, db } from '@/lib/firebase';
+import { User, Session } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase';
 
 interface AuthContextType {
     user: User | null;
+    session: Session | null;
     dbUser: any | null;
     guestId: string | null;
-    leadId: string | null;
     loading: boolean;
+    signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
     user: null,
+    session: null,
     dbUser: null,
     guestId: null,
-    leadId: null,
     loading: true,
+    signOut: async () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
+    const [session, setSession] = useState<Session | null>(null);
     const [dbUser, setDbUser] = useState<any | null>(null);
     const [guestId, setGuestId] = useState<string | null>(null);
-    const [leadId, setLeadId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         // Initialize Guest ID
         let storedGuestId = localStorage.getItem('setmybizz_guest_id');
         if (!storedGuestId) {
-            // Generate valid random 4 digit number
             const randomNum = Math.floor(1000 + Math.random() * 9000);
             storedGuestId = `Guest-${randomNum}`;
             localStorage.setItem('setmybizz_guest_id', storedGuestId);
         }
         setGuestId(storedGuestId);
 
-        // Identify Lead (Async)
-        // We import dynamically to avoid circular dependencies if any, or just direct import
-        import('../lib/leadSystem').then(({ identifyLead }) => {
-            if (storedGuestId) {
-                 identifyLead(storedGuestId, user?.uid).then(id => {
-                     setLeadId(id);
-                     console.log("Lead Identified:", id);
-                 });
+        // Get initial session
+        const initSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            setSession(session);
+            setUser(session?.user ?? null);
+            
+            if (session?.user) {
+                await fetchDbUser(session.user.id);
             }
-        });
+            setLoading(false);
+        };
+
+        initSession();
 
         // Listen for auth changes
-        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-            setUser(currentUser);
-
-            // Re-identify lead on login to link UID
-            if (currentUser && storedGuestId) {
-                import('../lib/leadSystem').then(({ identifyLead }) => {
-                    identifyLead(storedGuestId, currentUser.uid).then(id => setLeadId(id));
-                });
-            }
-
-            if (currentUser) {
-                // Fetch extra user details from Firestore
-                const unsubDb = onSnapshot(doc(db, "users", currentUser.uid), (doc) => {
-                    setDbUser(doc.data());
-                    setLoading(false);
-                });
-                return () => unsubDb(); // This clean up might be tricky inside onAuthStateChanged, but acceptable for this structure if handled carefully
-                // Actually, logic is cleaner if we separate effects, but here we nest for simplicity.
-                // However, the inner return is ignored by the outer unsubscribe.
-                // Better approach:
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+            setSession(session);
+            setUser(session?.user ?? null);
+            
+            if (session?.user) {
+                await fetchDbUser(session.user.id);
             } else {
                 setDbUser(null);
-                setLoading(false);
             }
+            setLoading(false);
         });
 
-        return () => unsubscribe();
+        return () => {
+            subscription.unsubscribe();
+        };
     }, []);
 
-    // Separate effect for Firestore sync would be cleaner but requires careful dependency management.
-    // Given the constraints, let's keep it simple. But to fix the cleanup:
-    useEffect(() => {
-        if (user) {
-            const unsub = onSnapshot(doc(db, "users", user.uid), (doc) => {
-                setDbUser(doc.data());
-            });
-            return () => unsub();
+    const fetchDbUser = async (userId: string) => {
+        try {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', userId)
+                .single();
+            
+            if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+                console.error("Error fetching profile:", error);
+            }
+            
+            if (data) {
+                setDbUser(data);
+            }
+        } catch (err) {
+            console.error("DB User Fetch Error:", err);
         }
-    }, [user]);
+    };
+
+    const signOut = async () => {
+        await supabase.auth.signOut();
+    };
 
     return (
-        <AuthContext.Provider value={{ user, dbUser, guestId, leadId, loading }}>
+        <AuthContext.Provider value={{ user, session, dbUser, guestId, loading, signOut }}>
             {children}
         </AuthContext.Provider>
     );

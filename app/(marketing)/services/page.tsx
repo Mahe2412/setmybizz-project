@@ -7,7 +7,7 @@ import {
     Building2, Search, Rocket, ChevronRight, Star,
     Briefcase, PieChart, Shield
 } from 'lucide-react';
-import HomepageServices from '@/components/HomepageServices';
+import HomepageServices from '@/components/marketing/HomepageServices';
 
 const PACKAGES = [
     {
