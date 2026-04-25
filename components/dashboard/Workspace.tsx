@@ -8,8 +8,8 @@ import ContextMenu from './ContextMenu';
 import IntegrationModal from './IntegrationModal';
 import GoogleIntegrationModal from './GoogleIntegrationModal';
 import GoogleWorkspaceDashboard, { GoogleApp } from './GoogleWorkspaceDashboard';
-import AiCoFounderChat from './AiCoFounderChat';
-import AdvancedOnboarding from '../AdvancedOnboarding';
+// import AiCoFounderChat from './AiCoFounderChat'; // Deleted unused component
+import AdvancedOnboarding from '../onboarding/AdvancedOnboarding';
 import CenterChat from '../ai-studio/CenterChat';
 import BizDeskPulseBoard from './BizDeskPulseBoard';
 import GSTTab from '../os/GSTTab';

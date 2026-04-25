@@ -3,7 +3,6 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { SecurityGuard } from '@/lib/security-guard';
 import { db } from '@/lib/firebase';
 import { doc, setDoc, updateDoc, arrayUnion, serverTimestamp, getDoc } from 'firebase/firestore';
-import OpenAI from 'openai';
 
 // API Configuration
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
@@ -67,19 +66,23 @@ ARKLE RESPONSE:`;
         if (AZURE_KEY && AZURE_ENDPOINT && model !== 'Arkle Flash') {
             try {
                 const deploymentName = DEPLOYMENTS[model] || DEPLOYMENTS['Arkle Global'];
-                const azureClient = new OpenAI({
-                    apiKey: AZURE_KEY,
-                    baseURL: `${AZURE_ENDPOINT}/openai/deployments/${deploymentName}`,
-                    defaultQuery: { 'api-version': '2024-08-01-preview' },
-                    defaultHeaders: { 'api-key': AZURE_KEY },
-                    timeout: 30000, // 30 seconds timeout
-                });
-
-                const completion = await azureClient.chat.completions.create({
-                    messages: [{ role: 'system', content: systemPrompt }],
-                    model: deploymentName,
-                });
-                finalResponse = completion.choices[0].message.content || "";
+                const azureResp = await fetch(
+                    `${AZURE_ENDPOINT}/openai/deployments/${deploymentName}/chat/completions?api-version=2024-08-01-preview`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'api-key': AZURE_KEY,
+                        },
+                        body: JSON.stringify({
+                            messages: [{ role: 'system', content: systemPrompt }],
+                            model: deploymentName,
+                            temperature: 0.4,
+                        }),
+                    }
+                );
+                const azureJson = await azureResp.json();
+                finalResponse = azureJson?.choices?.[0]?.message?.content || "";
                 engineUsed = `azure-${model.toLowerCase()}`;
             } catch (err: any) {
                 console.error('[CORE] Azure Failed, falling back...', err.message);

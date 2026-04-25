@@ -161,13 +161,32 @@ export default function BizOSShell({ data: initialData }: BizOSShellProps) {
   const [bizData, setBizData] = useState(initialData || BIZ);
   const [integrationsOpen, setIntegrationsOpen] = useState(false);
   const [globalLang, setGlobalLang] = useState('en-IN');
-  const { whiteboardOpen, setWhiteboardOpen, sidebarOpen, setSidebarOpen } = useBizStore();
+  const conversationMode = useBizStore((state) => state.conversationMode);
+  const sidebarOpen = useBizStore((state) => state.sidebarOpen);
+  const setSidebarOpen = useBizStore((state) => state.setSidebarOpen);
+  const whiteboardOpen = useBizStore((state) => state.whiteboardOpen);
+  const setWhiteboardOpen = useBizStore((state) => state.setWhiteboardOpen);
+
+  const [isConv, setIsConv] = useState(false);
 
   useEffect(() => {
     if (initialData) {
         setBizData(initialData);
     }
   }, [initialData]);
+
+  useEffect(() => {
+    // Manually subscribe to ensure updates are caught across component boundaries
+    const unsub = useBizStore.subscribe((state) => {
+      setIsConv(state.conversationMode);
+      if (state.conversationMode) {
+        setSidebarOpen(false);
+      }
+    });
+    // Initial sync
+    setIsConv(useBizStore.getState().conversationMode);
+    return unsub;
+  }, [setSidebarOpen]);
 
   const switchTopNav = useCallback((navId: TopNavId) => {
     if (navId === activeTopNav) return;
@@ -177,8 +196,14 @@ export default function BizOSShell({ data: initialData }: BizOSShellProps) {
     if (navId === 'learn') setActiveTab('learn');
   }, [activeTopNav]);
 
+  useEffect(() => {
+    if (conversationMode) {
+      setSidebarOpen(false);
+    }
+  }, [conversationMode, setSidebarOpen]);
+
   return (
-    <div className="h-screen flex flex-col overflow-hidden bg-slate-50 w-full" style={{ fontFamily: '"DM Sans", sans-serif' }}>
+    <div className={`h-screen flex flex-col overflow-hidden bg-slate-50 w-full ${isConv ? 'is-conversation-mode' : ''}`} style={{ fontFamily: '"DM Sans", sans-serif' }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;900&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
@@ -189,17 +214,34 @@ export default function BizOSShell({ data: initialData }: BizOSShellProps) {
         .material-symbols-rounded {
           font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
+
+        .is-conversation-mode aside:not(.arkle-sidebar) {
+          display: none !important;
+        }
       `}</style>
 
       {/* ═══════ COMPACT SKYBLUE TOP BAR ═══════ */}
-      <header className="shrink-0 h-16 bg-sky-50/80 backdrop-blur-3xl flex items-center justify-between px-8 gap-4 z-50 border-b border-sky-100/60 shadow-[0_4px_25px_rgba(186,230,253,0.12)]">
+      <header className="shrink-0 h-16 bg-sky-50/80 backdrop-blur-3xl flex items-center justify-between px-8 gap-4 z-50 transition-all duration-1000">
         <div className="flex items-center gap-6">
+          <button 
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-500 hover:bg-white hover:text-sky-600 hover:shadow-sm transition-all"
+            title={sidebarOpen ? "Hide Sidebar" : "Show Sidebar"}
+          >
+            <span className="material-symbols-rounded text-[22px]">
+              {sidebarOpen ? 'menu_open' : 'menu'}
+            </span>
+          </button>
           <div className="flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-[12px] flex items-center justify-center font-black text-white bg-linear-to-tr from-sky-600 to-blue-700 shadow-lg shadow-sky-600/20 group-hover:scale-105 active:scale-95 transition-all outline outline-2 outline-white/50">B</div>
             <div className="hidden lg:block space-y-0">
               <span className="font-black text-slate-900 text-[14px] tracking-tight uppercase block leading-tight">BizOS</span>
               <span className="text-[8px] font-black tracking-[0.1em] text-sky-600/80 block uppercase">SetMyBizz</span>
             </div>
+          </div>
+          {/* DEBUG INDICATOR - WILL REMOVE AFTER VERIFICATION */}
+          <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${isConv ? 'bg-red-500 text-white' : 'bg-slate-200 text-slate-500'}`}>
+            {isConv ? 'Conversation Active' : 'Dashboard Mode'}
           </div>
         </div>
 
@@ -271,14 +313,16 @@ export default function BizOSShell({ data: initialData }: BizOSShellProps) {
 
       {/* ═══════ BODY ═══════ */}
       <div className="flex-1 flex overflow-hidden relative">
-        {/* ─── SKYBLUE SIDEBAR ─── */}
+        {/* ─── SKYBLUE SIDEBAR (Hidden in Conversation Mode) ─── */}
         <AnimatePresence>
-          {sidebarOpen && (
+          {(sidebarOpen && !isConv) && (
             <motion.aside 
-              initial={{ x: -260 }}
-              animate={{ x: 0 }}
-              exit={{ x: -260 }}
-              className="shrink-0 w-64 bg-sky-50/80 backdrop-blur-xl flex flex-col h-full overflow-hidden shadow-2xl border-r border-sky-100/60"
+               key="bizdesk-sidebar"
+               initial={{ x: -260 }}
+               animate={{ x: 0 }}
+               exit={{ x: -260 }}
+               style={{ display: isConv ? 'none' : 'flex' }}
+               className="shrink-0 w-64 bg-sky-50/80 backdrop-blur-xl flex flex-col h-full overflow-hidden shadow-2xl border-r border-sky-100/60"
             >
               <div className="h-full flex flex-col pt-12 pb-8 px-4 overflow-y-auto no-scrollbar">
               {(activeTopNav === 'bizdesk' ? BIZDESK_SIDEBAR : activeTopNav === 'launchpad' ? LAUNCHPAD_SIDEBAR : LEARN_SIDEBAR).map((section, si) => (
@@ -365,6 +409,30 @@ export default function BizOSShell({ data: initialData }: BizOSShellProps) {
           <WhiteboardPanel isOpen={whiteboardOpen} onClose={() => setWhiteboardOpen(false)} />
         </main>
       </div>
+
+      {/* LEFT SIDEBAR TOGGLE */}
+      {!isConv && (
+        <button 
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          className={`fixed left-0 top-1/2 -translate-y-1/2 z-[55] w-6 h-12 bg-white/80 backdrop-blur-md border border-slate-200 border-l-0 rounded-r-xl flex items-center justify-center text-slate-400 hover:text-sky-600 shadow-lg transition-all duration-300 ${sidebarOpen ? 'left-[256px]' : 'left-0'}`}
+          title={sidebarOpen ? "Close Sidebar" : "Open Sidebar"}
+        >
+          <span className="material-symbols-rounded text-[18px]">
+            {sidebarOpen ? 'chevron_left' : 'chevron_right'}
+          </span>
+        </button>
+      )}
+
+      {/* RIGHT SIDEBAR TOGGLE */}
+      <button 
+        onClick={() => setNotesOpen(!notesOpen)}
+        className={`fixed right-0 top-1/2 -translate-y-1/2 z-[55] w-6 h-12 bg-white/80 backdrop-blur-md border border-slate-200 border-r-0 rounded-l-xl flex items-center justify-center text-slate-400 hover:text-sky-600 shadow-lg transition-all ${notesOpen ? 'right-[400px]' : 'right-0'}`}
+        title={notesOpen ? "Close Sidebar" : "Open Sidebar"}
+      >
+        <span className="material-symbols-rounded text-[18px]">
+          {notesOpen ? 'chevron_right' : 'chevron_left'}
+        </span>
+      </button>
 
       {/* ARKLE PANEL */}
       <AnimatePresence>

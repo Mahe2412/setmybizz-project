@@ -18,7 +18,7 @@ import LoginStep from './steps/LoginStep';
 import BizOSShell from './os/BizOSShell';
 import Layout from './Layout';
 import ProfileCompletionModal from './ProfileCompletionModal';
-import SmartFooter from './SmartFooter';
+import SmartFooter from './marketing/SmartFooter';
 import TeaserFlow from './onboarding/TeaserFlow';
 import { BusinessData } from '../types';
 import { Building2, ShieldCheck, Sparkles, Globe2, LayoutDashboard, Cpu } from 'lucide-react';

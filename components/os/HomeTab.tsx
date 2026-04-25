@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ArkleVoiceOrb from './ArkleVoiceOrb';
 import WhiteboardPanel from './WhiteboardPanel';
 import BizboardSpotlight from './launchpad/LaunchPadSpotlight';
-import { useBizStore } from '@/lib/useBizStore';
+import { useBizStore } from '../../lib/useBizStore';
+import RightQuickTray from './RightQuickTray';
 
 type Message = {
    id: string;
@@ -12,18 +13,6 @@ type Message = {
    content: string;
    timestamp: Date;
 };
-
-const RIGHT_TRAY_APPS = [
-   { id: 'mail', icon: 'mail', label: 'Gmail', count: 4, color: 'text-red-500' },
-   { id: 'docs', icon: 'description', label: 'Documents', color: 'text-blue-500' },
-   { id: 'grid', icon: 'grid_view', label: 'Apps', color: 'text-green-500' },
-   { id: 'notes', icon: 'edit_note', label: 'Notes', color: 'text-orange-500' },
-   { id: 'tasks', icon: 'check_circle', label: 'Tasks', count: 12, color: 'text-indigo-600' },
-   { id: 'marketing', icon: 'campaign', label: 'Marketing', color: 'text-pink-500' },
-   { id: 'calendar', icon: 'calendar_month', label: 'Calendar', color: 'text-sky-500' },
-   { id: 'alerts', icon: 'notifications', label: 'Alerts', count: 2, color: 'text-orange-500' },
-   { id: 'chat', icon: 'chat', label: 'WhatsApp', color: 'text-emerald-500' },
-];
 
 const HUB_APPS = [
    { id: 'biz', icon: 'business_center', label: 'BizDesk' },
@@ -68,12 +57,40 @@ export default function HomeTab({ data }: { data: any }) {
    const scrollRef = useRef<HTMLDivElement>(null);
    const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+   const [showSuggestions, setShowSuggestions] = useState(false);
+   const [suggestions] = useState(['BizDesk', 'Marketing', 'LaunchPad', 'Workspace', 'Agents', 'Legal', 'Vault', 'Market']);
+   const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
+
    const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      setInput(e.target.value);
+      const val = e.target.value;
+      setInput(val);
+      
+      // Suggestion Logic
+      const lastWord = val.split(/\s/).pop() || '';
+      if (lastWord.startsWith('@')) {
+         const query = lastWord.slice(1).toLowerCase();
+         const filtered = suggestions.filter(s => s.toLowerCase().includes(query));
+         setFilteredSuggestions(filtered);
+         setShowSuggestions(filtered.length > 0);
+      } else {
+         setShowSuggestions(false);
+      }
+
       if (textareaRef.current) {
          textareaRef.current.style.height = 'auto';
          textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
       }
+   };
+
+   const selectSuggestion = (s: string) => {
+      const words = input.split(/\s/);
+      words.pop(); // Remove the @query
+      const newVal = [...words, `@${s.toLowerCase()}`].join(' ').trim() + ' ';
+      setInput(newVal);
+      setShowSuggestions(false);
+      // Map BizDesk to BizBook context
+      setSelectedContext(s === 'BizDesk' ? 'BizBook' : s === 'Marketing' ? 'Global Market' : s);
+      textareaRef.current?.focus();
    };
 
    const nextTiles = () => { if (tileIndex + 4 < QUICK_TILES.length) setTileIndex(tileIndex + 1); };
@@ -83,6 +100,27 @@ export default function HomeTab({ data }: { data: any }) {
       const q = text.trim();
       if (!q || loading) return;
       
+      // @Mention Context Detection
+      let finalPrompt = q;
+      const mentionMatch = q.match(/@(\w+)/);
+      if (mentionMatch) {
+         const mention = mentionMatch[1].toLowerCase();
+         const contextMap: { [key: string]: string } = {
+            'bizdesk': 'BizBook',
+            'marketing': 'Global Market',
+            'launchpad': 'Launch Pad',
+            'workspace': 'Workspace',
+            'agents': 'Agent Mode',
+            'brain': 'Arkle Brain'
+         };
+         
+         if (contextMap[mention]) {
+            setSelectedContext(contextMap[mention]);
+            // Remove the @mention from the prompt to keep it clean for the AI
+            finalPrompt = q.replace(`@${mention}`, '').trim();
+         }
+      }
+
       setConversationMode(true);
       setSidebarOpen(false);
 
@@ -93,48 +131,72 @@ export default function HomeTab({ data }: { data: any }) {
          const resp = await fetch('/api/gemini', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt: q, messages: msgs.map(m => ({ role: m.role, content: m.content })) })
+            body: JSON.stringify({ 
+               prompt: finalPrompt, 
+               context: selectedContext, // Send the selected context to the API
+               messages: msgs.map(m => ({ role: m.role, content: m.content })) 
+            })
          });
          const resData = await resp.json();
          setMsgs(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: resData.text, timestamp: new Date() }]);
       } catch (e) { console.error(e); } finally { setLoading(false); }
-   }, [input, loading, msgs, setConversationMode, setSidebarOpen]);
+   }, [input, loading, msgs, setConversationMode, setSidebarOpen, selectedContext]);
 
    useEffect(() => { scrollRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [msgs]);
 
+   useEffect(() => {
+      if (conversationMode) {
+         setSidebarOpen(false);
+      }
+   }, [conversationMode, setSidebarOpen]);
+
    return (
       <div className="flex h-full bg-[#f8fafc] overflow-hidden relative no-scrollbar font-sans">
-         {/* SIDEBAR (Only show if not in conversation mode) */}
-         {!conversationMode && (
-            <motion.div
-               onMouseEnter={() => setIsSidebarOpenLocal(true)}
-               onMouseLeave={() => setIsSidebarOpenLocal(false)}
-               animate={{ width: isSidebarOpen ? 280 : 78 }}
-               className="h-full bg-white border-r border-slate-100 flex flex-col shrink-0 z-[100] shadow-2xl shadow-slate-200/50"
-            >
-               <div className="flex flex-col h-full py-8">
-                  <div className="px-6 mb-12">
-                     <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-2xl bg-slate-900 flex items-center justify-center shrink-0">
-                           <span className="material-symbols-rounded text-white text-[22px]">auto_awesome</span>
+         {/* SIDEBAR (Hidden in Conversation Mode) */}
+         <AnimatePresence>
+            {!conversationMode && (
+               <motion.div
+                  key="arkle-sidebar"
+                  initial={{ width: 0, opacity: 0 }}
+                  animate={{ width: isSidebarOpen ? 280 : 78, opacity: 1 }}
+                  exit={{ width: 0, opacity: 0 }}
+                  onMouseEnter={() => setIsSidebarOpenLocal(true)}
+                  onMouseLeave={() => setIsSidebarOpenLocal(false)}
+                  className="arkle-sidebar h-full bg-white border-r border-slate-100 flex flex-col shrink-0 z-[100] shadow-2xl shadow-slate-200/50 overflow-hidden"
+               >
+                  <div className="flex flex-col h-full py-8">
+                     <div className="px-6 mb-12">
+                        <div className="flex items-center gap-4">
+                           <div className="w-10 h-10 rounded-2xl bg-slate-900 flex items-center justify-center shrink-0">
+                              <span className="material-symbols-rounded text-white text-[22px]">auto_awesome</span>
+                           </div>
+                           {isSidebarOpen && <span className="font-black text-slate-900 uppercase tracking-tighter text-[16px] whitespace-nowrap">Arkle Brain</span>}
                         </div>
-                        {isSidebarOpen && <span className="font-black text-slate-900 uppercase tracking-tighter text-[16px] whitespace-nowrap">Arkle Brain</span>}
+                     </div>
+                     <div className="flex-1 px-4 space-y-3">
+                        <button onClick={() => setMsgs([])} className="w-full flex items-center gap-5 p-4 hover:bg-slate-50 rounded-2xl transition-all group overflow-hidden">
+                           <span className="material-symbols-outlined text-slate-400 group-hover:text-blue-600 transition-colors shrink-0">add_circle</span>
+                           {isSidebarOpen && <span className="text-[12px] font-black uppercase tracking-widest text-slate-500 group-hover:text-slate-900 whitespace-nowrap">New Session</span>}
+                        </button>
                      </div>
                   </div>
-                  <div className="flex-1 px-4 space-y-3">
-                     <button onClick={() => setMsgs([])} className="w-full flex items-center gap-5 p-4 hover:bg-slate-50 rounded-2xl transition-all group overflow-hidden">
-                        <span className="material-symbols-outlined text-slate-400 group-hover:text-blue-600 transition-colors shrink-0">add_circle</span>
-                        {isSidebarOpen && <span className="text-[12px] font-black uppercase tracking-widest text-slate-500 group-hover:text-slate-900 whitespace-nowrap">New Session</span>}
-                     </button>
-                  </div>
-               </div>
-            </motion.div>
-         )}
+               </motion.div>
+            )}
+         </AnimatePresence>
 
          {/* MAIN CONTENT */}
          <div className="flex-1 flex flex-col min-w-0 bg-white overflow-y-auto scrollbar-hide relative pb-40">
             <div className="h-16 border-b border-slate-100 px-10 flex items-center justify-between sticky top-0 z-50 bg-white/80 backdrop-blur-md">
                <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">Neural Core Active</span>
+               {conversationMode && (
+                  <button 
+                     onClick={() => { setConversationMode(false); setSidebarOpen(true); }}
+                     className="w-10 h-10 rounded-full bg-slate-900 text-white flex items-center justify-center hover:bg-blue-600 transition-all shadow-lg shadow-slate-900/10"
+                     title="Exit Conversation"
+                  >
+                     <span className="material-symbols-rounded text-[20px]">close</span>
+                  </button>
+               )}
             </div>
 
             <div className={`px-4 md:px-20 ${conversationMode ? 'py-4' : 'py-12 md:py-16'} flex flex-col items-center flex-1 relative`}>
@@ -147,9 +209,8 @@ export default function HomeTab({ data }: { data: any }) {
                   </div>
                )}
 
-               {/* MESSAGES AREA */}
                {conversationMode && (
-                  <div className="w-full max-w-4xl mx-auto space-y-8 mt-8 mb-40 overflow-y-auto pr-4 no-scrollbar flex-1">
+                  <div className="w-full max-w-[950px] mx-auto space-y-8 mt-8 mb-40 overflow-y-auto pr-4 no-scrollbar flex-1">
                      <AnimatePresence mode="popLayout">
                         {msgs.map(m => (
                            <motion.div key={m.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -163,16 +224,40 @@ export default function HomeTab({ data }: { data: any }) {
                   </div>
                )}
 
-               {/* CHAT BOX */}
-               <div className={`w-full transition-all duration-500 z-50 ${conversationMode ? 'fixed bottom-6 left-1/2 -translate-x-1/2 max-w-4xl px-4' : 'max-w-[850px] mx-auto'}`}>
+               <div className={`w-full transition-all duration-500 z-50 ${conversationMode ? 'fixed bottom-6 left-1/2 -translate-x-1/2 max-w-[950px] px-4' : 'max-w-[850px] mx-auto'}`}>
+                  
+                  {/* Suggestions Menu */}
+                  <AnimatePresence>
+                     {showSuggestions && (
+                        <motion.div 
+                           initial={{ opacity: 0, y: 10 }} 
+                           animate={{ opacity: 1, y: 0 }} 
+                           exit={{ opacity: 0, y: 10 }}
+                           className="absolute bottom-full mb-4 left-0 w-64 bg-white/80 backdrop-blur-xl border border-slate-200 rounded-3xl shadow-2xl p-2 z-[100]"
+                        >
+                           <div className="px-3 py-2 text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 mb-1">Mention Topic</div>
+                           {filteredSuggestions.map(s => (
+                              <button 
+                                 key={s} 
+                                 onClick={() => selectSuggestion(s)}
+                                 className="w-full text-left p-3 rounded-2xl hover:bg-blue-600 hover:text-white text-[11px] font-bold transition-all flex items-center gap-3 group"
+                              >
+                                 <span className="material-symbols-rounded text-[18px] opacity-50 group-hover:opacity-100">alternate_email</span>
+                                 {s}
+                              </button>
+                           ))}
+                        </motion.div>
+                     )}
+                  </AnimatePresence>
+
                   <div className="flex items-center ml-0 gap-0 mb-[-4px] relative z-20">
                      <button onClick={() => setActiveChatTab('ask')} className={`w-[105px] h-[33px] flex items-center justify-center transition-all duration-300 font-black relative z-30 ${activeChatTab === 'ask' ? 'rounded-tr-[20px] rounded-tl-none rounded-b-none bg-gradient-to-r from-violet-600 to-blue-600 text-white shadow-[0_-5px_15px_rgba(124,58,237,0.25)]' : 'rounded-none bg-transparent text-slate-400 hover:text-slate-600'}`}><span className="relative z-10 uppercase tracking-[0.2em] text-[10px]">Ask</span></button>
                      <button onClick={() => setActiveChatTab('agents')} className={`w-[105px] h-[33px] flex items-center justify-center transition-all duration-300 font-black relative z-30 ${activeChatTab === 'agents' ? 'rounded-tl-[20px] rounded-tr-none rounded-b-none bg-gradient-to-r from-violet-600 to-blue-600 text-white shadow-[0_-5px_15px_rgba(124,58,237,0.25)]' : 'rounded-none bg-transparent text-slate-400 hover:text-slate-600'}`}><span className="relative z-10 uppercase tracking-[0.2em] text-[10px]">Agent</span></button>
                   </div>
                   <div className="relative p-[4px] rounded-tr-[42px] rounded-br-[42px] rounded-bl-[42px] rounded-tl-none bg-gradient-to-r from-purple-600 via-rose-500 to-indigo-600 shadow-[0_30px_70px_-20px_rgba(79,70,229,0.25)] z-10">
                      <div className="bg-white rounded-tr-[39px] rounded-br-[39px] rounded-bl-[39px] rounded-tl-none flex flex-col overflow-visible">
-                        <textarea ref={textareaRef} value={input} onChange={handleInput} rows={1} className="w-full bg-white border-none outline-none focus:outline-none focus:ring-0 text-slate-400 text-[18px] md:text-[21px] font-normal px-12 pt-12 pb-2 resize-none no-scrollbar placeholder:text-slate-300 placeholder:font-light rounded-[39px] min-h-[100px]" placeholder="Hi I'm Arkle your Co founder and Business advisor" />
-                        <div className="flex items-center justify-between px-10 pb-12 pt-4 bg-white border-none rounded-b-[39px]">
+                        <textarea ref={textareaRef} value={input} onChange={handleInput} rows={1} className="w-full bg-white border-none outline-none focus:outline-none focus:ring-0 text-slate-400 text-[18px] md:text-[21px] font-normal px-12 pt-10 pb-2 resize-none no-scrollbar placeholder:text-slate-300 placeholder:font-light rounded-[39px] min-h-[60px]" placeholder="Ask Arkle or type @topic for deep research..." />
+                        <div className="flex items-center justify-between px-10 pb-6 pt-4 bg-white border-none rounded-b-[39px]">
                            <div className="flex items-center gap-2 mt-2">
                               <button className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 hover:bg-slate-100"><span className="material-symbols-rounded text-[20px]">add</span></button>
                               <div className="flex items-center gap-2 bg-slate-50/50 p-1 rounded-full border border-slate-100 mt-1">
@@ -200,13 +285,19 @@ export default function HomeTab({ data }: { data: any }) {
                         <div className="flex-1 grid grid-cols-4 gap-6 overflow-hidden">
                            <AnimatePresence mode="popLayout">
                               {QUICK_TILES.slice(tileIndex, tileIndex + 4).map((tile) => (
-                                 <motion.button key={tile.title} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="bg-white p-6 rounded-[36px] border border-slate-50 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all text-left group min-h-[160px] flex flex-col justify-between">
-                                    <div className="mb-4 text-slate-300 group-hover:text-blue-500 transition-colors">
-                                       <span className="material-symbols-rounded text-[32px]">{tile.icon}</span>
+                                 <motion.button 
+                                    key={tile.title} 
+                                    initial={{ opacity: 0, x: 20 }} 
+                                    animate={{ opacity: 1, x: 0 }} 
+                                    exit={{ opacity: 0, x: -20 }} 
+                                    className="bg-white p-5 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-1.5 transition-all text-left group min-h-[144px] flex flex-col justify-between"
+                                 >
+                                    <div className="mb-3 text-slate-300 group-hover:text-blue-500 transition-colors">
+                                       <span className="material-symbols-rounded text-[28px]">{tile.icon}</span>
                                     </div>
                                     <div>
-                                       <h4 className="text-[13px] font-black text-slate-900 mb-2 leading-tight uppercase tracking-tighter">{tile.title}</h4>
-                                       <p className="text-[11px] font-bold text-slate-400 leading-relaxed uppercase opacity-60">{tile.desc}</p>
+                                       <h4 className="text-[12px] font-extrabold text-slate-900 mb-1 leading-tight uppercase tracking-tight">{tile.title}</h4>
+                                       <p className="text-[10px] font-semibold text-slate-400 leading-tight uppercase tracking-wide opacity-70">{tile.desc}</p>
                                     </div>
                                  </motion.button>
                               ))}
@@ -309,26 +400,17 @@ export default function HomeTab({ data }: { data: any }) {
             </div>
          </div>
 
-         {/* RIGHT QUICK TRAY & BOTTOM HUB - HIDE IN CONVERSATION MODE */}
-         {!conversationMode && (
-            <>
-               <div className="fixed right-6 top-[42%] -translate-y-1/2 z-[100] flex flex-col gap-5 items-center">
-                  {RIGHT_TRAY_APPS.map(app => (
-                     <button key={app.id} className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.06)] hover:shadow-xl hover:scale-110 transition-all group relative">
-                        <span className={`material-symbols-outlined text-[24px] ${app.color}`}>{app.icon}</span>
-                        {app.count && <span className="absolute -top-1 -right-1 w-5 h-5 bg-blue-600 text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-white">{app.count}</span>}
-                        <div className="absolute right-full mr-4 bg-slate-900 text-white text-[10px] font-black px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none uppercase tracking-widest">{app.label}</div>
-                     </button>
-                  ))}
-               </div>
+         {/* RIGHT QUICK TRAY - ALWAYS VISIBLE */}
+         <RightQuickTray />
 
-               <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[150] flex items-center gap-3 p-3 bg-white/70 backdrop-blur-2xl rounded-[32px] border border-white shadow-[0_20px_50px_rgba(0,0,0,0.1)] hover:scale-105 transition-all duration-500">
-                  <div className="flex items-center gap-2 px-3 border-r border-slate-200 mr-2"><span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" /><span className="text-[9px] font-black uppercase tracking-widest text-slate-400">BizHub</span></div>
-                  {HUB_APPS.map(app => (<button key={app.id} className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group/hub"><span className="material-symbols-outlined text-[22px] text-slate-600 group-hover/hub:text-blue-600">{app.icon}</span></button>))}
-                  <div className="w-px h-8 bg-slate-200 mx-2" />
-                  <button className="w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center hover:scale-110 transition-all shadow-lg"><span className="material-symbols-outlined text-[22px]">grid_view</span></button>
-               </div>
-            </>
+         {/* BOTTOM HUB - HIDE IN CONVERSATION MODE */}
+         {!conversationMode && (
+            <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[150] flex items-center gap-3 p-3 bg-white/70 backdrop-blur-2xl rounded-[32px] border border-white shadow-[0_20px_50px_rgba(0,0,0,0.1)] hover:scale-105 transition-all duration-500">
+               <div className="flex items-center gap-2 px-3 border-r border-slate-200 mr-2"><span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" /><span className="text-[9px] font-black uppercase tracking-widest text-slate-400">BizHub</span></div>
+               {HUB_APPS.map(app => (<button key={app.id} className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group/hub"><span className="material-symbols-outlined text-[22px] text-slate-600 group-hover/hub:text-blue-600">{app.icon}</span></button>))}
+               <div className="w-px h-8 bg-slate-200 mx-2" />
+               <button className="w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center hover:scale-110 transition-all shadow-lg"><span className="material-symbols-outlined text-[22px]">grid_view</span></button>
+            </div>
          )}
 
          <WhiteboardPanel isOpen={isWhiteboardOpen} onClose={() => setIsWhiteboardOpen(false)} />

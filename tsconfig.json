@@ -40,7 +40,11 @@
   ],
   "exclude": [
     "node_modules",
+    ".checkpoints",
     "_archive",
-    "_OS_BACKUP_STORAGE"
+    "_OS_BACKUP_STORAGE",
+    "bizdesk_backup",
+    "RESTORED_SOURCE",
+    "RESTORED_VERSION"
   ]
 }

@@ -45,3 +45,16 @@ next-env.d.ts
 # backups
 .checkpoints/
 .checkpoints
+*_backup/
+*.zip
+*.log
+*.txt
+RESTORED_VERSION/
+RESTORED_SOURCE/
+docs/
+source/
+app/store/
+app/api/forge/
+eslint-errors.json
+tsc_output.txt
+.antigravity/

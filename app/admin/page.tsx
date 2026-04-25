@@ -170,7 +170,7 @@ function WorkspaceDashboard() {
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-2">
                                             <span className="material-icons text-slate-300 text-sm">business</span>
-                                            <span className="text-xs font-semibold text-slate-700">{lead.businessData?.businessName || 'N/A'}</span>
+                                            <span className="text-xs font-semibold text-slate-700">{lead.businessData?.name || 'N/A'}</span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">

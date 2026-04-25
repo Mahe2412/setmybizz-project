@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { BusinessData } from '@/types';
-import LeadCaptureModal from '../LeadCaptureModal';
+import LeadCaptureModal from '../marketing/LeadCaptureModal';
 import { useAuth } from '@/context/AuthContext';
 
 interface AIIncorporationAssistantProps {

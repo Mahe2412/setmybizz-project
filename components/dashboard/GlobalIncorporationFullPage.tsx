@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Country, GlobalService } from '@/types/globalIncorporation';
 import { COUNTRIES, getServicesForCountry, getServiceInfo } from '@/lib/globalIncorporationData';
-import LeadCaptureModal from '../LeadCaptureModal';
+import LeadCaptureModal from '../marketing/LeadCaptureModal';
 
 interface GlobalIncorporationFullPageProps {
     onLeadCapture?: (leadData: any) => void;

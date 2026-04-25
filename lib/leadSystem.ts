@@ -36,19 +36,19 @@ export const identifyLead = async (guestId: string, userId?: string): Promise<st
         return lead.leadId;
     }
 
-    // Create New Lead
     const newLeadId = await generateLeadId();
-    const newLead: Partial<Lead> = {
+    const newLead: any = {
         leadId: newLeadId,
         guestId,
-        uid: userId || undefined,
         status: 'new',
-        interestScore: 10, // Initial score for visit
+        interestScore: 10,
         createdAt: serverTimestamp(),
         lastActiveAt: serverTimestamp(),
         source: 'direct_website',
-        businessData: {} as any // Empty initially
+        businessData: {}
     };
+
+    if (userId) newLead.uid = userId;
 
     await setDoc(doc(db, 'leads', newLeadId), newLead);
     return newLeadId;

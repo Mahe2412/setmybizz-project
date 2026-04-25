@@ -5,6 +5,7 @@ import LeftSidebar from './LeftSidebar';
 import CenterChat from './CenterChat';
 import RightSidebar from './RightSidebar';
 import QuickChatFloating from './QuickChatFloating';
+import RightQuickTray from '../os/RightQuickTray';
 
 export interface Project {
     id: string;
@@ -142,6 +143,9 @@ const AIStudioLayout: React.FC = () => {
 
             {/* Quick Chat Floating (Left Bottom) */}
             <QuickChatFloating />
+
+            {/* Right Side Quick Tray (Gmail, etc.) */}
+            <RightQuickTray />
         </div>
     );
 };

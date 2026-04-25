@@ -35,8 +35,11 @@ const INITIAL_NOTES: Note[] = [
   }
 ];
 
+import { useBizStore, OperationalTask } from '@/lib/useBizStore';
+
 export default function NotesAndTasksPanel({ onClose }: { onClose?: () => void }) {
-  const [notes, setNotes] = useState<Note[]>(INITIAL_NOTES);
+  const { tasks, addTask, deleteTask, updateTask } = useBizStore();
+  const [localNotes, setLocalNotes] = useState<Note[]>(INITIAL_NOTES);
   const [isAdding, setIsAdding] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newContent, setNewContent] = useState('');
@@ -46,26 +49,34 @@ export default function NotesAndTasksPanel({ onClose }: { onClose?: () => void }
 
   const handleAdd = () => {
     if (!newTitle.trim()) return;
-    const n: Note = {
-      id: Date.now().toString(),
-      type: newType,
-      title: newTitle,
-      content: newContent,
-      date: 'Just now',
-      completed: newType === 'task' ? false : undefined,
-    };
-    setNotes([n, ...notes]);
+    
+    if (newType === 'task') {
+      addTask({
+        task: newTitle,
+        arklePrediction: newContent || 'Mission task added via clipboard.',
+        status: 'Draft',
+        priority: 'Medium',
+        deadline: 'TBD'
+      });
+    } else {
+      const n: Note = {
+        id: Date.now().toString(),
+        type: newType,
+        title: newTitle,
+        content: newContent,
+        date: 'Just now',
+      };
+      setLocalNotes([n, ...localNotes]);
+    }
+    
     setIsAdding(false);
     setNewTitle('');
     setNewContent('');
   };
 
-  const toggleTask = (id: string) => {
-    setNotes(notes.map(n => n.id === id && n.type === 'task' ? { ...n, completed: !n.completed } : n));
-  };
-
-  const deleteNote = (id: string) => {
-    setNotes(notes.filter(n => n.id !== id));
+  const toggleTaskStatus = (id: string, currentStatus: string) => {
+    const nextStatus = currentStatus === 'Done' ? 'Working' : 'Done';
+    updateTask(id, { status: nextStatus as any });
   };
 
   const handleGoogleSync = () => {
@@ -86,6 +97,19 @@ export default function NotesAndTasksPanel({ onClose }: { onClose?: () => void }
       default: return '📌';
     }
   };
+
+  // Combine local notes and global tasks for display
+  const allItems = [
+    ...localNotes,
+    ...tasks.map(t => ({
+      id: t.id,
+      type: 'task' as const,
+      title: t.task,
+      content: t.arklePrediction,
+      date: t.deadline,
+      completed: t.status === 'Done'
+    }))
+  ].sort((a, b) => b.id.localeCompare(a.id));
 
   return (
     <div className="flex flex-col h-full bg-slate-50 relative">
@@ -121,9 +145,6 @@ export default function NotesAndTasksPanel({ onClose }: { onClose?: () => void }
         >
            {synced ? '✓ Synced to Docs' : syncing ? 'Syncing...' : '📄 Connect to Google Docs'}
         </button>
-        <button className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="Share Notes">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" x2="12" y1="2" y2="15"/></svg>
-        </button>
       </div>
 
       {/* Main Content */}
@@ -137,7 +158,7 @@ export default function NotesAndTasksPanel({ onClose }: { onClose?: () => void }
                  onChange={(e) => setNewType(e.target.value as any)}
                  className="text-xs font-bold bg-slate-100 text-slate-700 border-none rounded-lg px-2 py-1 outline-none focus:ring-2 focus:ring-blue-500/20"
                >
-                 <option value="task">✅ Task</option>
+                 <option value="task">✅ Task (Global Sync)</option>
                  <option value="meeting">📅 Meeting</option>
                  <option value="plan">📝 Plan / Idea</option>
                </select>
@@ -169,13 +190,13 @@ export default function NotesAndTasksPanel({ onClose }: { onClose?: () => void }
           </button>
         )}
 
-        {notes.map(n => (
+        {allItems.map(n => (
           <div key={n.id} className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm group hover:-translate-y-0.5 transition-transform hover:shadow-md">
              <div className="flex items-start justify-between gap-3">
                 <div className="flex items-start gap-3 flex-1 overflow-hidden">
                    {n.type === 'task' ? (
                      <button 
-                       onClick={() => toggleTask(n.id)}
+                       onClick={() => toggleTaskStatus(n.id, n.completed ? 'Done' : 'Working')}
                        className={`w-5 h-5 mt-0.5 rounded border-2 flex items-center justify-center transition-all shrink-0 ${n.completed ? 'bg-blue-500 border-blue-500 text-white' : 'border-slate-300 hover:border-blue-400'}`}
                      >
                        {n.completed && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
@@ -197,7 +218,7 @@ export default function NotesAndTasksPanel({ onClose }: { onClose?: () => void }
                 </div>
                 
                 <button 
-                  onClick={() => deleteNote(n.id)}
+                  onClick={() => n.type === 'task' ? deleteTask(n.id) : setLocalNotes(localNotes.filter(ln => ln.id !== n.id))}
                   className="w-7 h-7 rounded-lg bg-slate-50 border border-slate-200 text-slate-400 hover:bg-red-50 hover:text-red-600 hover:border-red-200 flex items-center justify-center shrink-0 opacity-0 group-hover:opacity-100 transition-all"
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
@@ -205,7 +226,7 @@ export default function NotesAndTasksPanel({ onClose }: { onClose?: () => void }
              </div>
           </div>
         ))}
-        {notes.length === 0 && !isAdding && (
+        {allItems.length === 0 && !isAdding && (
           <div className="text-center py-10 opacity-60">
             <div className="text-4xl mb-3">📭</div>
             <p className="text-sm font-bold text-slate-600">Your workspace is empty.</p>
@@ -217,3 +238,4 @@ export default function NotesAndTasksPanel({ onClose }: { onClose?: () => void }
     </div>
   );
 }
+

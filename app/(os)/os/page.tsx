@@ -27,6 +27,7 @@ import { useBizStore } from '@/lib/useBizStore';
 import LaunchPadTab from '@/components/os/LaunchPadTab';
 import Workspace from '@/components/dashboard/Workspace';
 import IntegrationsPanel from '@/components/os/IntegrationsPanel';
+import { ArkleCoreProvider } from '@/context/ArkleCoreContext';
 
 /* ───────────── SIDEBAR NAV CONFIG (BizDesk) ───────────── */
 type SidebarSection = { section: string; items: { id: OsTab; icon: string; label: string; badge?: string }[] };
@@ -155,7 +156,17 @@ export default function OSPage() {
   const [bizData, setBizData] = useState(BIZ);
   const [integrationsOpen, setIntegrationsOpen] = useState(false);
   const [globalLang, setGlobalLang] = useState('en-IN');
-  const { whiteboardOpen, setWhiteboardOpen } = useBizStore();
+  const { whiteboardOpen, setWhiteboardOpen, conversationMode, sidebarOpen: storeSidebarOpen, setSidebarOpen: setStoreSidebarOpen } = useBizStore();
+
+  useEffect(() => {
+    if (conversationMode) {
+      setSidebarOpen(false);
+      setStoreSidebarOpen(false);
+    } else {
+      setSidebarOpen(true);
+      setStoreSidebarOpen(true);
+    }
+  }, [conversationMode, setStoreSidebarOpen]);
 
   useEffect(() => {
     const saved = localStorage.getItem('setmybizz_data');
@@ -197,7 +208,8 @@ export default function OSPage() {
   const allSidebarItems = BIZDESK_SIDEBAR.flatMap(s => s.items);
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden bg-slate-50" style={{ fontFamily: '"DM Sans", sans-serif' }}>
+    <ArkleCoreProvider>
+      <div className="h-screen flex flex-col overflow-hidden bg-slate-50" style={{ fontFamily: '"DM Sans", sans-serif' }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;900&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
@@ -216,53 +228,63 @@ export default function OSPage() {
         }
       `}</style>
 
-      {/* ═══════ COMPACT SKYBLUE TOP BAR ═══════ */}
-      <header className="shrink-0 h-14 md:h-15 lg:h-16 bg-sky-50/80 backdrop-blur-3xl flex items-center justify-between px-6 md:px-8 gap-4 z-50 border-b border-sky-100/60 shadow-[0_4px_25px_rgba(186,230,253,0.12)]">
+      {/* ═══════ COMPACT LIGHT TOP BAR ═══════ */}
+      <header className={`shrink-0 h-14 md:h-15 lg:h-16 flex items-center justify-between px-6 md:px-8 gap-4 z-50 border-b backdrop-blur-3xl transition-all duration-500 bg-white/80 border-slate-100 shadow-[0_4px_25px_rgba(0,0,0,0.02)]`}>
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-3 group">
             <div className="w-9 h-9 md:w-10 md:h-10 rounded-[12px] flex items-center justify-center font-black text-white bg-linear-to-tr from-sky-600 to-blue-700 shadow-lg shadow-sky-600/20 group-hover:scale-105 active:scale-95 transition-all outline outline-2 outline-white/50">B</div>
             <div className="hidden lg:block space-y-0">
-              <span className="font-black text-slate-900 text-[14px] tracking-tight uppercase block leading-tight">BizOS</span>
-              <span className="text-[8px] font-black tracking-[0.1em] text-sky-600/80 block uppercase">SetMyBizz</span>
+              <span className={`font-black text-[14px] tracking-tight uppercase block leading-tight text-slate-900`}>BizOS</span>
+              <span className={`text-[8px] font-black tracking-[0.1em] block uppercase text-sky-600/80`}>SetMyBizz</span>
             </div>
           </Link>
+          {/* DEBUG INDICATOR */}
+          <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${conversationMode ? 'bg-red-500 text-white' : 'bg-slate-200 text-slate-500'}`}>
+            {conversationMode ? 'Conversation Active' : 'Dashboard Mode'}
+          </div>
         </div>
 
-        {/* ─── TOP NAV BUTTONS (Icon-Only Premium Capsule) ─── */}
+        {/* ─── MINIMALIST NEURAL DOCK (Icon-Only Premium) ─── */}
         <div className="flex flex-1 items-center justify-center">
-          <nav className="flex items-center bg-white/50 backdrop-blur-md p-2 rounded-2xl border border-sky-100/50 shadow-sm gap-8 px-8">
-            {TOP_NAV.map(nav => (
-              <button
-                key={nav.id}
-                onClick={() => switchTopNav(nav.id)}
-                className={`flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-xl transition-all relative group ${
-                  activeTopNav === nav.id
-                    ? 'bg-white text-sky-600 shadow-md scale-110'
-                    : 'text-slate-400 hover:text-sky-500 hover:bg-white/80'
-                }`}
-                title={nav.label}
-              >
-                <span className={`material-symbols-rounded text-[21px] md:text-[23px] transition-all ${activeTopNav === nav.id ? '[font-variation-settings:"FILL"_1]' : ''}`}>
-                  {nav.icon}
-                </span>
-                
-                {/* Minimal Indicator Dot */}
-                {activeTopNav === nav.id && (
-                  <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-sky-500 rounded-full border-2 border-white animate-pulse"></span>
-                )}
-                
-                {/* Floating Tooltip */}
-                <span className="absolute -bottom-10 px-2.5 py-1.5 bg-slate-900/90 text-white text-[9px] font-black uppercase tracking-widest rounded-lg opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 whitespace-nowrap pointer-events-none z-50">
-                  {nav.label}
-                </span>
-              </button>
-            ))}
+          <nav className={`flex items-center backdrop-blur-2xl p-1.5 rounded-[24px] border transition-all duration-500 gap-3 px-3 bg-white/40 border-slate-100 shadow-sm`}>
+            {TOP_NAV.map(nav => {
+              const isActive = activeTopNav === nav.id;
+              return (
+                <button
+                  key={nav.id}
+                  onClick={() => switchTopNav(nav.id)}
+                  className={`relative flex items-center justify-center w-11 h-11 md:w-12 md:h-12 rounded-[18px] transition-all duration-500 group ${
+                    isActive 
+                      ? 'bg-white shadow-[0_15px_30px_rgba(0,0,0,0.06)] scale-110 z-10' 
+                      : 'text-slate-400 hover:text-slate-900 hover:bg-white/40'
+                  }`}
+                >
+                  {/* Neural Mode Glow */}
+                  {isActive && (
+                    <div className="absolute inset-0 rounded-[18px] blur-[15px] opacity-30 animate-pulse" style={{ backgroundColor: '#0ea5e9' }}></div>
+                  )}
+
+                  <div className="relative flex items-center justify-center z-10">
+                    <span className={`material-symbols-rounded text-[24px] md:text-[26px] transition-all duration-500 ${
+                      isActive ? 'text-sky-600 [font-variation-settings:"FILL"_1]' : 'group-hover:scale-110'
+                    }`}>
+                      {nav.icon}
+                    </span>
+                    
+                    {/* Active Pulse Indicator */}
+                    {isActive && (
+                      <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-sky-500 rounded-full border-2 border-white shadow-sm"></span>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
           </nav>
         </div>
 
         {/* ─── RIGHT UTILITIES (Unified Glossy Console) ─── */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1 bg-white/40 p-1 rounded-xl border border-sky-100/40 backdrop-blur-sm mr-2 pr-2">
+          <div className={`flex items-center gap-1 p-1 rounded-xl backdrop-blur-sm mr-2 pr-2 border transition-all duration-500 bg-white/60 border-slate-100 shadow-sm`}>
              <button 
                 onClick={() => setWhiteboardOpen(!whiteboardOpen)}
                 className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all group relative ${whiteboardOpen ? 'bg-sky-600 text-white shadow-lg' : 'text-slate-500 hover:text-sky-600 hover:bg-white'}`} 
@@ -272,18 +294,18 @@ export default function OSPage() {
              </button>
              <button 
                 onClick={() => window.dispatchEvent(new CustomEvent('scroll-to-bizboard'))}
-                className="w-9 h-9 flex items-center justify-center text-slate-500 hover:text-sky-600 hover:bg-white rounded-lg transition-all" 
+                className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all text-slate-500 hover:text-sky-600 hover:bg-white`} 
                 title="BizBoard Spotlight"
              >
                 <span className="material-symbols-rounded text-[21px]">featured_play_list</span>
              </button>
-             <button className="w-9 h-9 flex items-center justify-center text-slate-500 hover:text-sky-600 hover:bg-white rounded-lg transition-all" title="Add Guest">
+             <button className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all text-slate-500 hover:text-sky-600 hover:bg-white`} title="Add Guest">
                 <span className="material-symbols-rounded text-[21px]">person_add</span>
              </button>
-             <button className="w-9 h-9 flex items-center justify-center text-slate-500 hover:text-sky-600 hover:bg-white rounded-lg transition-all" title="AI Skills">
+             <button className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all text-slate-500 hover:text-sky-600 hover:bg-white`} title="AI Skills">
                 <span className="material-symbols-rounded text-[21px]">smart_toy</span>
              </button>
-             <button className="w-9 h-9 flex items-center justify-center text-slate-500 hover:text-sky-600 hover:bg-white rounded-lg transition-all" title="Search Ecosystem">
+             <button className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all text-slate-500 hover:text-sky-600 hover:bg-white`} title="Search Ecosystem">
                 <span className="material-symbols-rounded text-[21px]">search</span>
              </button>
              
@@ -307,12 +329,12 @@ export default function OSPage() {
           </div>
 
           <div className="hidden lg:block text-right mr-1">
-            <p className="text-[9px] font-black text-slate-900 leading-none uppercase tracking-widest">{BIZ.name}</p>
+            <p className={`text-[9px] font-black leading-none uppercase tracking-widest text-slate-900`}>{BIZ.name}</p>
             <div className="flex items-center justify-end gap-1 mt-1">
-              <div className="h-0.5 w-10 rounded-full overflow-hidden bg-sky-100">
+              <div className={`h-0.5 w-10 rounded-full overflow-hidden bg-sky-100`}>
                 <div className="h-full rounded-full bg-sky-600" style={{ width: `${BIZ.healthScore}%` }} />
               </div>
-              <span className="text-[8px] font-black text-sky-600 italic leading-none">{BIZ.healthScore}%</span>
+              <span className={`text-[8px] font-black italic leading-none text-sky-600`}>{BIZ.healthScore}%</span>
             </div>
           </div>
 
@@ -343,15 +365,17 @@ export default function OSPage() {
           )}
         </AnimatePresence>
 
-        {/* ─── SKYBLUE SIDEBAR ─── */}
+        {/* ─── SKYBLUE SIDEBAR (Hidden in Conversation Mode or Launchpad) ─── */}
         <AnimatePresence>
-          {sidebarOpen && (activeTopNav === 'bizdesk' || activeTopNav === 'launchpad' || activeTopNav === 'learn') && (
+          {sidebarOpen && !conversationMode && activeTopNav !== 'launchpad' && (activeTopNav === 'bizdesk' || activeTopNav === 'learn') && (
             <motion.aside 
+              key="bizdesk-sidebar-main"
               initial={{ x: -260 }}
               animate={{ x: 0 }}
               exit={{ x: -260 }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed inset-y-0 left-0 md:relative z-40 shrink-0 w-[260px] md:w-64 bg-sky-50/80 backdrop-blur-xl flex flex-col h-full md:h-auto overflow-hidden shadow-2xl border-r border-sky-100/60"
+              style={{ display: conversationMode ? 'none' : 'flex' }}
+              className={`fixed inset-y-0 left-0 md:relative z-40 shrink-0 w-[260px] md:w-64 backdrop-blur-xl flex flex-col h-full md:h-auto overflow-hidden shadow-2xl border-r ${activeTopNav === 'launchpad' ? 'bg-[#090b1a] border-white/5' : 'bg-sky-50/80 border-sky-100/60'}`}
             >
               <div className="md:hidden flex items-center justify-between p-4 border-b border-slate-100">
                 <span className="font-semibold text-slate-800 text-[13px]">Navigation Center</span>
@@ -362,7 +386,7 @@ export default function OSPage() {
               <div className="h-full flex flex-col pt-12 pb-8 px-4 overflow-y-auto no-scrollbar">
               {(activeTopNav === 'bizdesk' ? BIZDESK_SIDEBAR : activeTopNav === 'launchpad' ? LAUNCHPAD_SIDEBAR : LEARN_SIDEBAR).map((section, si) => (
                 <div key={si} className="mb-6">
-                  <h3 className={`px-3 mb-3 text-[11px] font-bold capitalize tracking-[0.15em] ${section.section.includes('ARKLE') || section.section.includes('AI PARTNER') ? 'text-[#575CDE]' : 'text-[#676879]'}`}>
+                  <h3 className={`px-3 mb-3 text-[11px] font-bold capitalize tracking-[0.15em] ${activeTopNav === 'launchpad' ? 'text-slate-500' : (section.section.includes('ARKLE') || section.section.includes('AI PARTNER') ? 'text-[#575CDE]' : 'text-[#676879]')}`}>
                     {section.section === 'AI PARTNER' ? 'Powered by Arkle AI' : section.section.toLowerCase()}
                   </h3>
                   <div className="space-y-2">
@@ -372,8 +396,8 @@ export default function OSPage() {
                         onClick={() => { setActiveTab(item.id); if (window.innerWidth < 768) setSidebarOpen(false); }}
                         className={`w-full flex items-center gap-3.5 px-3 py-2 mt-[2px] transition-all text-left group focus-visible:outline-none focus:ring-2 focus:ring-blue-500 rounded-[8px] hover:bg-slate-50`}
                       >
-                        <span className={`text-[16px] text-center shrink-0 w-6 leading-none transition-transform group-hover:scale-110 text-[#676879] ${activeTab === item.id ? 'text-[#0073ea]' : ''}`}>{item.icon}</span>
-                        <span className={`text-[12.5px] flex-1 truncate font-medium group-hover:underline ${activeTab === item.id ? 'text-[#0073ea]' : 'text-[#323338]'}`}>
+                        <span className={`text-[16px] text-center shrink-0 w-6 leading-none transition-transform group-hover:scale-110 ${activeTopNav === 'launchpad' ? (activeTab === item.id ? 'text-blue-400' : 'text-slate-400') : (activeTab === item.id ? 'text-[#0073ea]' : 'text-[#676879]')}`}>{item.icon}</span>
+                        <span className={`text-[12.5px] flex-1 truncate font-medium group-hover:underline ${activeTopNav === 'launchpad' ? (activeTab === item.id ? 'text-blue-400' : 'text-slate-200') : (activeTab === item.id ? 'text-[#0073ea]' : 'text-[#323338]')}`}>
                           {item.label}
                         </span>
                         {item.badge && (
@@ -398,16 +422,16 @@ export default function OSPage() {
                   {bizData?.name?.charAt(0) || 'M'}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[14px] font-normal text-[#323338] truncate group-hover:underline">{bizData?.name || 'Mahendra Kumar'}</p>
+                  <p className={`text-[14px] font-normal truncate group-hover:underline ${activeTopNav === 'launchpad' ? 'text-slate-300' : 'text-[#323338]'}`}>{bizData?.name || 'Mahendra Kumar'}</p>
                 </div>
               </div>
 
               <button
                 onClick={() => { setActiveTab('settings'); if (window.innerWidth < 768) setSidebarOpen(false); }}
-                className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${activeTab === 'settings' ? 'bg-slate-200 text-slate-900 border border-slate-300 shadow-inner' : 'text-slate-400 hover:bg-white hover:text-slate-600 border border-transparent hover:border-slate-200 shadow-sm'}`}
+                className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${activeTab === 'settings' ? 'bg-slate-200 text-slate-900 border border-slate-300 shadow-inner' : (activeTopNav === 'launchpad' ? 'text-slate-500 hover:bg-white/5 hover:text-slate-300' : 'text-slate-400 hover:bg-white hover:text-slate-600 border border-transparent hover:border-slate-200 shadow-sm')}`}
                 title="OS Settings"
               >
-                ⚙️
+                <span className="material-symbols-outlined text-[18px]">settings</span>
               </button>
             </div>
           </motion.aside>
@@ -559,5 +583,6 @@ export default function OSPage() {
         </div>
       )}
     </div>
+    </ArkleCoreProvider>
   );
 }
