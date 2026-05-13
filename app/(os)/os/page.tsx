@@ -158,7 +158,6 @@ export default function OSPage() {
   const [bizData, setBizData] = useState(BIZ);
   const [integrationsOpen, setIntegrationsOpen] = useState(false);
   const [globalLang, setGlobalLang] = useState('en-IN');
-  const [skippedAuth, setSkippedAuth] = useState(false);
   const { whiteboardOpen, setWhiteboardOpen, conversationMode, sidebarOpen: storeSidebarOpen, setSidebarOpen: setStoreSidebarOpen } = useBizStore();
   const { user, loading: authLoading } = useAuth();
 
@@ -222,12 +221,12 @@ export default function OSPage() {
     );
   }
 
-  // Mandatory access protection gate
-  if (!user && !skippedAuth) {
+  // Mandatory SaaS access protection gate - absolute zero bypass policy
+  if (!user) {
     return (
       <LoginStep 
-        onLogin={(skip) => {
-          if (skip) setSkippedAuth(true);
+        onLogin={() => {
+          // Handled autonomously by global AuthProvider active state subscribers
         }} 
         businessName={bizData.name || 'Your Business'} 
       />
