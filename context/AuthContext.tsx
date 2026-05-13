@@ -51,7 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setUser(session?.user ?? null);
             
             if (session?.user) {
-                await fetchDbUser(session.user.id);
+                await fetchDbUser(session.user.id, session.user.email);
             }
             setLoading(false);
         };
@@ -64,7 +64,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setUser(session?.user ?? null);
             
             if (session?.user) {
-                await fetchDbUser(session.user.id);
+                await fetchDbUser(session.user.id, session.user.email);
             } else {
                 setDbUser(null);
                 setDbBusiness(null);
@@ -77,7 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
     }, []);
 
-    const fetchDbUser = async (userId: string) => {
+    const fetchDbUser = async (userId: string, userEmail?: string) => {
         try {
             const { data, error } = await supabase
                 .from('users')
@@ -85,12 +85,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 .eq('id', userId)
                 .single();
             
-            if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+            let activeDbUser = data;
+
+            if (error && error.code === 'PGRST116') {
+                // New User First Time Login -> Generate Dedicated Unique ID
+                const uniqueId = `SMB-UID-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+                
+                const newUserPayload = {
+                    id: userId,
+                    registeredId: uniqueId,
+                    email: userEmail || '',
+                    updated_at: new Date().toISOString()
+                };
+
+                const { data: newUser, error: insertError } = await supabase
+                    .from('users')
+                    .insert([newUserPayload])
+                    .select()
+                    .single();
+
+                if (!insertError && newUser) {
+                    activeDbUser = newUser;
+                    console.log(`[Arkle OS] New Operator Registered: ${uniqueId}`);
+                } else {
+                    console.error("Failed to initialize user identity:", insertError);
+                }
+            } else if (error && error.code !== 'PGRST116') {
                 console.error("Error fetching profile:", error);
             }
             
-            if (data) {
-                setDbUser(data);
+            if (activeDbUser) {
+                setDbUser(activeDbUser);
             }
 
             // Concurrently pull the verified business identity to drive UI shells

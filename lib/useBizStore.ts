@@ -35,6 +35,8 @@ interface BizState {
     setLastVoiceCommand: (cmd: string | null) => void;
     liveTranscript: string;
     setLiveTranscript: (val: string) => void;
+    performanceGaps: any[];
+    setPerformanceGaps: (gaps: any[]) => void;
 }
 
 export const useBizStore = create<BizState>()(
@@ -84,6 +86,8 @@ export const useBizStore = create<BizState>()(
             setLastVoiceCommand: (cmd) => set({ lastVoiceCommand: cmd }),
             liveTranscript: '',
             setLiveTranscript: (val) => set({ liveTranscript: val }),
+            performanceGaps: [],
+            setPerformanceGaps: (gaps) => set({ performanceGaps: gaps }),
         }),
         {
             name: 'bizos-operational-store',

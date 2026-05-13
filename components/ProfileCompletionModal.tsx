@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
+import { useBizStore } from '@/lib/useBizStore';
 
 interface ProfileCompletionModalProps {
     isOpen: boolean;
@@ -54,12 +55,23 @@ const ProfileCompletionModal: React.FC<ProfileCompletionModalProps> = ({ isOpen,
                     id: user.id,
                     full_name: formData.displayName,
                     email: user.email,
+                    phone: formData.phone,
                     updated_at: new Date().toISOString(),
                 };
 
                 // Save to Supabase 'users' table
                 const { error: userError } = await supabase.from('users').upsert(updateData);
                 if (userError) throw userError;
+
+                // --- Autonomous Performance Gap Audit Engine ---
+                const generatedGaps = [];
+                generatedGaps.push({ type: 'compliance', severity: 'high', message: 'GST Registration / Basic Compliance Verification Pending' });
+                if (!dbBusiness?.cin) generatedGaps.push({ type: 'legal', severity: 'medium', message: 'Company Incorporation (RoC) Not Verified' });
+                if (formData.sector === 'E-commerce & Retail') generatedGaps.push({ type: 'growth', severity: 'low', message: 'Ondc Integration Opportunity Detected' });
+                generatedGaps.push({ type: 'brand', severity: 'medium', message: 'Core Brand Identity / Digital LaunchPad Kit Missing' });
+                
+                // Dispatch to Global State for Arkle Consumption
+                useBizStore.getState().setPerformanceGaps(generatedGaps);
 
                 // Also save/update the 'businesses' table
                 const { error: bizError } = await supabase.from('businesses').upsert({

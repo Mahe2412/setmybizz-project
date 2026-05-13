@@ -5,6 +5,7 @@ import WhiteboardPanel from './WhiteboardPanel';
 import BizboardSpotlight from './launchpad/LaunchPadSpotlight';
 import { useBizStore } from '../../lib/useBizStore';
 import RightQuickTray from './RightQuickTray';
+import { useAuth } from '@/context/AuthContext';
 
 type Message = {
    id: string;
@@ -38,7 +39,8 @@ const NEURAL_NOTIFICATIONS = [
 ];
 
 export default function HomeTab({ data }: { data: any }) {
-   const { whiteboardOpen: isWhiteboardOpen, setWhiteboardOpen: setIsWhiteboardOpen, conversationMode, setConversationMode, setSidebarOpen } = useBizStore();
+   const { dbUser, dbBusiness } = useAuth();
+   const { whiteboardOpen: isWhiteboardOpen, setWhiteboardOpen: setIsWhiteboardOpen, conversationMode, setConversationMode, setSidebarOpen, performanceGaps } = useBizStore();
    const [activeChatTab, setActiveChatTab] = useState<'ask' | 'agents'>('ask');
    const [msgs, setMsgs] = useState<Message[]>([]);
    const [input, setInput] = useState('');
@@ -133,13 +135,19 @@ export default function HomeTab({ data }: { data: any }) {
             body: JSON.stringify({
                prompt: finalPrompt,
                context: selectedContext, // Send the selected context to the API
+               businessProfile: {
+                   registeredId: dbUser?.registeredId || 'Pending',
+                   businessName: dbBusiness?.business_name || data?.name || 'My Startup',
+                   industry: dbBusiness?.industry || data?.sector || 'General Business',
+                   performanceGaps: performanceGaps
+               },
                messages: msgs.map(m => ({ role: m.role, content: m.content }))
             })
          });
          const resData = await resp.json();
          setMsgs(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: resData.text, timestamp: new Date() }]);
       } catch (e) { console.error(e); } finally { setLoading(false); }
-   }, [input, loading, msgs, setConversationMode, setSidebarOpen, selectedContext]);
+   }, [input, loading, msgs, setConversationMode, setSidebarOpen, selectedContext, dbUser, dbBusiness, performanceGaps, data]);
 
    useEffect(() => { scrollRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [msgs]);
 
