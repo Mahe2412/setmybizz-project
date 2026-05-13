@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
-import { collection, addDoc, updateDoc, doc, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { getSupabase } from '@/lib/supabase';
 
 export async function POST(request: Request) {
     try {
         const data = await request.json();
+        const supabase = getSupabase();
 
         // Validate required fields
         if (!data.email || !data.phone || !data.businessName) {
@@ -15,21 +15,27 @@ export async function POST(request: Request) {
         }
 
         // Check if lead already exists
-        const leadsRef = collection(db, 'master_leads');
-        const q = query(leadsRef, where('email', '==', data.email));
-        const querySnapshot = await getDocs(q);
+        const { data: existingLead, error: fetchError } = await supabase
+            .from('leads')
+            .select('id')
+            .eq('email', data.email)
+            .single();
 
-        if (!querySnapshot.empty) {
+        if (existingLead) {
             // Lead exists, update it
-            const existingDoc = querySnapshot.docs[0];
-            await updateDoc(doc(db, 'master_leads', existingDoc.id), {
-                ...data,
-                updatedAt: serverTimestamp()
-            });
+            const { error: updateError } = await supabase
+                .from('leads')
+                .update({
+                    ...data,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', existingLead.id);
+
+            if (updateError) throw updateError;
 
             return NextResponse.json({
                 success: true,
-                leadId: existingDoc.id,
+                leadId: existingLead.id,
                 message: 'Lead updated successfully',
                 existing: true
             });
@@ -38,12 +44,18 @@ export async function POST(request: Request) {
         // Create new lead
         const leadData = {
             ...data,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
             status: data.status || 'pending_registration'
         };
 
-        const docRef = await addDoc(collection(db, 'master_leads'), leadData);
+        const { data: newLead, error: insertError } = await supabase
+            .from('leads')
+            .insert(leadData)
+            .select()
+            .single();
+
+        if (insertError) throw insertError;
 
         // Sync to CRM if webhook is configured
         try {
@@ -53,26 +65,25 @@ export async function POST(request: Request) {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         ...leadData,
-                        leadId: docRef.id,
+                        leadId: newLead.id,
                         type: 'master_lead'
                     })
                 });
             }
         } catch (crmError) {
             console.error('CRM sync failed:', crmError);
-            // Don't fail the request if CRM sync fails
         }
 
         return NextResponse.json({
             success: true,
-            leadId: docRef.id,
+            leadId: newLead.id,
             message: 'Lead captured successfully'
         });
 
-    } catch (error) {
-        console.error('Error saving master lead:', error);
+    } catch (error: any) {
+        console.error('Error saving master lead to Supabase:', error);
         return NextResponse.json(
-            { error: 'Failed to save lead' },
+            { error: 'Failed to save lead', details: error.message },
             { status: 500 }
         );
     }
@@ -81,6 +92,7 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
     try {
         const data = await request.json();
+        const supabase = getSupabase();
 
         if (!data.email) {
             return NextResponse.json(
@@ -90,11 +102,13 @@ export async function PUT(request: Request) {
         }
 
         // Find lead by email
-        const leadsRef = collection(db, 'master_leads');
-        const q = query(leadsRef, where('email', '==', data.email));
-        const querySnapshot = await getDocs(q);
+        const { data: existingLead, error: fetchError } = await supabase
+            .from('leads')
+            .select('id')
+            .eq('email', data.email)
+            .single();
 
-        if (querySnapshot.empty) {
+        if (!existingLead) {
             return NextResponse.json(
                 { error: 'Lead not found' },
                 { status: 404 }
@@ -102,12 +116,16 @@ export async function PUT(request: Request) {
         }
 
         // Update the lead
-        const existingDoc = querySnapshot.docs[0];
-        await updateDoc(doc(db, 'master_leads', existingDoc.id), {
-            ...data,
-            updatedAt: serverTimestamp(),
-            status: 'registered'
-        });
+        const { error: updateError } = await supabase
+            .from('leads')
+            .update({
+                ...data,
+                updated_at: new Date().toISOString(),
+                status: 'registered'
+            })
+            .eq('id', existingLead.id);
+
+        if (updateError) throw updateError;
 
         // Update CRM
         try {
@@ -117,7 +135,7 @@ export async function PUT(request: Request) {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         ...data,
-                        leadId: existingDoc.id,
+                        leadId: existingLead.id,
                         type: 'lead_converted',
                         action: 'account_created'
                     })
@@ -129,15 +147,16 @@ export async function PUT(request: Request) {
 
         return NextResponse.json({
             success: true,
-            leadId: existingDoc.id,
+            leadId: existingLead.id,
             message: 'Lead updated to registered status'
         });
 
-    } catch (error) {
-        console.error('Error updating master lead:', error);
+    } catch (error: any) {
+        console.error('Error updating master lead in Supabase:', error);
         return NextResponse.json(
-            { error: 'Failed to update lead' },
+            { error: 'Failed to update lead', details: error.message },
             { status: 500 }
         );
     }
 }
+

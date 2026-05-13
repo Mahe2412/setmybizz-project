@@ -1,54 +1,84 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { getSupabase } from '@/lib/supabase';
+import { buildArkleSystemPrompt } from '@/lib/ArkleToolBrain';
 
-// Initialize the Google Generative AI SDK
-const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
-if (!apiKey) {
-  console.warn("GEMINI_API_KEY environment variable is not defined.");
-}
-const genAI = new GoogleGenerativeAI(apiKey || "");
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
+const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
 export async function POST(req: NextRequest) {
-    if (!apiKey) {
-        return NextResponse.json({ error: "API key not configured" }, { status: 500 });
+    if (!GEMINI_API_KEY) {
+        return NextResponse.json({ error: "Gemini API key is not configured" }, { status: 500 });
     }
 
     try {
         const body = await req.json();
-        const { task, context } = body;
+        const { 
+            task, 
+            context = {}, 
+            userId = 'anonymous' 
+        } = body;
 
-        // Ensure we have a task
         if (!task) {
             return NextResponse.json({ error: "Task is required" }, { status: 400 });
         }
 
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro", generationConfig: {
-            temperature: 0.7,
-            topP: 0.95,
-            topK: 64,
-            maxOutputTokens: 2000,
-        }});
+        // 1. BRAIN ACTIVATION (Sales Persona)
+        // Using 'social' as base for sales strategy/outreach
+        const systemPrompt = buildArkleSystemPrompt('social', context, task); 
 
-        // Build the system prompt for the Sales Executive
-        const systemPrompt = `You are Alex, an expert AI Sales Executive. Your goal is to generate revenue, draft high-converting cold emails, formulate sales strategies, and qualify leads. 
+        const model = genAI.getGenerativeModel({ 
+            model: "gemini-1.5-pro", 
+            generationConfig: {
+                temperature: 0.7,
+                maxOutputTokens: 2048,
+            }
+        });
+
+        // 2. SUPABASE AGENT LOGGING (Start)
+        const supabase = getSupabase();
+        let agentRunId: string | null = null;
         
-BUSINESS CONTEXT:
-${JSON.stringify(context || {}, null, 2)}
+        if (userId !== 'anonymous') {
+            const { data } = await supabase.from('agent_runs').insert({
+                user_id: userId,
+                agent_id: 'sales_alex',
+                agent_name: 'Alex',
+                agent_role: 'Sales Executive',
+                status: 'working',
+                steps_completed: ['Initializing Sales Persona', 'Analyzing Task'],
+                created_at: new Date().toISOString()
+            }).select().single();
+            agentRunId = data?.id;
+        }
 
-TASK ASSIGNED BY FOUNDER:
-"${task}"
-
-Your output must be structured, professional, yet aggressive in sales tactics. Use markdown for formatting. If the user asks for an email, write a subject line and the body. If they ask for a strategy, provide step-by-step actionable items. Avoid fluff; be direct and results-oriented.`;
-
+        // 3. EXECUTION
         const result = await model.generateContent(systemPrompt);
         const responseText = result.response.text();
 
-        return NextResponse.json({ success: true, result: responseText });
+        // 4. SUPABASE AGENT LOGGING (Complete)
+        if (agentRunId) {
+            await supabase.from('agent_runs').update({
+                status: 'completed',
+                steps_completed: ['Initializing Sales Persona', 'Analyzing Task', 'Strategy Generated', 'Execution Plan Ready'],
+                result_summary: responseText.slice(0, 500),
+                completed_at: new Date().toISOString()
+            }).eq('id', agentRunId);
+        }
+
+        return NextResponse.json({ 
+            success: true, 
+            result: responseText,
+            agent: 'Alex (Sales Executive)',
+            runId: agentRunId
+        });
+
     } catch (error: any) {
         console.error("Sales Agent API Error:", error);
-        return NextResponse.json(
-            { error: "Failed to generate sales strategy or email", details: error.message },
-            { status: 500 }
-        );
+        return NextResponse.json({ 
+            error: "Failed to execute sales agent task", 
+            details: error.message 
+        }, { status: 500 });
     }
 }
+

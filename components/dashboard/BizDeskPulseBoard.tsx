@@ -117,7 +117,7 @@ export default function BizDeskPulseBoard() {
     };
 
     return (
-        <div className="bg-white rounded-[2rem] border border-slate-200 shadow-xl overflow-hidden font-sans">
+        <div className="bg-white/60 backdrop-blur-xl rounded-[2rem] border border-slate-200/50 shadow-2xl overflow-hidden font-sans relative z-10">
             {/* Monday-style Header */}
             <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-white/50 backdrop-blur-md">
                 <div className="flex items-center gap-4">

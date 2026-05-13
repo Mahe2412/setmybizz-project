@@ -25,6 +25,16 @@ interface BizState {
     setConversationMode: (mode: boolean) => void;
     sidebarOpen: boolean;
     setSidebarOpen: (open: boolean) => void;
+    isVoiceActive: boolean;
+    setIsVoiceActive: (active: boolean) => void;
+    isMuted: boolean;
+    setIsMuted: (muted: boolean) => void;
+    isPaused: boolean;
+    setIsPaused: (paused: boolean) => void;
+    lastVoiceCommand: string | null;
+    setLastVoiceCommand: (cmd: string | null) => void;
+    liveTranscript: string;
+    setLiveTranscript: (val: string) => void;
 }
 
 export const useBizStore = create<BizState>()(
@@ -64,6 +74,16 @@ export const useBizStore = create<BizState>()(
             setConversationMode: (mode) => set({ conversationMode: mode }),
             sidebarOpen: true,
             setSidebarOpen: (open) => set({ sidebarOpen: open }),
+            isVoiceActive: false,
+            setIsVoiceActive: (active) => set({ isVoiceActive: active }),
+            isMuted: false,
+            setIsMuted: (muted) => set({ isMuted: muted }),
+            isPaused: false,
+            setIsPaused: (paused) => set({ isPaused: paused }),
+            lastVoiceCommand: null,
+            setLastVoiceCommand: (cmd) => set({ lastVoiceCommand: cmd }),
+            liveTranscript: '',
+            setLiveTranscript: (val) => set({ liveTranscript: val }),
         }),
         {
             name: 'bizos-operational-store',

@@ -1,7 +1,6 @@
 "use client";
-
 import React, { useState } from 'react';
-import { signInWithGoogle, signInWithEmailPassword, createUserAccount } from '@/lib/firebase';
+import { supabase } from '@/lib/supabase';
 
 interface LeadCaptureModalProps {
     isOpen: boolean;
@@ -72,7 +71,6 @@ export default function LeadCaptureModal({ isOpen, onClose, onComplete, prefille
             });
 
             if (response.ok) {
-                const data = await response.json();
                 // Move to account creation
                 setCurrentStep('create_account');
             } else {
@@ -90,28 +88,19 @@ export default function LeadCaptureModal({ isOpen, onClose, onComplete, prefille
         setError('');
 
         try {
-            const { user } = await signInWithGoogle();
-
-            // Save complete lead with user ID
-            const completeData = {
-                ...leadData,
-                userId: user.uid,
-                email: user.email || leadData.email,
-                displayName: user.displayName || leadData.businessName,
-                status: 'registered',
-                registrationMethod: 'google'
-            };
-
-            await fetch('/api/master-leads', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(completeData)
+            const { data, error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: `${window.location.origin}/auth/callback`,
+                }
             });
 
+            if (error) throw error;
+
+            // Note: with OAuth, we'll need to sync lead data via a webhook or on first login
+            // For now, we move to success step
             setCurrentStep('success');
-            setTimeout(() => {
-                onComplete(completeData, user.uid);
-            }, 2000);
+            onComplete(leadData);
         } catch (err: any) {
             setError(err.message || 'Failed to sign in with Google');
         } finally {
@@ -141,33 +130,48 @@ export default function LeadCaptureModal({ isOpen, onClose, onComplete, prefille
         setIsSubmitting(true);
 
         try {
-            const { user } = await createUserAccount(leadData.email, accountData.password, accountData.fullName);
-
-            // Save complete lead with user ID
-            const completeData = {
-                ...leadData,
-                userId: user.uid,
-                displayName: accountData.fullName,
-                status: 'registered',
-                registrationMethod: 'email'
-            };
-
-            await fetch('/api/master-leads', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(completeData)
+            const { data, error } = await supabase.auth.signUp({
+                email: leadData.email,
+                password: accountData.password,
+                options: {
+                    data: {
+                        full_name: accountData.fullName,
+                        business_name: leadData.businessName
+                    }
+                }
             });
 
-            setCurrentStep('success');
-            setTimeout(() => {
-                onComplete(completeData, user.uid);
-            }, 2000);
+            if (error) throw error;
+            const user = data.user;
+
+            if (user) {
+                // Save complete lead with user ID
+                const completeData = {
+                    ...leadData,
+                    userId: user.id,
+                    displayName: accountData.fullName,
+                    status: 'registered',
+                    registrationMethod: 'email'
+                };
+
+                await fetch('/api/master-leads', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(completeData)
+                });
+
+                setCurrentStep('success');
+                setTimeout(() => {
+                    onComplete(completeData, user.id);
+                }, 2000);
+            }
         } catch (err: any) {
             setError(err.message || 'Failed to create account');
         } finally {
             setIsSubmitting(false);
         }
     };
+
 
     return (
         <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300">

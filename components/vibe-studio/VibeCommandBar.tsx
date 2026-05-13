@@ -7,7 +7,7 @@ import { useBizStore } from '@/lib/useBizStore';
 export default function VibeCommandBar() {
     const [inputValue, setInputValue] = useState('');
     const [isThinking, setIsThinking] = useState(false);
-    const { addTask } = useBizStore();
+    const { addTask, setIsVoiceActive, isVoiceActive, liveTranscript } = useBizStore();
 
     const handleCommand = async () => {
         if (!inputValue.trim()) return;
@@ -61,13 +61,16 @@ export default function VibeCommandBar() {
                     type="text" 
                     placeholder="Command Arkle: 'Create a lead board' or 'Draft a CRM'..." 
                     className="flex-1 bg-transparent border-none outline-none text-xs font-bold text-slate-700 placeholder:text-slate-400 z-10"
-                    value={inputValue}
+                    value={isVoiceActive && liveTranscript ? liveTranscript : inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleCommand()}
                 />
 
                 <div className="flex items-center gap-2">
-                    <button className="w-9 h-9 rounded-lg hover:bg-slate-100 flex items-center justify-center transition-all">
+                    <button 
+                        onClick={() => setIsVoiceActive(true)}
+                        className="w-9 h-9 rounded-lg hover:bg-slate-100 flex items-center justify-center transition-all"
+                    >
                         <span className="material-symbols-outlined text-slate-400 text-lg">mic</span>
                     </button>
                     <button 

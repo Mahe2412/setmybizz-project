@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { supabase } from '@/lib/supabase';
 
 interface LoginStepProps {
     onLogin: (skipAuth?: boolean) => void;
@@ -27,11 +26,16 @@ const LoginStep: React.FC<LoginStepProps> = ({ onLogin, businessName }) => {
         setLoading(true);
         setError('');
         try {
-            const provider = new GoogleAuthProvider();
-            await signInWithPopup(auth, provider);
-            onLogin();
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: `${window.location.origin}/auth/callback`,
+                }
+            });
+            if (error) throw error;
+            // Note: with OAuth, onLogin will be handled by auth state listener in AuthContext
         } catch (err: any) {
-            console.error("Google Login Error:", err);
+            console.error("Supabase Google Login Error:", err);
             setError(err.message || 'Failed to login with Google.');
         } finally {
             setLoading(false);
@@ -44,18 +48,27 @@ const LoginStep: React.FC<LoginStepProps> = ({ onLogin, businessName }) => {
         setError('');
         try {
             if (isLogin) {
-                await signInWithEmailAndPassword(auth, email, password);
+                const { error } = await supabase.auth.signInWithPassword({
+                    email,
+                    password,
+                });
+                if (error) throw error;
             } else {
-                await createUserWithEmailAndPassword(auth, email, password);
+                const { error } = await supabase.auth.signUp({
+                    email,
+                    password,
+                });
+                if (error) throw error;
             }
             onLogin();
         } catch (err: any) {
-            console.error("Email Auth Error:", err);
+            console.error("Supabase Email Auth Error:", err);
             setError(err.message || 'Authentication failed.');
         } finally {
             setLoading(false);
         }
     };
+
 
     const handleSendOtp = () => {
         if (phone.length < 10) {

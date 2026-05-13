@@ -8,16 +8,16 @@ import {
 } from 'lucide-react';
 import { BusinessData } from '../../types';
 
-import { signInWithGoogle } from '../../lib/firebase';
-import { saveBusinessProfile } from '../../lib/db';
+import { supabase } from '@/lib/supabase';
+import { saveBusinessProfile } from '@/lib/db';
 
 interface SummaryStepProps {
     data: BusinessData;
     onBack: () => void;
-    onDashboard: () => void;
+    onNext: () => void;
 }
 
-const SummaryStep: React.FC<SummaryStepProps> = ({ data, onBack, onDashboard }) => {
+const SummaryStep: React.FC<SummaryStepProps> = ({ data, onBack, onNext }) => {
     const [isAnalyzing, setIsAnalyzing] = useState(true);
     const [analysisProgress, setAnalysisProgress] = useState(0);
     const [isLeadCaptured, setIsLeadCaptured] = useState(false);
@@ -46,17 +46,15 @@ const SummaryStep: React.FC<SummaryStepProps> = ({ data, onBack, onDashboard }) 
     const handleGoogleSignIn = async () => {
         try {
             setIsSyncing(true);
-            const { user } = await signInWithGoogle();
-            if (user) {
-                // Sync the onboarding data to the new user profile
-                await saveBusinessProfile(user.uid, {
-                    ...data,
-                    userName: user.displayName || data.userName,
-                    email: user.email || data.email,
-                });
-                setIsLeadCaptured(true);
-                setTimeout(() => onDashboard(), 1500);
-            }
+            const { data: authData, error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: `${window.location.origin}/auth/callback`,
+                }
+            });
+            
+            if (error) throw error;
+            // The actual profile sync will happen in AuthContext or on the callback page
         } catch (error) {
             console.error("Auth/Sync failed", error);
         } finally {
@@ -64,13 +62,14 @@ const SummaryStep: React.FC<SummaryStepProps> = ({ data, onBack, onDashboard }) 
         }
     };
 
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
             setIsSyncing(true);
             // Simulate manual lead capture success
             setIsLeadCaptured(true);
-            setTimeout(() => onDashboard(), 2000);
+            setTimeout(() => onNext(), 2000);
         } catch (error) {
             console.error("Lead capture failed", error);
         } finally {

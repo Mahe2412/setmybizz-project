@@ -14,6 +14,7 @@ import IdentityStep from './steps/IdentityStep';
 import LocationStep from './steps/LocationStep';
 import FocusStep from './steps/FocusStep';
 import SummaryStep from './steps/SummaryStep';
+import MarketHookStep from './steps/MarketHookStep';
 import LoginStep from './steps/LoginStep';
 import BizOSShell from './os/BizOSShell';
 import Layout from './Layout';
@@ -135,7 +136,8 @@ const AppContent: React.FC = () => {
         <SizeStep key="size" data={data} updateData={updateData} onNext={nextStep} onBack={prevStep} uiStep={3} totalSteps={9} />,
         <MotivationStep key="motivation" data={data} updateData={updateData} onNext={nextStep} onBack={prevStep} uiStep={4} totalSteps={9} />,
         <FocusStep key="focus" data={data} updateData={updateData} onNext={nextStep} onBack={prevStep} uiStep={5} totalSteps={9} />,
-        <SummaryStep key="summary" data={data} onBack={prevStep} onDashboard={() => setView('dashboard')} />
+        <SummaryStep key="summary" data={data} onBack={prevStep} onNext={nextStep} />,
+        <MarketHookStep key="hook" data={data} onBack={prevStep} onDashboard={() => setView('dashboard')} />
     ];
 
     if (loading) return <div>Initializing...</div>;

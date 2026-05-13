@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Draggable from 'react-draggable';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useBizStore } from '@/lib/useBizStore';
 
 type Msg = { role: 'user' | 'ai'; text: string; mode?: ArkleMode };
 type ArkleMode = 'Voice' | 'Autopilot' | 'Builder' | 'Auditor';
@@ -22,8 +23,10 @@ export default function ArklePanel({ onClose, selectedLang = 'en-IN' }: { onClos
   const [messages, setMessages] = useState<Msg[]>([{ role: 'ai', text: "Systems initialized. I am Arkle, your AI Co-Founder. Which mode shall we activate?", mode: 'Voice' }]);
   const [input, setInput]       = useState('');
   const [loading, setLoading]   = useState(false);
+  const isVoiceActive = useBizStore((state) => state.isVoiceActive);
+  const setIsVoiceActive = useBizStore((state) => state.setIsVoiceActive);
+  const liveTranscriptGlobal = useBizStore((state) => state.liveTranscript);
   const [isRecording, setIsRecording] = useState(false);
-  const [isVoiceActive, setIsVoiceActive] = useState(false);
   const [isSpeechEnabled, setIsSpeechEnabled] = useState(false);
   const [activeMode, setActiveMode] = useState<ArkleMode>('Voice');
   const [liveTranscript, setLiveTranscript] = useState('');
@@ -69,6 +72,11 @@ export default function ArklePanel({ onClose, selectedLang = 'en-IN' }: { onClos
   };
 
   useEffect(() => {
+    document.body.classList.add('arkle-panel-open');
+    return () => document.body.classList.remove('arkle-panel-open');
+  }, []);
+
+  useEffect(() => {
     if (typeof window !== 'undefined') {
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       if (SpeechRecognition) {
@@ -92,8 +100,8 @@ export default function ArklePanel({ onClose, selectedLang = 'en-IN' }: { onClos
   }, [selectedLang]);
 
   const toggleVoiceMode = () => {
-    if (isVoiceActive) { setIsVoiceActive(false); stopRecognition(); }
-    else { setIsVoiceActive(true); setIsSpeechEnabled(true); startRecognition(); }
+    setIsVoiceActive(true);
+    setIsSpeechEnabled(true);
   };
 
   const send = async (textOverride?: string) => {
@@ -214,60 +222,7 @@ export default function ArklePanel({ onClose, selectedLang = 'en-IN' }: { onClos
 
         {/* Dynamic Context Stream */}
         <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4 no-scrollbar relative">
-          <AnimatePresence>
-            {isVoiceActive && (
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="absolute inset-0 z-40 bg-slate-900/40 backdrop-blur-md flex flex-col items-center justify-center p-8 text-center"
-              >
-                 <div className="relative mb-10 group cursor-pointer" onClick={toggleVoiceMode}>
-                    <motion.div 
-                      animate={{ 
-                        scale: isAiTalking ? [1, 1.4, 1] : [1, 1.2, 1], 
-                        opacity: isAiTalking ? [0.2, 0.5, 0.2] : [0.1, 0.3, 0.1] 
-                      }}
-                      transition={{ duration: isAiTalking ? 1 : 2, repeat: Infinity }}
-                      className="absolute inset-0 bg-sky-500 rounded-full blur-3xl -m-10"
-                    />
-                    <motion.div 
-                      animate={{ 
-                        borderRadius: ["40% 60% 70% 30%", "60% 40% 30% 70%", "40% 60% 70% 30%"],
-                        rotate: [0, 90, 0],
-                        scale: isAiTalking ? [1, 1.1, 1] : 1
-                      }} 
-                      transition={{ 
-                        duration: isAiTalking ? 3 : 6, 
-                        repeat: Infinity, 
-                        ease: "easeInOut" 
-                      }}
-                      className="w-32 h-32 md:w-40 md:h-40 bg-linear-to-tr from-sky-400 via-indigo-400 to-cyan-300 shadow-[0_0_80px_rgba(56,189,248,0.5)] border border-white/40 flex flex-col items-center justify-center overflow-hidden"
-                    >
-                       <span className="material-symbols-outlined text-white text-[56px] drop-shadow-2xl">
-                         {isAiTalking ? 'volume_up' : 'graphic_eq'}
-                       </span>
-                    </motion.div>
-                 </div>
-                 
-                 <div className="space-y-3">
-                   <p className={`font-black text-[13px] uppercase tracking-[0.4em] ${isAiTalking ? 'text-sky-300 animate-bounce' : 'text-white/60 animate-pulse'}`}>
-                     {isAiTalking ? 'Arkle is Responding' : 'Listening...'}
-                   </p>
-                   <p className="text-white/40 text-[10px] font-medium leading-relaxed max-w-[250px] mx-auto uppercase tracking-widest">
-                     {isAiTalking ? 'Synthesizing business strategy directives...' : 'Speak your mission objective now'}
-                   </p>
-                 </div>
-
-                 <button 
-                   onClick={toggleVoiceMode}
-                   className="mt-12 px-10 py-4 bg-white/10 border border-white/10 hover:bg-red-500 hover:text-white text-white/60 text-[10px] font-black uppercase tracking-widest rounded-3xl transition-all shadow-xl"
-                 >
-                   Exit Voice Mode
-                 </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {/* Global Voice Widget handles the overlay now */}
 
           {messages.map((msg, i) => (
             <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
@@ -329,7 +284,7 @@ export default function ArklePanel({ onClose, selectedLang = 'en-IN' }: { onClos
               </button>
 
               <input 
-                value={liveTranscript || input}
+                value={isVoiceActive && liveTranscriptGlobal ? liveTranscriptGlobal : input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && send()}
                 className="flex-1 bg-transparent text-slate-800 text-[15px] font-bold outline-none placeholder-slate-400 select-none py-3"

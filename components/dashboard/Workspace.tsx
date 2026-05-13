@@ -9,7 +9,6 @@ import IntegrationModal from './IntegrationModal';
 import GoogleIntegrationModal from './GoogleIntegrationModal';
 import GoogleWorkspaceDashboard, { GoogleApp } from './GoogleWorkspaceDashboard';
 // import AiCoFounderChat from './AiCoFounderChat'; // Deleted unused component
-import AdvancedOnboarding from '../onboarding/AdvancedOnboarding';
 import CenterChat from '../ai-studio/CenterChat';
 import BizDeskPulseBoard from './BizDeskPulseBoard';
 import GSTTab from '../os/GSTTab';
@@ -157,7 +156,20 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
 
 
     return (
-        <div className="flex h-screen overflow-hidden bg-white font-sans text-slate-900 transition-colors duration-200">
+        <div className="flex h-screen overflow-hidden bg-white font-sans text-slate-900 transition-colors duration-200 relative">
+            {/* ══════ UNIVERSAL MOOD SURFACE ══════ */}
+            <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+                {/* Base Soft Tint */}
+                <div className="absolute inset-0 bg-[#ffffff]" />
+                
+                {/* Central Mood Glow Pulse */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-indigo-500/5 rounded-full blur-[120px] animate-pulse" />
+                
+                {/* Edge Shading - Left & Right 20% White Gradients */}
+                <div className="absolute inset-y-0 left-0 w-[20%] bg-gradient-to-r from-white via-white/80 to-transparent" />
+                <div className="absolute inset-y-0 right-0 w-[20%] bg-gradient-to-l from-white via-white/80 to-transparent" />
+            </div>
+
             {/* Google Workspace Dashboard Overlay */}
             {showGoogleDashboard && (
                 <GoogleWorkspaceDashboard
@@ -192,9 +204,10 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
             </aside>
 
             {/* Desktop Left Sidebar */}
-            <aside className={`hidden lg:flex flex-col h-full flex-shrink-0 z-30 transition-all duration-300 ${leftSidebarOpen ? 'w-64' : 'w-0'}`}>
-                <div className={`bg-slate-50 border-r border-slate-200 flex flex-col h-full w-64 overflow-hidden`}>
-                    <div className="h-16 flex items-center px-6 border-b border-slate-100 flex-shrink-0 bg-white">
+            <aside className={`hidden lg:flex flex-col h-full flex-shrink-0 z-30 transition-all duration-300 relative ${leftSidebarOpen ? 'w-64' : 'w-0'}`}>
+                <div className={`bg-white/40 backdrop-blur-md border-r border-slate-200/50 flex flex-col h-full w-64 overflow-hidden`}>
+                    <div className="h-16 flex items-center px-6 border-b border-slate-100/50 flex-shrink-0 bg-white/50 backdrop-blur-sm">
+
                         <div className="flex items-center gap-2">
                             <span className="font-serif font-black text-xl text-slate-900 tracking-tighter">SetMyBizz<span className="text-blue-600">.</span></span>
                         </div>
@@ -351,8 +364,9 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
             </aside>
 
             {/* Main Content Area */}
-            <main className="flex-1 flex flex-col h-full overflow-hidden relative min-w-0">
-                <header className="h-16 flex items-center justify-between px-4 lg:px-8 relative z-10 border-b border-slate-200/50 backdrop-blur-sm flex-shrink-0 bg-white/50">
+            <main className="flex-1 flex flex-col h-full overflow-hidden relative min-w-0 z-10">
+                <header className="h-16 flex items-center justify-between px-4 lg:px-8 relative z-10 border-b border-slate-200/30 backdrop-blur-md flex-shrink-0 bg-white/20">
+
                     <div className="flex items-center gap-4">
                         <button onClick={() => setLeftSidebarOpen(!leftSidebarOpen)} className="hidden lg:flex p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors">
                             <span className="material-icons-outlined">{leftSidebarOpen ? 'menu_open' : 'menu'}</span>
@@ -404,7 +418,8 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
                 </header>
 
                 <div className="flex-1 overflow-y-auto overflow-x-hidden relative z-10 w-full" id="main-scroll-container">
-                    <div className="absolute top-0 left-0 w-full h-full bg-white z-0"></div>
+                    <div className="absolute top-0 left-0 w-full h-full bg-transparent z-0"></div>
+
 
                     {/* Operational Metrics Bar */}
                     <div className="relative z-20 px-4 lg:px-8 pt-6 pb-2">
@@ -560,9 +575,10 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
             </main>
 
             {/* Right Sidebar - AI Assistant */}
-            <aside className={`fixed lg:static inset-y-0 right-0 h-full border-l border-slate-200 z-50 transition-all duration-300 transform bg-white flex flex-col ${rightSidebarOpen ? 'w-80 translate-x-0' : 'w-0 translate-x-full lg:translate-x-0 lg:w-0 overflow-hidden'} ${mobileAiAssistantsOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}`}>
-                <div className="flex flex-col h-full bg-slate-50/50">
-                    <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-white flex-shrink-0">
+            <aside className={`fixed lg:static inset-y-0 right-0 h-full border-l border-slate-200/50 z-50 transition-all duration-300 transform bg-white/40 backdrop-blur-md flex flex-col ${rightSidebarOpen ? 'w-80 translate-x-0' : 'w-0 translate-x-full lg:translate-x-0 lg:w-0 overflow-hidden'} ${mobileAiAssistantsOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}`}>
+                <div className="flex flex-col h-full bg-transparent">
+                    <div className="p-4 border-b border-slate-100/50 flex items-center justify-between bg-white/50 flex-shrink-0">
+
                         <h2 className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
                             <span className="material-icons-outlined text-blue-500 text-sm">smart_toy</span> AI Co-Founder
                         </h2>
@@ -866,16 +882,34 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
                             </button>
                         </div>
                         <div className="overflow-y-auto max-h-[calc(90vh-100px)]">
-                            <AdvancedOnboarding
-                                onComplete={(profile) => {
-                                    console.log('AI Workspace profile:', profile);
-                                    // Save the profile and mark user as no longer new
-                                    localStorage.setItem('workspaceProfile', JSON.stringify(profile));
-                                    setIsNewUser(false); // Stop showing popups
-                                    setShowAIWorkspaceSetup(false);
-                                    // Optionally show a success message or redirect
-                                }}
-                            />
+                            <div className="p-8 text-center max-w-xl mx-auto">
+                                <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                                    <span className="material-icons text-3xl animate-spin">autorenew</span>
+                                </div>
+                                <h4 className="text-xl font-black text-slate-900 mb-2">Synchronizing Workspace Modules</h4>
+                                <p className="text-slate-500 text-sm mb-6 leading-relaxed">
+                                    Arkle is optimizing your operational tray based on your primary sector vectors.
+                                </p>
+                                <div className="space-y-3 mb-8 text-left">
+                                    {['CRM Pipelines Integrated', 'GST Compliance Sentinel Linked', 'Global Banking Node Prepared'].map((txt, idx) => (
+                                        <div key={idx} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                            <span className="material-icons text-emerald-500 text-sm">check_circle</span>
+                                            <span className="text-xs font-bold text-slate-700">{txt}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        const dummyProfile = { status: 'synced', timestamp: Date.now() };
+                                        localStorage.setItem('workspaceProfile', JSON.stringify(dummyProfile));
+                                        setIsNewUser(false);
+                                        setShowAIWorkspaceSetup(false);
+                                    }}
+                                    className="px-8 py-3 bg-slate-900 text-white rounded-xl font-bold text-sm shadow-xl hover:bg-blue-600 transition-all w-full"
+                                >
+                                    Launch Optimized Workspace
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

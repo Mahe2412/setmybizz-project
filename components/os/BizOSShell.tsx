@@ -24,11 +24,14 @@ import StartupStoreTab from '@/components/os/StartupStoreTab';
 import RetailerTab from '@/components/os/RetailerTab';
 import { useBizStore } from '@/lib/useBizStore';
 import LaunchPadTab from '@/components/os/LaunchPadTab';
+import { ArkleVoiceIcon } from '../shared/ArkleVoiceIcon';
 import Workspace from '@/components/dashboard/Workspace';
 import IntegrationsPanel from '@/components/os/IntegrationsPanel';
 import WhiteboardPanel from './WhiteboardPanel';
 import BizboardSpotlight from './launchpad/LaunchPadSpotlight';
 import VibeCommandBar from '../vibe-studio/VibeCommandBar';
+import ArkleFloatingVoice from './ArkleFloatingVoice';
+import ArkleVoiceOrb from './ArkleVoiceOrb';
 
 /* ───────────── SIDEBAR NAV CONFIG (BizDesk) ───────────── */
 type SidebarSection = { section: string; items: { id: OsTab; icon: string; label: string; badge?: string }[] };
@@ -155,7 +158,7 @@ interface BizOSShellProps {
 
 export default function BizOSShell({ data: initialData }: BizOSShellProps) {
   const [activeTab, setActiveTab] = useState<OsTab>('home');
-  const [arkleOpen, setArkleOpen] = useState(true);
+  const [arkleOpen, setArkleOpen] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
   const [activeTopNav, setActiveTopNav] = useState<TopNavId>('bizdesk');
   const [bizData, setBizData] = useState(initialData || BIZ);
@@ -166,6 +169,29 @@ export default function BizOSShell({ data: initialData }: BizOSShellProps) {
   const setSidebarOpen = useBizStore((state) => state.setSidebarOpen);
   const whiteboardOpen = useBizStore((state) => state.whiteboardOpen);
   const setWhiteboardOpen = useBizStore((state) => state.setWhiteboardOpen);
+  const isVoiceActive = useBizStore((state) => state.isVoiceActive);
+  const setIsVoiceActive = useBizStore((state) => state.setIsVoiceActive);
+  const lastVoiceCommand = useBizStore((state) => state.lastVoiceCommand);
+  const setLastVoiceCommand = useBizStore((state) => state.setLastVoiceCommand);
+
+  // ── Global Voice Navigation Actuators ──
+  useEffect(() => {
+    if (lastVoiceCommand) {
+      const cmd = lastVoiceCommand.toLowerCase();
+      
+      if (cmd.includes('go to') || cmd.includes('open') || cmd.includes('show')) {
+        if (cmd.includes('bank') || cmd.includes('money')) setActiveTab('banking');
+        else if (cmd.includes('gst') || cmd.includes('tax')) setActiveTab('gst');
+        else if (cmd.includes('expert') || cmd.includes('help')) setActiveTab('experts');
+        else if (cmd.includes('company') || cmd.includes('profile')) setActiveTab('company');
+        else if (cmd.includes('record') || cmd.includes('file')) setActiveTab('records');
+        else if (cmd.includes('launch') || cmd.includes('build')) setActiveTab('launchpad');
+        
+        console.log("Voice Navigation Executed:", cmd);
+        // Do NOT setLastVoiceCommand(null) here if you want other components to also react
+      }
+    }
+  }, [lastVoiceCommand]);
 
   const [isConv, setIsConv] = useState(false);
 
@@ -439,13 +465,71 @@ export default function BizOSShell({ data: initialData }: BizOSShellProps) {
         {arkleOpen && (
           <div className="fixed inset-0 z-[150] pointer-events-none">
              <div className="pointer-events-auto">
-                <ArklePanel onClose={() => setArkleOpen(false)} selectedLang={globalLang} />
+                <AnimatePresence>
+        {isVoiceActive && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-[90] pointer-events-none"
+          />
+        )}
+      </AnimatePresence>
+
+      <ArklePanel open={arkleOpen} onClose={() => setArkleOpen(false)} selectedLang={globalLang} />
              </div>
           </div>
         )}
       </AnimatePresence>
 
       <VibeCommandBar />
+      
+      {/* ─── ARKLE NEURAL TASKBAR (Floating OS Control) ─── */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2.5 sm:py-3 bg-slate-900/90 backdrop-blur-3xl rounded-[32px] border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] max-w-[95vw]">
+          {/* Dashboard Switcher Quick Tool (Optional/Contextual) */}
+          <div className="hidden sm:flex items-center gap-1.5 px-3 border-r border-white/10 mr-2">
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+              <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Neural OS Active</span>
+          </div>
+
+          {/* TaskBar Actions */}
+          <div className="flex items-center gap-4">
+              <button 
+                  onClick={() => setArkleOpen(!arkleOpen)}
+                  className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${arkleOpen ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/20' : 'text-white/40 hover:text-white hover:bg-white/10'}`}
+                  title="Toggle Arkle Agent (IDE)"
+              >
+                  <span className="material-symbols-rounded text-[24px]">psychology</span>
+              </button>
+
+              {/* THE VOICE TRIGGER (The Request) */}
+              <div className="relative">
+                  {isVoiceActive && (
+                      <>
+                          <div className="absolute inset-0 bg-indigo-500 rounded-2xl animate-ping opacity-25"></div>
+                          <div className="absolute -inset-2 bg-indigo-400/20 rounded-full blur-xl animate-pulse"></div>
+                      </>
+                  )}
+                  <button 
+                      onClick={() => setIsVoiceActive(true)}
+                      className={`relative w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 overflow-hidden ${isVoiceActive ? 'opacity-0 scale-50 pointer-events-none' : 'text-white/40 hover:text-white hover:bg-white/10 hover:scale-105'}`}
+                      title="Arkle Voice Mode"
+                  >
+                      <ArkleVoiceIcon size="md" className={isVoiceActive ? '' : 'opacity-40'} />
+                  </button>
+              </div>
+
+              <button 
+                  className="w-10 h-10 rounded-2xl flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-all"
+                  title="System Health"
+              >
+                  <span className="material-symbols-rounded text-[24px]">analytics</span>
+              </button>
+          </div>
+      </div>
+
+      {/* GLOBAL NEURAL VOICE HUB (Hidden by default, triggered by TaskBar) */}
+      <ArkleFloatingVoice />
     </div>
   );
 }

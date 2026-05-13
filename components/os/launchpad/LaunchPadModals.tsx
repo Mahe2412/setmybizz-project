@@ -250,3 +250,123 @@ export const DiscoveryModal: React.FC<DiscoveryModalProps> = ({
         </div>
     );
 };
+
+interface ProjectLibraryModalProps {
+    show: boolean;
+    onClose: () => void;
+    userId: string | undefined;
+    onSelectProject: (project: any) => void;
+}
+
+export const ProjectLibraryModal: React.FC<ProjectLibraryModalProps> = ({ show, onClose, userId, onSelectProject }) => {
+    const [projects, setProjects] = React.useState<any[]>([]);
+    const [loading, setLoading] = React.useState(true);
+
+    React.useEffect(() => {
+        if (show && userId) {
+            const fetchProjects = async () => {
+                setLoading(true);
+                try {
+                    const { supabase } = await import('@/lib/supabase');
+                    const { data, error } = await supabase
+                        .from('projects')
+                        .select('*')
+                        .eq('user_id', userId)
+                        .order('created_at', { ascending: false });
+
+                    if (!error) setProjects(data || []);
+                } catch (err) {
+                    console.error('Fetch Projects Error:', err);
+                } finally {
+                    setLoading(false);
+                }
+            };
+            fetchProjects();
+        }
+    }, [show, userId]);
+
+    if (!show) return null;
+
+    return (
+        <div className="fixed inset-0 z-[160] flex items-center justify-center bg-black/60 backdrop-blur-md animate-in fade-in duration-500 p-6">
+            <motion.div 
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="bg-white w-full max-w-5xl h-[80vh] rounded-[40px] shadow-2xl flex flex-col overflow-hidden border border-slate-200"
+            >
+                {/* Header */}
+                <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                    <div>
+                        <h2 className="text-[32px] font-black text-slate-900 tracking-tight leading-none mb-2 uppercase">Project Library</h2>
+                        <p className="text-[14px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                            Stored in Neural Cloud
+                        </p>
+                    </div>
+                    <button onClick={onClose} className="w-12 h-12 rounded-full hover:bg-white flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all border border-transparent hover:border-slate-200">
+                        <span className="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                    {loading ? (
+                        <div className="h-full flex flex-col items-center justify-center gap-4">
+                            <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
+                            <p className="text-[12px] font-black text-slate-400 uppercase tracking-widest">Accessing Secure Vault...</p>
+                        </div>
+                    ) : projects.length === 0 ? (
+                        <div className="h-full flex flex-col items-center justify-center text-center">
+                            <div className="w-24 h-24 bg-slate-50 rounded-[32px] flex items-center justify-center mb-6 border border-slate-100">
+                                <span className="material-symbols-outlined text-[48px] text-slate-300">folder_open</span>
+                            </div>
+                            <h3 className="text-[24px] font-black text-slate-900 mb-2">No Projects Found</h3>
+                            <p className="text-slate-400 font-medium max-w-sm mb-8">You haven't built anything with Arkle Forge yet. Start your first build from the LaunchPad.</p>
+                            <button onClick={onClose} className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-bold uppercase tracking-widest text-[12px] hover:scale-105 active:scale-95 transition-all shadow-lg shadow-blue-500/20">
+                                Initialize Forge
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {projects.map((project) => (
+                                <button 
+                                    key={project.id}
+                                    onClick={() => onSelectProject(project)}
+                                    className="group text-left bg-white border border-slate-200 rounded-[32px] p-6 hover:border-blue-500 hover:shadow-xl transition-all duration-300 flex flex-col gap-4 relative overflow-hidden"
+                                >
+                                    <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 blur-2xl rounded-full -mr-12 -mt-12 group-hover:bg-blue-500/10 transition-colors"></div>
+                                    
+                                    <div className="flex items-start justify-between relative z-10">
+                                        <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500 shadow-sm">
+                                            <span className="material-symbols-outlined text-[24px]">{project.tool_id === 'website' ? 'language' : project.tool_id === 'logo' ? 'palette' : 'inventory_2'}</span>
+                                        </div>
+                                        <div className="flex flex-col items-end">
+                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{new Date(project.created_at).toLocaleDateString()}</span>
+                                            <span className="px-2 py-0.5 rounded bg-emerald-50 text-[8px] font-black text-emerald-600 uppercase tracking-tighter mt-1">{project.status}</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="relative z-10">
+                                        <h4 className="text-[18px] font-black text-slate-900 group-hover:text-blue-600 transition-colors truncate">{project.title}</h4>
+                                        <p className="text-[12px] text-slate-400 font-bold uppercase tracking-widest mt-1">{project.persona_label || 'Arkle Architect'}</p>
+                                    </div>
+
+                                    <div className="mt-2 pt-4 border-t border-slate-50 flex items-center justify-between relative z-10">
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="material-symbols-outlined text-[14px] text-slate-300">chat_bubble</span>
+                                            <span className="text-[10px] font-bold text-slate-500 truncate max-w-[120px]">{project.prompt.slice(0, 30)}...</span>
+                                        </div>
+                                        <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition-all">
+                                            <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                                        </div>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </motion.div>
+        </div>
+    );
+};

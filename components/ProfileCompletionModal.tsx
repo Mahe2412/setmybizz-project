@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { db } from '@/lib/firebase';
-import { doc, setDoc } from 'firebase/firestore';
+import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 
 interface ProfileCompletionModalProps {
@@ -24,8 +23,8 @@ const ProfileCompletionModal: React.FC<ProfileCompletionModalProps> = ({ isOpen,
     useEffect(() => {
         if (isOpen && user) {
             setFormData({
-                displayName: dbUser?.displayName || user.displayName || '',
-                businessName: dbUser?.businessName || '',
+                displayName: dbUser?.full_name || user.user_metadata?.full_name || '',
+                businessName: dbUser?.business_name || '',
                 phone: dbUser?.phone || '',
                 state: dbUser?.state || '',
                 city: dbUser?.city || '',
@@ -46,26 +45,37 @@ const ProfileCompletionModal: React.FC<ProfileCompletionModalProps> = ({ isOpen,
                 const uniqueId = existingId || `SMB-2026-${Math.floor(1000 + Math.random() * 9000)}`;
 
                 const updateData = {
-                    ...formData,
+                    id: user.id,
+                    full_name: formData.displayName,
                     email: user.email,
-                    uid: user.uid,
-                    registeredId: uniqueId,
-                    updatedAt: new Date(),
-                    role: dbUser?.role || 'user'
+                    // Additional fields can be stored in metadata or separate columns
+                    // For now, updating the 'users' table columns we have
+                    updated_at: new Date().toISOString(),
                 };
 
-                // Save to Firestore
-                await setDoc(doc(db, "users", user.uid), updateData, { merge: true });
+                // Save to Supabase 'users' table
+                const { error: userError } = await supabase.from('users').upsert(updateData);
+                if (userError) throw userError;
 
-                onComplete(updateData);
+                // Also save/update the 'businesses' table
+                const { error: bizError } = await supabase.from('businesses').upsert({
+                    user_id: user.id,
+                    business_name: formData.businessName,
+                    updated_at: new Date().toISOString()
+                }, { onConflict: 'user_id' });
+                
+                if (bizError) throw bizError;
+
+                onComplete({ ...formData, registeredId: uniqueId });
             }
-        } catch (error) {
-            console.error("Error saving profile:", error);
-            alert("Failed to save profile. Please try again.");
+        } catch (error: any) {
+            console.error("Error saving profile to Supabase:", error);
+            alert("Failed to save profile: " + error.message);
         } finally {
             setLoading(false);
         }
     };
+
 
     return (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-[200] flex items-center justify-center p-4 animate-in fade-in duration-300">

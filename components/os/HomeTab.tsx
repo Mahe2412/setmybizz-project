@@ -1,7 +1,6 @@
 'use client';
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import ArkleVoiceOrb from './ArkleVoiceOrb';
 import WhiteboardPanel from './WhiteboardPanel';
 import BizboardSpotlight from './launchpad/LaunchPadSpotlight';
 import { useBizStore } from '../../lib/useBizStore';
@@ -64,7 +63,7 @@ export default function HomeTab({ data }: { data: any }) {
    const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       const val = e.target.value;
       setInput(val);
-      
+
       // Suggestion Logic
       const lastWord = val.split(/\s/).pop() || '';
       if (lastWord.startsWith('@')) {
@@ -99,7 +98,7 @@ export default function HomeTab({ data }: { data: any }) {
    const sendMessage = useCallback(async (text = input) => {
       const q = text.trim();
       if (!q || loading) return;
-      
+
       // @Mention Context Detection
       let finalPrompt = q;
       const mentionMatch = q.match(/@(\w+)/);
@@ -113,7 +112,7 @@ export default function HomeTab({ data }: { data: any }) {
             'agents': 'Agent Mode',
             'brain': 'Arkle Brain'
          };
-         
+
          if (contextMap[mention]) {
             setSelectedContext(contextMap[mention]);
             // Remove the @mention from the prompt to keep it clean for the AI
@@ -131,10 +130,10 @@ export default function HomeTab({ data }: { data: any }) {
          const resp = await fetch('/api/gemini', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-               prompt: finalPrompt, 
+            body: JSON.stringify({
+               prompt: finalPrompt,
                context: selectedContext, // Send the selected context to the API
-               messages: msgs.map(m => ({ role: m.role, content: m.content })) 
+               messages: msgs.map(m => ({ role: m.role, content: m.content }))
             })
          });
          const resData = await resp.json();
@@ -189,7 +188,7 @@ export default function HomeTab({ data }: { data: any }) {
             <div className="h-16 border-b border-slate-100 px-10 flex items-center justify-between sticky top-0 z-50 bg-white/80 backdrop-blur-md">
                <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">Neural Core Active</span>
                {conversationMode && (
-                  <button 
+                  <button
                      onClick={() => { setConversationMode(false); setSidebarOpen(true); }}
                      className="w-10 h-10 rounded-full bg-slate-900 text-white flex items-center justify-center hover:bg-blue-600 transition-all shadow-lg shadow-slate-900/10"
                      title="Exit Conversation"
@@ -225,20 +224,20 @@ export default function HomeTab({ data }: { data: any }) {
                )}
 
                <div className={`w-full transition-all duration-500 z-50 ${conversationMode ? 'fixed bottom-6 left-1/2 -translate-x-1/2 max-w-[950px] px-4' : 'max-w-[850px] mx-auto'}`}>
-                  
+
                   {/* Suggestions Menu */}
                   <AnimatePresence>
                      {showSuggestions && (
-                        <motion.div 
-                           initial={{ opacity: 0, y: 10 }} 
-                           animate={{ opacity: 1, y: 0 }} 
+                        <motion.div
+                           initial={{ opacity: 0, y: 10 }}
+                           animate={{ opacity: 1, y: 0 }}
                            exit={{ opacity: 0, y: 10 }}
                            className="absolute bottom-full mb-4 left-0 w-64 bg-white/80 backdrop-blur-xl border border-slate-200 rounded-3xl shadow-2xl p-2 z-[100]"
                         >
                            <div className="px-3 py-2 text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 mb-1">Mention Topic</div>
                            {filteredSuggestions.map(s => (
-                              <button 
-                                 key={s} 
+                              <button
+                                 key={s}
                                  onClick={() => selectSuggestion(s)}
                                  className="w-full text-left p-3 rounded-2xl hover:bg-blue-600 hover:text-white text-[11px] font-bold transition-all flex items-center gap-3 group"
                               >
@@ -255,6 +254,100 @@ export default function HomeTab({ data }: { data: any }) {
                      <button onClick={() => setActiveChatTab('agents')} className={`w-[105px] h-[33px] flex items-center justify-center transition-all duration-300 font-black relative z-30 ${activeChatTab === 'agents' ? 'rounded-tl-[20px] rounded-tr-none rounded-b-none bg-gradient-to-r from-violet-600 to-blue-600 text-white shadow-[0_-5px_15px_rgba(124,58,237,0.25)]' : 'rounded-none bg-transparent text-slate-400 hover:text-slate-600'}`}><span className="relative z-10 uppercase tracking-[0.2em] text-[10px]">Agent</span></button>
                   </div>
                   <div className="relative p-[4px] rounded-tr-[42px] rounded-br-[42px] rounded-bl-[42px] rounded-tl-none bg-gradient-to-r from-purple-600 via-rose-500 to-indigo-600 shadow-[0_30px_70px_-20px_rgba(79,70,229,0.25)] z-10">
+                     {/* Arkle Voice Trigger - Animated & Draggable Bubble */}
+                     <motion.div
+                        drag
+                        dragMomentum={false}
+                        className="absolute -top-16 left-1/2 -translate-x-1/2 z-40 cursor-grab active:cursor-grabbing"
+                     >
+                        <motion.div
+                           whileHover={{ scale: 1.1, y: -3 }}
+                           whileTap={{ scale: 0.9 }}
+                           onClick={() => useBizStore.getState().setIsVoiceActive(true)}
+                           className="relative flex flex-col items-center group cursor-pointer"
+                        >
+                           <div className="w-24 h-24 rounded-full bg-slate-900 flex items-center justify-center shadow-2xl border-2 border-white/20 relative overflow-hidden">
+                              {/* Hyper-Realistic Liquid Background (Screenshot Match) */}
+                              <div className="absolute inset-0 overflow-hidden opacity-90">
+                                 <div className="absolute inset-[-20%] bg-blue-600/30 animate-liquid [animation-duration:5s] mix-blend-screen blur-[45px] scale-150"></div>
+                                 <div className="absolute inset-[-30%] bg-indigo-600/30 animate-liquid [animation-duration:8s] [animation-delay:-1s] mix-blend-screen blur-[55px] scale-125"></div>
+                                 <div className="absolute inset-[-25%] bg-violet-600/30 animate-liquid [animation-duration:11s] [animation-delay:-3s] mix-blend-screen blur-[65px] scale-150"></div>
+                                 <div className="absolute inset-[-40%] bg-cyan-400/20 animate-liquid [animation-duration:14s] [animation-delay:-5s] mix-blend-screen blur-[75px] scale-175"></div>
+                              </div>
+
+                              {/* The Central Liquid Morphing Blob */}
+                              <svg viewBox="0 0 200 200" className="absolute inset-0 w-full h-full scale-[1.3] z-10 opacity-70 mix-blend-overlay">
+                                 <defs>
+                                    <linearGradient id="homeOrbGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                       <stop offset="0%" style={{ stopColor: '#60a5fa', stopOpacity: 0.8 }} />
+                                       <stop offset="100%" style={{ stopColor: '#4f46e5', stopOpacity: 0.8 }} />
+                                    </linearGradient>
+                                 </defs>
+                                 <motion.path
+                                    animate={{
+                                       d: [
+                                          "M100,10 Q160,10 180,80 T160,160 T100,190 T40,160 T20,80 T100,10",
+                                          "M100,20 Q170,10 190,90 T170,170 T100,180 T30,170 T10,90 T100,20",
+                                          "M100,10 Q160,10 180,80 T160,160 T100,190 T40,160 T20,80 T100,10"
+                                       ]
+                                    }}
+                                    transition={{
+                                       duration: 3,
+                                       repeat: Infinity,
+                                       ease: "easeInOut"
+                                    }}
+                                    fill="url(#homeOrbGrad)"
+                                 />
+                              </svg>
+                              
+                              {/* Heart Pulse (Screenshot Match: 4-bar Equalizer) */}
+                              <div className="relative z-20 w-full h-full flex items-center justify-center">
+                                 <div className="absolute inset-0 bg-blue-400/30 rounded-full blur-md animate-ping"></div>
+                                 
+                                 <div className="flex items-center gap-1 h-6 relative z-10">
+                                     {[1, 2, 3, 4].map((i) => (
+                                         <div 
+                                             key={i} 
+                                             className="w-1 bg-white rounded-full animate-voice-wave shadow-[0_0_8px_rgba(255,255,255,0.6)]" 
+                                             style={{ 
+                                                 height: i === 1 || i === 4 ? '60%' : '100%',
+                                                 animationDelay: `${i * 0.15}s` 
+                                             }}
+                                         ></div>
+                                     ))}
+                                 </div>
+                              </div>
+                           </div>
+
+                           {/* Quick Command Sticker Popup (Home Match) */}
+                           <div className="absolute -top-16 left-1/2 -translate-x-1/2 flex items-center gap-2 p-1.5 bg-slate-900/95 backdrop-blur-xl rounded-2xl border border-white/20 shadow-[0_30px_60px_rgba(0,0,0,0.4)] opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:-translate-y-0 z-50">
+                               <button 
+                                   onClick={(e) => { e.stopPropagation(); useBizStore.getState().setIsMuted(!useBizStore.getState().isMuted); }}
+                                   className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${useBizStore.getState().isMuted ? 'text-orange-400 bg-orange-400/10' : 'text-white hover:bg-white/10'}`}
+                               >
+                                   <span className="material-symbols-rounded text-[18px]">{useBizStore.getState().isMuted ? 'mic_off' : 'mic'}</span>
+                               </button>
+                               <button 
+                                   onClick={(e) => { e.stopPropagation(); useBizStore.getState().setIsVoiceActive(false); }}
+                                   className="w-9 h-9 rounded-xl flex items-center justify-center text-red-400 border border-red-400/20 hover:bg-red-500/20 transition-all"
+                               >
+                                   <span className="material-symbols-rounded text-[18px]">close</span>
+                               </button>
+                               <button 
+                                   onClick={(e) => { e.stopPropagation(); useBizStore.getState().setIsPaused(!useBizStore.getState().isPaused); }}
+                                   className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${useBizStore.getState().isPaused ? 'text-blue-400 bg-blue-400/10' : 'text-white hover:bg-white/10'}`}
+                               >
+                                   <span className="material-symbols-rounded text-[18px]">{useBizStore.getState().isPaused ? 'play_arrow' : 'pause'}</span>
+                               </button>
+                               {/* Arrow */}
+                               <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-slate-900/95 border-r border-b border-white/20 rotate-45"></div>
+                           </div>
+
+                           <div className="mt-4 px-5 py-2 bg-white shadow-xl rounded-full border border-slate-100 opacity-0 group-hover:opacity-100 transition-all text-[10px] font-black uppercase tracking-[0.2em] text-slate-900 whitespace-nowrap">Voice Mode Active</div>
+
+                        </motion.div>
+                     </motion.div>
+
                      <div className="bg-white rounded-tr-[39px] rounded-br-[39px] rounded-bl-[39px] rounded-tl-none flex flex-col overflow-visible">
                         <textarea ref={textareaRef} value={input} onChange={handleInput} rows={1} className="w-full bg-white border-none outline-none focus:outline-none focus:ring-0 text-slate-400 text-[18px] md:text-[21px] font-normal px-12 pt-10 pb-2 resize-none no-scrollbar placeholder:text-slate-300 placeholder:font-light rounded-[39px] min-h-[60px]" placeholder="Ask Arkle or type @topic for deep research..." />
                         <div className="flex items-center justify-between px-10 pb-6 pt-4 bg-white border-none rounded-b-[39px]">
@@ -285,11 +378,11 @@ export default function HomeTab({ data }: { data: any }) {
                         <div className="flex-1 grid grid-cols-4 gap-6 overflow-hidden">
                            <AnimatePresence mode="popLayout">
                               {QUICK_TILES.slice(tileIndex, tileIndex + 4).map((tile) => (
-                                 <motion.button 
-                                    key={tile.title} 
-                                    initial={{ opacity: 0, x: 20 }} 
-                                    animate={{ opacity: 1, x: 0 }} 
-                                    exit={{ opacity: 0, x: -20 }} 
+                                 <motion.button
+                                    key={tile.title}
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
                                     className="bg-white p-5 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-1.5 transition-all text-left group min-h-[144px] flex flex-col justify-between"
                                  >
                                     <div className="mb-3 text-slate-300 group-hover:text-blue-500 transition-colors">
@@ -414,7 +507,6 @@ export default function HomeTab({ data }: { data: any }) {
          )}
 
          <WhiteboardPanel isOpen={isWhiteboardOpen} onClose={() => setIsWhiteboardOpen(false)} />
-         <ArkleVoiceOrb isOpen={isLiveVoice} onClose={() => setIsLiveVoice(false)} isListening={true} msgs={msgs} />
       </div>
    );
 }

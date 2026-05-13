@@ -148,7 +148,7 @@ const TOP_NAV: { id: TopNavId; label: string; icon: string; badge?: string; desc
 
 export default function OSPage() {
   const [activeTab, setActiveTab] = useState<OsTab>('home');
-  const [arkleOpen, setArkleOpen] = useState(true);
+  const [arkleOpen, setArkleOpen] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeTopNav, setActiveTopNav] = useState<TopNavId>('bizdesk');
@@ -229,7 +229,7 @@ export default function OSPage() {
       `}</style>
 
       {/* ═══════ COMPACT LIGHT TOP BAR ═══════ */}
-      <header className={`shrink-0 h-14 md:h-15 lg:h-16 flex items-center justify-between px-6 md:px-8 gap-4 z-50 border-b backdrop-blur-3xl transition-all duration-500 bg-white/80 border-slate-100 shadow-[0_4px_25px_rgba(0,0,0,0.02)]`}>
+      <header className={`shrink-0 h-14 md:h-15 lg:h-16 flex items-center justify-between px-6 md:px-8 gap-4 z-50 backdrop-blur-md transition-all duration-500 bg-transparent`}>
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-3 group">
             <div className="w-9 h-9 md:w-10 md:h-10 rounded-[12px] flex items-center justify-center font-black text-white bg-linear-to-tr from-sky-600 to-blue-700 shadow-lg shadow-sky-600/20 group-hover:scale-105 active:scale-95 transition-all outline outline-2 outline-white/50">B</div>

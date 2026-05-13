@@ -5,22 +5,29 @@
  * Last Updated: 2026-04-21
  */
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { BuildingModal, WelcomeModal, DiscoveryModal, ProjectLibraryModal } from './launchpad/LaunchPadModals';
+import { useBizStore } from '@/lib/useBizStore';
+import { ArkleVoiceRecognizer, ArkleVolumeMeter, parseVoiceCommand, voiceCommandToForgeRequest } from '@/lib/ArkleVoiceBridge';
 import { BusinessData } from '@/types';
 import { useAuth } from '@/context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import VoiceBuilderStudio from '@/components/ai-studio/VoiceBuilderStudio';
+import { ArkleVoiceIcon } from '../shared/ArkleVoiceIcon';
 import { ArkleBrainStatus } from './ArkleBrainStatus';
+import ArkleStrategyMode from './ArkleStrategyMode';
 import { QAOverlay } from '@/components/shared/QAOverlay';
-import { useBizStore } from '@/lib/useBizStore';
+import { useRouter } from 'next/navigation';
 
-
-import { 
-    SERVICES, 
-    LAUNCHER_CATEGORIES, 
-    TOOL_CATEGORIES, 
-    TOOL_BLUEPRINTS, 
-    SOLUTION_IDEAS, 
-    DIGITAL_EMPLOYEES 
+import {
+    SERVICES,
+    LAUNCHER_CATEGORIES,
+    TOOL_CATEGORIES,
+    TOOL_BLUEPRINTS,
+    SOLUTION_IDEAS,
+    DIGITAL_EMPLOYEES,
+    ECOM_REAL_TEMPLATES,
+    ECOM_TEMPLATES,
+    WEB_TEMPLATES,
+    LOGO_TEMPLATES
 } from '@/lib/launchpad-data';
 
 interface LaunchPadTabProps {
@@ -30,8 +37,8 @@ interface LaunchPadTabProps {
 }
 
 /* ── Types ─────────────────────────────────────────────── */
-type TopTab = 'launchpad' | 'arkle' | 'co-founder' | 'solutions' | 'ai-agents';
-type AppState = 'home' | 'discuss' | 'building' | 'ready' | 'solutions-chat' | 'agent-workspace';
+type TopTab = 'arkle' | 'launcher' | 'tool-lab' | 'agents';
+type AppState = 'home' | 'discuss' | 'building' | 'ready' | 'forge' | 'agent-workspace';
 
 interface ChatMsg { role: 'ai' | 'user'; text: string; ts: number; }
 interface BuiltAsset { id: string; label: string; icon: string; status: 'pending' | 'building' | 'done' | 'failed'; color: string; result?: string; }
@@ -191,67 +198,95 @@ const SOLUTIONS_FLOW = [
 
 const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangChange }) => {
     const { user } = useAuth();
-    const { tasks } = useBizStore();
+    const { tasks, setIsVoiceActive, liveTranscript } = useBizStore();
+    const router = useRouter();
     const firstName = user?.displayName?.split(' ')[0] || data?.name?.split(' ')[0] || 'Founder';
 
     /* ── State ─────────────────────────────────────────── */
-    const [topTab, setTopTab] = useState<TopTab>('arkle');
+    const [selectedLauncherTool, setSelectedLauncherTool] = useState<any>(null);
+    const [topTab, setTopTab] = useState<TopTab>('launcher');
     /* ── Master Theme Configuration (Mood Colors - DETAILED RESTORATION) ── */
     const themes: any = {
         arkle: {
             primary: '#0082ff',
             secondary: '#3b82f6',
-            glow: 'rgba(0, 130, 255, 0.6)',
-            bgBase: '#f8faff',
-            meshColor1: '#dbeafe',
-            meshColor2: '#eff6ff',
+            glow: 'rgba(0, 130, 255, 0.4)',
+            bgBase: '#ffffff',
+            meshColor1: 'rgba(219, 234, 254, 0.3)',
+            meshColor2: 'rgba(239, 246, 255, 0.2)',
             accent: 'bg-gradient-to-r from-blue-600 to-cyan-500',
             text: 'text-[#0082ff]',
-            border: 'border-blue-500/30'
+            border: 'border-blue-500/10'
         },
-        'co-founder': {
+        launcher: {
             primary: '#10b981',
             secondary: '#059669',
-            glow: 'rgba(16, 185, 129, 0.6)',
-            bgBase: '#f6fdfa',
-            meshColor1: '#d1fae5',
-            meshColor2: '#ecfdf5',
+            glow: 'rgba(16, 185, 129, 0.4)',
+            bgBase: '#ffffff',
+            meshColor1: 'rgba(209, 250, 229, 0.3)',
+            meshColor2: 'rgba(236, 253, 245, 0.2)',
             accent: 'bg-gradient-to-r from-emerald-600 to-teal-500',
             text: 'text-emerald-600',
-            border: 'border-emerald-500/30'
+            border: 'border-emerald-500/10'
         },
-        solutions: {
+        'tool-lab': {
             primary: '#a855f7',
             secondary: '#9333ea',
-            glow: 'rgba(168, 85, 247, 0.6)',
-            bgBase: '#faf8ff',
-            meshColor1: '#f3e8ff',
-            meshColor2: '#faf5ff',
+            glow: 'rgba(168, 85, 247, 0.4)',
+            bgBase: '#ffffff',
+            meshColor1: 'rgba(243, 232, 255, 0.3)',
+            meshColor2: 'rgba(250, 245, 255, 0.2)',
             accent: 'bg-gradient-to-r from-purple-600 to-pink-500',
             text: 'text-purple-600',
-            border: 'border-purple-500/30'
+            border: 'border-purple-500/10'
         },
-        'ai-agents': {
+        agents: {
             primary: '#f59e0b',
             secondary: '#d97706',
-            glow: 'rgba(245, 158, 11, 0.6)',
-            bgBase: '#fffbf0',
-            meshColor1: '#fef3c7',
-            meshColor2: '#fffbeb',
-            accent: 'bg-gradient-to-r from-orange-600 to-amber-500',
+            glow: 'rgba(245, 158, 11, 0.4)',
+            bgBase: '#ffffff',
+            meshColor1: 'rgba(254, 243, 199, 0.3)',
+            meshColor2: 'rgba(255, 251, 235, 0.2)',
+            accent: 'bg-gradient-to-r from-amber-500 to-orange-400',
             text: 'text-amber-600',
-            border: 'border-amber-500/30'
+            border: 'border-amber-500/10'
         }
     };
     const theme = themes[topTab] || themes.arkle;
 
+    const [isMounted, setIsMounted] = useState(false);
+    useEffect(() => { setIsMounted(true); }, []);
+
     const [appState, setAppState] = useState<AppState>('home');
     const [promptInput, setPromptInput] = useState('');
     const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
+
+    const [sidebarOpen, setSidebarOpen] = useState(true);
+
+    // Tab-Specific Animated Words
+    const [wordIndex, setWordIndex] = useState(0);
+    const tabWords: Record<string, string[]> = {
+        arkle: ['Ideas', 'Tasks', 'Goals', 'Challenges', 'Gaps', 'Context'],
+        launcher: ['Launch', 'Build', 'Design', 'Scale', 'Venture', 'Brand'],
+        'tool-lab': ['Tool', 'App', 'Idea', 'CRM', 'Automation', 'Solution'],
+        agents: ['Employee', 'Expert', 'Worker', 'Assistant', 'Specialist']
+    };
+    const currentWords = tabWords[topTab] || tabWords.arkle;
+
+    useEffect(() => {
+        setWordIndex(0); // Reset index on tab change to avoid out-of-bounds
+    }, [topTab]);
+
+    useEffect(() => {
+        if (!isMounted) return;
+        const interval = setInterval(() => {
+            setWordIndex((prev) => (prev + 1) % currentWords.length);
+        }, 2500);
+        return () => clearInterval(interval);
+    }, [currentWords.length, isMounted]);
     const [agentTaskInput, setAgentTaskInput] = useState('');
     const [agentTasks, setAgentTasks] = useState<any[]>([]);
     const [isAgentWorking, setIsAgentWorking] = useState(false);
-    const [sidebarOpen, setSidebarOpen] = useState(true);
 
     // Onboarding & Discovery
     const [isSetupLocked, setIsSetupLocked] = useState(false);
@@ -337,18 +372,41 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
     });
 
     const [showDiscovery, setShowDiscovery] = useState(false);
-    const [showVoiceStudio, setShowVoiceStudio] = useState(false);
     const [discoveryStep, setDiscoveryStep] = useState(0);
     const selectedLang = externalLang || 'en-IN';
     const setSelectedLang = onLangChange || (() => { });
-    const [isVoiceActive, setIsVoiceActive] = useState(false);
+    const isVoiceActive = useBizStore((state) => state.isVoiceActive);
+    const lastVoiceCommand = useBizStore((state) => state.lastVoiceCommand);
+    const setLastVoiceCommand = useBizStore((state) => state.setLastVoiceCommand);
+
+    // ── Global Voice Bridge ──
+    useEffect(() => {
+        if (lastVoiceCommand) {
+            const isCreationCmd = /build|create|generate|setup|make/i.test(lastVoiceCommand);
+            
+            if (isCreationCmd) {
+                console.log("Global Build Command Detected:", lastVoiceCommand);
+                // Force switch to forge mode if it's a build request
+                setAppState('forge');
+                setForgeStatus('planning');
+                handleForgeChatSubmit(lastVoiceCommand);
+                setLastVoiceCommand(null);
+                return;
+            }
+
+            if (topTab === 'arkle') {
+                console.log("LaunchPad responding to global voice:", lastVoiceCommand);
+                handleForgeChatSubmit(lastVoiceCommand);
+                setLastVoiceCommand(null);
+            }
+        }
+    }, [lastVoiceCommand, topTab, setLastVoiceCommand, appState]);
 
     // Discussion chat
     const [chatThread, setChatThread] = useState<ChatMsg[]>([]);
     const [chatInput, setChatInput] = useState('');
     const [discussStep, setDiscussStep] = useState(0);
     const [isTyping, setIsTyping] = useState(false);
-    const [liveTranscript, setLiveTranscript] = useState('');
 
     // Fetch Existing Profile
     useEffect(() => {
@@ -395,17 +453,7 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
     const solEndRef = useRef<HTMLDivElement>(null);
     const recognitionRef = useRef<any>(null);
     const [isRecording, setIsRecording] = useState(false);
-    const [wordIndex, setWordIndex] = useState(0);
-    const launcherWords = ['Launch', 'Build', 'Grow', 'Scale', 'Fund'];
-
-    useEffect(() => {
-        if (topTab === 'co-founder') {
-            const interval = setInterval(() => {
-                setWordIndex((prev) => (prev + 1) % launcherWords.length);
-            }, 3000);
-            return () => clearInterval(interval);
-        }
-    }, [topTab]);
+    const launcherWords = currentWords;
 
     /* ── Voice Synthesis (Arkle Talking) ──────────────── */
     const speak = (text: string, langOverride?: string) => {
@@ -499,6 +547,9 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
         }
     };
 
+    const toggleVoiceStudio = () => setIsVoiceActive(!isVoiceActive);
+    const showVoiceStudio = isVoiceActive;
+
     /* ── Auto-scroll ───────────────────────────────────── */
     useEffect(() => {
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -561,7 +612,55 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
         if (!showWelcome || isSetupLocked) return null;
         return (
             <div className="fixed inset-0 z-[150] flex items-center justify-center bg-slate-900/60 backdrop-blur-xl p-6 animate-in fade-in duration-1000">
-                <div className="bg-white w-full max-w-xl rounded-[48px] shadow-2xl overflow-hidden p-12 text-center relative border border-white/20">
+                <div className="bg-white w-full max-w-xl rounded-[48px] shadow-2xl overflow-hidden p-12 text-center relative">
+                    {/* Horizontal Category Scroller with Navigation Arrows */}
+                    <div className="max-w-[1200px] mx-auto mb-12 px-10 overflow-visible relative group/scroller">
+                        {/* Left Scroll Button */}
+                        <button
+                            type="button"
+                            onClick={() => {
+                                const el = document.getElementById('launcher-scroller');
+                                if (el) el.scrollBy({ left: -400, behavior: 'smooth' });
+                            }}
+                            className="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white shadow-xl border border-slate-100 flex items-center justify-center text-slate-400 hover:text-blue-600 transition-all z-30 opacity-0 group-hover/scroller:opacity-100 hover:scale-110 active:scale-95"
+                        >
+                            <span className="material-symbols-outlined">chevron_left</span>
+                        </button>
+
+                        <div id="launcher-scroller" className="flex items-center gap-4 overflow-x-auto pb-6 px-4 no-scrollbar scroll-smooth">
+                            {LAUNCHER_CATEGORIES.map((cat) => (
+                                <button
+                                    key={cat.id}
+                                    onClick={() => setSelectedLauncherTool(cat)}
+                                    className={`flex-shrink-0 flex flex-col items-center gap-3 p-5 rounded-[28px] transition-all duration-500 relative group w-[130px] ${selectedLauncherTool?.id === cat.id
+                                        ? 'bg-white shadow-[0_15px_40px_rgba(0,0,0,0.06)] scale-105 z-10 border border-slate-100'
+                                        : 'hover:bg-white/50 hover:translate-y-[-2px]'
+                                        }`}
+                                >
+                                    <div className={`w-16 h-16 rounded-[22px] bg-gradient-to-br ${cat.gradient} flex items-center justify-center text-white shadow-md group-hover:rotate-3 transition-transform duration-500`}>
+                                        <span className="material-symbols-outlined text-[30px]">{cat.icon}</span>
+                                    </div>
+                                    <span className={`text-[11px] font-black uppercase tracking-widest text-center ${selectedLauncherTool?.id === cat.id ? 'text-slate-900' : 'text-slate-400'}`}>{cat.label}</span>
+                                    {selectedLauncherTool?.id === cat.id && (
+                                        <motion.div layoutId="activeCat" className="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-blue-500" />
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Right Scroll Button */}
+                        <button
+                            type="button"
+                            onClick={() => {
+                                const el = document.getElementById('launcher-scroller');
+                                if (el) el.scrollBy({ left: 400, behavior: 'smooth' });
+                            }}
+                            className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white shadow-xl border border-slate-100 flex items-center justify-center text-slate-400 hover:text-blue-600 transition-all z-30 opacity-0 group-hover/scroller:opacity-100 hover:scale-110 active:scale-95"
+                        >
+                            <span className="material-symbols-outlined">chevron_right</span>
+                        </button>
+                    </div>
+
                     <div className="w-24 h-24 bg-gradient-to-tr from-sky-600 to-blue-700 rounded-[32px] mx-auto mb-10 flex items-center justify-center shadow-2xl shadow-sky-500/30">
                         <span className="material-symbols-outlined text-white text-[48px] animate-pulse">psychology</span>
                     </div>
@@ -798,19 +897,17 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
     };
 
     /* ── Direct submit from prompt ────────────────────── */
-    const handleDirectSubmit = () => {
-        const input = promptInput.trim();
+    const handleDirectSubmit = (cmdOverride?: string) => {
+        const input = (cmdOverride || promptInput).trim();
         if (!input) return;
 
-        if (topTab === 'co-founder' || topTab === 'solutions') {
+        if (topTab === 'launcher' || topTab === 'tool-lab') {
             startForging(input);
-            setPromptInput('');
-            return;
         } else {
             // Arkle mode — direct build
             startBuilding();
         }
-        setPromptInput('');
+        if (!cmdOverride) setPromptInput('');
     };
 
     /* ── Toggle service selection ──────────────────────── */
@@ -1005,7 +1102,7 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
                     </p>
 
                     <button
-                        onClick={() => setAppState('discuss')}
+                        onClick={() => startForging("Build a high-performance autonomous tool/app for my startup.")}
                         className="group relative px-20 py-8 text-white rounded-[40px] font-black uppercase tracking-[0.2em] text-[16px] hover:scale-105 transition-all active:scale-95 z-10 overflow-hidden shadow-2xl"
                         style={{ backgroundColor: theme.primary, boxShadow: `0 30px 60px ${theme.glow}` }}
                     >
@@ -1028,8 +1125,8 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
                         <p className="text-slate-500 text-sm mb-10 leading-relaxed font-bold">Link your critical startup tools to Arkle's neural orchestration engine.</p>
                         <div className="flex gap-6">
                             {['Stripe', 'Gmail', 'Twilio'].map(s => (
-                                <div key={s} className="w-16 h-16 bg-white/5 rounded-3xl flex items-center justify-center border border-white/10 hover:border-orange-500 transition-all cursor-pointer shadow-inner group/icon">
-                                    <span className="material-symbols-outlined text-orange-500 text-[24px] group-hover/icon:scale-125 transition-transform">bolt</span>
+                                <div key={s} onClick={() => startForging(`Integrate ${s} API module into current workspace stack.`)} className="w-16 h-16 bg-white/5 rounded-3xl flex items-center justify-center border border-white/10 hover:border-orange-500 transition-all cursor-pointer shadow-inner group/icon">
+                                    <span className="material-symbols-outlined text-orange-500 text-[24px] group-hover/icon:scale-125 transition-transform" title={`Link ${s}`}>bolt</span>
                                 </div>
                             ))}
                         </div>
@@ -1042,7 +1139,7 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
                             Hive Blueprints
                         </h3>
                         <p className="text-slate-400 text-sm mb-10 leading-relaxed font-bold">Import battle-tested operational blueprints from other successful founders.</p>
-                        <button className="flex items-center gap-4 text-white text-[12px] font-black uppercase tracking-widest bg-white/10 px-8 py-4 rounded-2xl hover:bg-white/20 transition-all border border-white/10 active:scale-95 shadow-xl">
+                        <button onClick={() => startForging("Browse and import custom operational blueprints from marketplace collection.")} className="flex items-center gap-4 text-white text-[12px] font-black uppercase tracking-widest bg-white/10 px-8 py-4 rounded-2xl hover:bg-white/20 transition-all border border-white/10 active:scale-95 shadow-xl">
                             <span className="material-symbols-outlined text-[20px]">explore</span>
                             Browse Marketplace
                         </button>
@@ -1056,7 +1153,7 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
     /* ── Forge Engine: Start Building from Idea ──────── */
     const startForging = async (idea?: string) => {
         const userIdea = idea || promptInput.trim();
-        if (!userIdea) return;
+        if (!userIdea && !interviewAnswers) return;
 
         setForgeMode('pure-creation');
         setForgeStatus('generating');
@@ -1065,11 +1162,10 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
         setForgePreviewHtml('');
         setForgeViewMode('split');
         const addLog = (msg: string) => setForgeTerminalLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${msg}`]);
-        setForgeTerminalLogs([`[${new Date().toLocaleTimeString()}] FORGE_INIT: Starting Pure Creation Engine...`]);
-        setForgeChat([{ role: 'user', text: userIdea }, { role: 'ai', text: `⚡ Building your app now...\n\nAnalyzing: "${userIdea}"\nConnecting to Neural Code Engine...` }]);
+        setForgeChat([{ role: 'user', text: userIdea }, { role: 'ai', text: `⚡ Arkle Brain Synced. Targeted Tool: ${selectedLauncherTool?.label || 'Custom Solution'}.\n\nInitiating Neural Materialization. Standby.` }]);
         setPromptInput('');
 
-        addLog(`BRAIN_SYNC: Industry=${bizCtx.industry || 'General'}, Stage=${bizCtx.stage || 'MVP'}`);
+        addLog(`FORGE_START: Mode=${topTab.toUpperCase()}, Context=${bizCtx.businessName || 'New Project'}`);
         addLog('CODEGEN: Sending to AI Code Engine (Gemini Pro)...');
 
         try {
@@ -1078,6 +1174,8 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     prompt: userIdea,
+                    userId: user?.id,
+                    toolId: selectedLauncherTool?.id || 'website',
                     mode: 'generate',
                     model: selectedAIModel,
                     businessContext: bizCtx,
@@ -1319,6 +1417,40 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
         setForgeChatInput('');
     };
 
+    const handleSelectProject = async (project: any) => {
+        setShowProjectLibrary(false);
+        setForgeStatus('generating');
+        setForgeTerminalLogs([`[${new Date().toLocaleTimeString()}] FORGE_RESTORE: Project "${project.title}"`]);
+
+        try {
+            const { supabase } = await import('@/lib/supabase');
+            const { data: files, error } = await supabase
+                .from('project_files')
+                .select('*')
+                .eq('project_id', project.id)
+                .order('created_at');
+
+            if (!error && files) {
+                const mappedFiles = files.map(f => ({
+                    name: f.name,
+                    path: f.path,
+                    code: f.code,
+                    lang: f.lang || 'html',
+                    icon: f.lang === 'html' ? 'code' : f.lang === 'css' ? 'palette' : 'javascript'
+                }));
+                setForgeFiles(mappedFiles);
+                setForgeProjectName(project.title);
+                setForgePlan(project.plan || { name: project.title, desc: project.description, pages: [], stack: [] });
+                assemblePreview(mappedFiles);
+                setForgeStatus('previewing');
+                setForgeTerminalLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] RESTORE_COMPLETE: ${files.length} files loaded ✓`]);
+            }
+        } catch (err) {
+            console.error('Project Restore Error:', err);
+            setForgeStatus('idle');
+        }
+    };
+
     /* ── Render: Mode 1 - Pure Creation Forge (Advanced Builder) ── */
     const renderPureCreationForge = () => {
         const currentFile = forgeFiles.find(f => f.path === activeForgeFile) || forgeFiles[0];
@@ -1326,43 +1458,53 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
         const showPreview = forgeViewMode === 'preview' || forgeViewMode === 'split';
 
         return (
-            <div className={`fixed inset-0 z-[999] bg-[#0f0f13] flex animate-in fade-in duration-500 overflow-hidden ${(isResizingForge || isResizingChat) ? 'cursor-col-resize select-none' : ''}`} style={{ fontFamily: '"DM Sans", "Inter", sans-serif' }}>
+            <div className={`fixed inset-0 z-[999] bg-white flex animate-in fade-in duration-500 overflow-hidden ${(isResizingForge || isResizingChat) ? 'cursor-col-resize select-none' : ''}`} style={{ fontFamily: '"DM Sans", "Inter", sans-serif' }}>
+                {/* ══════ UNIVERSAL MOOD SURFACE (White Mode for Tool Lab) ══════ */}
+                <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+                    {/* Base Soft Tint */}
+                    <div className="absolute inset-0 bg-[#ffffff]" />
+
+                    {/* Central Mood Glow Pulse */}
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-indigo-500/5 rounded-full blur-[120px] animate-pulse" />
+
+                    {/* Edge Shading - Left & Right 20% White Gradients */}
+                    <div className="absolute inset-y-0 left-0 w-[20%] bg-gradient-to-r from-white via-white/80 to-transparent" />
+                    <div className="absolute inset-y-0 right-0 w-[20%] bg-gradient-to-l from-white via-white/80 to-transparent" />
+                </div>
+
                 {/* LEFT: AGENT CHAT PANEL */}
-                <div style={{ width: `${forgeChatWidth}px` }} className="h-full border-r border-white/5 flex flex-col bg-[#16161c] relative shrink-0">
+                <div style={{ width: `${forgeChatWidth}px` }} className="h-full border-r border-slate-200/50 flex flex-col bg-white/40 backdrop-blur-md relative shrink-0 z-10">
                     {/* Header */}
-                    <div className="px-4 py-3 border-b border-white/5 flex flex-col gap-2">
+                    <div className="px-4 py-3 border-b border-slate-100 flex flex-col gap-2">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2.5">
                                 <div className="flex flex-col">
                                     <div className="flex items-center gap-2">
-                                        <span className="text-[10px] font-black text-white uppercase tracking-tighter">Arkle Architect</span>
+                                        <span className="text-[10px] font-black text-slate-900 uppercase tracking-tighter">Arkle Architect</span>
                                         <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
                                     </div>
                                     <div className="flex items-center gap-2 mt-1">
-                                        <span className="text-[7px] font-black text-slate-500 uppercase tracking-widest">Branding</span>
-                                        <span className="text-[7px] font-black text-slate-500 uppercase tracking-widest opacity-30">•</span>
-                                        <span className="text-[7px] font-black text-slate-500 uppercase tracking-widest">Tool Hub</span>
-                                        <span className="text-[7px] font-black text-slate-500 uppercase tracking-widest opacity-30">•</span>
-                                        <span className="text-[7px] font-black text-slate-500 uppercase tracking-widest">Agents</span>
+                                        <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Branding</span>
+                                        <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest opacity-30">•</span>
+                                        <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Tool Hub</span>
+                                        <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest opacity-30">•</span>
+                                        <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Agents</span>
                                     </div>
                                 </div>
                             </div>
                             <div className="flex items-center gap-1">
-                                <button onClick={() => {
-                                    const stored = JSON.parse(localStorage.getItem('forge_projects') || '[]');
-                                    setSavedProjects(stored);
-                                    setShowProjectLibrary(true);
-                                }} title="Project Library" className="w-7 h-7 rounded-lg hover:bg-white/5 flex items-center justify-center text-slate-500 hover:text-white transition-all">
+                                <button onClick={() => setShowProjectLibrary(true)} title="Project Library" className="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all">
                                     <span className="material-symbols-outlined text-[16px]">database</span>
                                 </button>
-                                <button onClick={startNewForgeProject} title="New Project" className="w-7 h-7 rounded-lg hover:bg-white/5 flex items-center justify-center text-slate-500 hover:text-white transition-all">
+                                <button onClick={startNewForgeProject} title="New Project" className="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all">
                                     <span className="material-symbols-outlined text-[16px]">add</span>
                                 </button>
-                                <button onClick={() => { setForgeMode('launcher'); setForgeStatus('idle'); }} className="w-7 h-7 rounded-lg hover:bg-white/5 flex items-center justify-center text-slate-500 transition-all ml-1">
+                                <button onClick={() => { setForgeMode('launcher'); setForgeStatus('idle'); }} className="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 transition-all ml-1">
                                     <span className="material-symbols-outlined text-[16px]">close</span>
                                 </button>
                             </div>
                         </div>
+
 
                         {/* Project Name Only */}
                         <div className="flex items-center justify-between mt-1">
@@ -1376,12 +1518,13 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
                     <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
                         {forgeChat.map((msg, i) => (
                             <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
-                                <div className={`max-w-[92%] px-4 py-3 rounded-2xl text-[13px] leading-relaxed break-all ${msg.role === 'user' ? 'bg-blue-600 text-white rounded-tr-sm' : 'bg-white/5 border border-white/5 text-slate-300 rounded-tl-sm'
+                                <div className={`max-w-[92%] px-4 py-3 rounded-2xl text-[13px] leading-relaxed break-all ${msg.role === 'user' ? 'bg-blue-600 text-white rounded-tr-sm shadow-lg shadow-blue-500/20' : 'bg-white border border-slate-100 text-slate-700 rounded-tl-sm shadow-sm'
                                     }`}>
                                     <div className="whitespace-pre-wrap">{msg.text}</div>
                                 </div>
                             </div>
                         ))}
+
                         {(forgeStatus === 'generating' || forgeStatus === 'refining') && (
                             <div className="flex items-center gap-2 px-4 py-3 bg-white/5 rounded-2xl">
                                 <div className="flex gap-1"><div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-bounce"></div><div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-bounce [animation-delay:0.15s]"></div><div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-bounce [animation-delay:0.3s]"></div></div>
@@ -1392,26 +1535,26 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
                     </div>
 
                     {/* Input Area */}
-                    <div className="p-3 border-t border-white/5 bg-black/20" style={{ height: 'auto' }}>
+                    <div className="p-3 border-t border-slate-100 bg-slate-50/50" style={{ height: 'auto' }}>
                         <div className="relative group">
                             <textarea
                                 value={forgeChatInput}
                                 onChange={(e) => setForgeChatInput(e.target.value)}
                                 placeholder={forgeFiles.length === 0 ? "What shall Arkle build for your startup today?" : "I don't just chat, I build. Refine your creation..."}
-                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 pt-4 pb-12 text-[13px] text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 resize-none transition-all scrollbar-hide"
+                                className="w-full bg-white border border-slate-200 rounded-2xl px-4 pt-4 pb-12 text-[13px] text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/10 resize-none transition-all scrollbar-hide shadow-sm"
                                 rows={Math.min(6, Math.max(2, forgeChatInput.split('\n').length))}
                                 onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleForgeChatSubmit(); } }}
                             />
-                            {/* UNIVERSAL TASK BAR (Dark Mode Version) */}
+                            {/* UNIVERSAL TASK BAR (Light Mode Version) */}
                             <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between px-2">
                                 <div className="flex items-center gap-2">
-                                    <button title="Upload / Add File" className="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-slate-200 transition-colors">
+                                    <button title="Upload / Add File" className="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors">
                                         <span className="material-symbols-outlined text-[18px]">add_circle</span>
                                     </button>
                                     <select
                                         value={selectedAIModel}
                                         onChange={(e) => setSelectedAIModel(e.target.value as any)}
-                                        className="bg-white/5 border border-white/10 rounded-lg px-2.5 py-1 text-slate-300 hover:text-white text-[10px] font-semibold tracking-tight outline-none cursor-pointer hover:bg-white/10 transition-colors"
+                                        className="bg-slate-100 border border-slate-200 rounded-lg px-2.5 py-1 text-slate-600 hover:text-slate-900 text-[10px] font-semibold tracking-tight outline-none cursor-pointer hover:bg-slate-200 transition-colors"
                                         title="Select AI Model"
                                     >
                                         <option value="dummy">Dummy Model</option>
@@ -1422,18 +1565,19 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
                                     </select>
                                 </div>
                                 <div className="flex items-center gap-1">
-                                    <button onClick={toggleForgeVoice} title="Voice Typing (Dictation)" className={`w-7 h-7 flex items-center justify-center transition-colors ${forgeVoiceActive ? 'text-red-500 animate-pulse' : 'text-slate-400 hover:text-slate-200'}`}>
+                                    <button onClick={toggleForgeVoice} title="Voice Typing (Dictation)" className={`w-7 h-7 flex items-center justify-center transition-colors ${forgeVoiceActive ? 'text-red-500 animate-pulse' : 'text-slate-400 hover:text-slate-600'}`}>
                                         <span className="material-symbols-outlined text-[18px]">mic</span>
                                     </button>
-                                    <button onClick={() => setShowVoiceStudio(true)} title="Live Voice Mode" className="w-7 h-7 flex items-center justify-center rounded-full bg-white/10 text-slate-300 hover:bg-white/20 transition-colors ml-1">
+                                    <button onClick={toggleVoiceStudio} title="Live Voice Mode" className={`w-7 h-7 flex items-center justify-center rounded-full transition-colors ml-1 ${showVoiceStudio ? 'bg-blue-600 text-white animate-pulse' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
                                         <span className="material-symbols-outlined text-[16px]">graphic_eq</span>
                                     </button>
-                                    <button onClick={() => handleForgeChatSubmit()} disabled={forgeStatus === 'generating' || forgeStatus === 'refining'} title="Send / Enter" className="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-blue-400 transition-colors ml-1 disabled:opacity-40">
+                                    <button onClick={() => handleForgeChatSubmit()} disabled={forgeStatus === 'generating' || forgeStatus === 'refining'} title="Send / Enter" className="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-blue-600 transition-colors ml-1 disabled:opacity-40">
                                         <span className="material-symbols-outlined text-[18px]">send</span>
                                     </button>
                                 </div>
                             </div>
                         </div>
+
                         {/* Status Line */}
                         <div className="flex items-center justify-between mt-2 px-1">
                             <div className="flex gap-1">
@@ -1635,164 +1779,372 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
     /* ── Render: Home ──────────────────────────────────── */
     const renderLauncherUI = () => {
         return (
-            <div className="w-full max-w-6xl mx-auto mt-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
-                {/* Horizontal Category Scroller */}
-                <div className="mb-12 overflow-visible relative">
-                    <div className="flex items-center gap-6 overflow-x-auto pb-6 px-4 no-scrollbar scroll-smooth">
+            <div className="w-full mt-12 animate-in fade-in slide-in-from-bottom-8 duration-700 px-6 sm:px-12 lg:px-20">
+                {/* Horizontal Category Scroller with Navigation Arrows - Increased Padding to prevent cropping */}
+                <div className="mb-12 overflow-visible relative group/scroller max-w-[1200px] mx-auto py-12">
+                    {/* Left Arrow */}
+                    <button
+                        type="button"
+                        onClick={() => {
+                            const el = document.getElementById('launcher-scroller');
+                            if (el) el.scrollBy({ left: -400, behavior: 'smooth' });
+                        }}
+                        className="absolute -left-12 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white shadow-2xl border border-slate-100 flex items-center justify-center text-slate-400 hover:text-blue-600 transition-all z-30 opacity-0 group-hover/scroller:opacity-100 hover:scale-110 active:scale-95"
+                    >
+                        <span className="material-symbols-outlined text-[24px]">chevron_left</span>
+                    </button>
+
+                    <div id="launcher-scroller" className="flex items-center gap-8 overflow-x-auto py-8 px-6 no-scrollbar scroll-smooth">
                         {LAUNCHER_CATEGORIES.map((cat) => (
                             <motion.button
                                 key={cat.id}
-                                whileHover={{ y: -5, scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                className="flex flex-col items-center gap-3 group shrink-0"
+                                whileHover={{ y: -10, scale: 1.15 }}
+                                whileTap={{ scale: 0.9 }}
+                                onClick={() => {
+                                    if (cat.id === 'voice') {
+                                        setIsVoiceActive(true);
+                                        return;
+                                    }
+                                    setSelectedLauncherTool(cat);
+                                    setPromptInput(`Build a ${cat.label} for my business`);
+                                }}
+                                className={`flex flex-col items-center gap-4 group shrink-0 transition-all relative ${selectedLauncherTool?.id === cat.id ? 'z-10' : 'z-0'}`}
                             >
-                                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${cat.gradient} p-0.5 shadow-lg group-hover:shadow-2xl transition-all duration-300`}>
-                                    <div className="w-full h-full bg-white/10 backdrop-blur-md rounded-[14px] flex items-center justify-center text-white">
-                                        <span className="material-symbols-outlined text-[32px]">{cat.icon}</span>
+                                <div className={`${cat.id === 'voice' ? 'w-28 h-28 rounded-full shadow-[0_15px_40px_rgba(59,130,246,0.4)] animate-pulse' : 'w-20 h-20 rounded-[28px] shadow-xl'} bg-gradient-to-br ${cat.gradient} p-0.5 group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.1)] transition-all duration-500 ${selectedLauncherTool?.id === cat.id ? 'ring-4 ring-blue-500 ring-offset-4' : ''}`}>
+                                    <div className={`w-full h-full ${cat.id === 'voice' ? 'rounded-full' : 'rounded-[26px]'} bg-white/10 backdrop-blur-md flex items-center justify-center text-white`}>
+                                        {cat.id === 'voice' ? (
+                                            <div className="flex items-center gap-1">
+                                                {[1, 2, 3, 4, 5].map(i => (
+                                                    <div key={i} className="w-1.5 h-10 bg-white rounded-full animate-voice-wave" style={{ animationDelay: `${i * 0.1}s` }}></div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <span className="material-symbols-outlined text-[36px]">{cat.icon}</span>
+                                        )}
                                     </div>
                                 </div>
-                                <span className="text-[13px] font-semibold text-slate-600 group-hover:text-slate-900 transition-colors uppercase tracking-wider">{cat.label}</span>
+                                <span className={`text-[12px] font-black transition-colors uppercase tracking-[0.15em] ${selectedLauncherTool?.id === cat.id ? 'text-slate-900' : 'text-slate-500 group-hover:text-slate-900'}`}>{cat.label}</span>
+
+                                {selectedLauncherTool?.id === cat.id && (
+                                    <motion.div layoutId="activeToolDot" className="absolute -bottom-4 w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]" />
+                                )}
                             </motion.button>
                         ))}
                     </div>
+
+                    {/* Right Arrow */}
+                    <button
+                        type="button"
+                        onClick={() => {
+                            const el = document.getElementById('launcher-scroller');
+                            if (el) el.scrollBy({ left: 400, behavior: 'smooth' });
+                        }}
+                        className="absolute -right-12 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white shadow-2xl border border-slate-100 flex items-center justify-center text-slate-400 hover:text-blue-600 transition-all z-30 opacity-0 group-hover/scroller:opacity-100 hover:scale-110 active:scale-95"
+                    >
+                        <span className="material-symbols-outlined text-[24px]">chevron_right</span>
+                    </button>
                 </div>
 
-                {/* Featured Sections */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 px-4 mb-20 relative z-10">
-                    {/* Startup Essentials Card */}
-                    <motion.div
-                        whileHover={{ y: -8 }}
-                        className="group relative bg-white/[0.02] border border-white/10 p-10 rounded-[60px] shadow-2xl overflow-hidden backdrop-blur-3xl"
-                    >
-                        <div className="absolute top-0 right-0 w-32 h-32 blur-[60px] rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-all duration-1000" style={{ backgroundColor: theme.primary + '22' }}></div>
-                        <h3 className="text-[24px] font-black text-white mb-4 uppercase tracking-tighter">Startup Essentials</h3>
-                        <p className="text-slate-500 text-[15px] mb-10 leading-relaxed font-bold">Build the core identity of your brand with AI-powered design tools.</p>
-                        <div className="space-y-4">
-                            {['Brand Guidelines', 'Business Model', 'Legal Kit'].map(item => (
-                                <div key={item} className="flex items-center gap-4 p-4 bg-white/5 rounded-3xl border border-white/10 hover:bg-white/10 transition-all cursor-pointer group/item">
-                                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-inner" style={{ backgroundColor: theme.primary + '11', color: theme.primary }}>
-                                        <span className="material-symbols-outlined text-[20px] group-hover/item:rotate-[15deg] transition-transform">verified</span>
+                {/* ── Full Width Expansive Template Gallery (Vercel/Lovable Style) ── */}
+                {selectedLauncherTool && (
+                    <div className="w-full mt-12 mb-24 bg-white border-y border-slate-200/60 py-20 relative z-20 animate-in fade-in slide-in-from-bottom-8 duration-700">
+                        <div className="max-w-[1400px] mx-auto px-6 sm:px-12">
+                            <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
+                                <div className="max-w-2xl">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${selectedLauncherTool.gradient} flex items-center justify-center text-white shadow-lg`}>
+                                            <span className="material-symbols-outlined text-[28px]">{selectedLauncherTool.icon}</span>
+                                        </div>
+                                        <span className="text-[12px] font-black text-blue-600 uppercase tracking-widest bg-blue-50 px-4 py-1.5 rounded-full border border-blue-100">
+                                            {selectedLauncherTool.label} Blueprints
+                                        </span>
                                     </div>
-                                    <span className="text-slate-300 font-black text-[12px] uppercase tracking-widest">{item}</span>
+                                    <h3 className="text-[48px] font-black text-slate-900 tracking-tight leading-[1.1] mb-6">
+                                        Choose a starting point for your {selectedLauncherTool.label}.
+                                    </h3>
+                                    <p className="text-slate-500 font-medium text-[20px] leading-relaxed">
+                                        Select from 25+ verified industry blueprints or use Arkle AI to forge a custom solution from scratch.
+                                    </p>
                                 </div>
-                            ))}
-                        </div>
-                    </motion.div>
+                                <button
+                                    onClick={() => setSelectedLauncherTool(null)}
+                                    className="px-6 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold flex items-center gap-2 transition-all"
+                                >
+                                    <span className="material-symbols-outlined">close</span>
+                                    Close Gallery
+                                </button>
+                            </div>
 
-                    {/* Marketing Suite Card */}
-                    <motion.div
-                        whileHover={{ y: -8 }}
-                        className="group relative bg-white/[0.02] border border-white/10 p-10 rounded-[60px] shadow-2xl overflow-hidden backdrop-blur-3xl"
-                    >
-                        <div className="absolute top-0 right-0 w-32 h-32 blur-[60px] rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-all duration-1000" style={{ backgroundColor: theme.primary + '22' }}></div>
-                        <h3 className="text-[24px] font-black text-white mb-4 uppercase tracking-tighter">Growth Matrix</h3>
-                        <p className="text-slate-500 text-[15px] mb-10 leading-relaxed font-bold">Scale your market presence with automated growth systems.</p>
-                        <div className="space-y-4">
-                            {['Ad Campaigns', 'SEO Strategy', 'Content Forge'].map(item => (
-                                <div key={item} className="flex items-center gap-4 p-4 bg-white/5 rounded-3xl border border-white/10 hover:bg-white/10 transition-all cursor-pointer group/item">
-                                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-inner" style={{ backgroundColor: theme.primary + '11', color: theme.primary }}>
-                                        <span className="material-symbols-outlined text-[20px] group-hover/item:rotate-[15deg] transition-transform">rocket_launch</span>
-                                    </div>
-                                    <span className="text-slate-300 font-black text-[12px] uppercase tracking-widest">{item}</span>
-                                </div>
-                            ))}
-                        </div>
-                    </motion.div>
+                            {/* Build with AI - Large Feature Tile */}
+                            <button
+                                onClick={() => {
+                                    startForging(`${promptInput} Start advanced conversational build.`);
+                                    setPromptInput('');
+                                }}
+                                className="w-full mb-20 p-12 rounded-[48px] bg-slate-900 text-white shadow-[0_40px_100px_rgba(0,0,0,0.15)] hover:shadow-[0_60px_120px_rgba(0,0,0,0.2)] transition-all duration-700 group relative overflow-hidden"
+                            >
+                                <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-blue-600/20 to-transparent opacity-50"></div>
+                                <div className="absolute -right-20 -top-20 w-80 h-80 bg-blue-500/20 blur-[120px] rounded-full group-hover:scale-150 transition-transform duration-1000"></div>
 
-                    {/* Growth & Ops Card */}
-                    <motion.div
-                        whileHover={{ y: -8 }}
-                        className="group relative bg-white/[0.02] border border-white/10 p-10 rounded-[60px] shadow-2xl overflow-hidden backdrop-blur-3xl"
-                    >
-                        <div className="absolute top-0 right-0 w-32 h-32 blur-[60px] rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-all duration-1000" style={{ backgroundColor: theme.primary + '22' }}></div>
-                        <h3 className="text-[24px] font-black text-white mb-4 uppercase tracking-tighter">Scale Forge</h3>
-                        <p className="text-slate-500 text-[15px] mb-10 leading-relaxed font-bold">Automate your business operations and revenue streams.</p>
-                        <div className="space-y-4">
-                            {['Revenue Tracking', 'User Analytics', 'Scaling Ops'].map(item => (
-                                <div key={item} className="flex items-center gap-4 p-4 bg-white/5 rounded-3xl border border-white/10 hover:bg-white/10 transition-all cursor-pointer group/item">
-                                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-inner" style={{ backgroundColor: theme.primary + '11', color: theme.primary }}>
-                                        <span className="material-symbols-outlined text-[20px] group-hover/item:rotate-[15deg] transition-transform">trending_up</span>
+                                <div className="flex flex-col lg:flex-row lg:items-center gap-12 relative z-10">
+                                    <div className="w-24 h-24 rounded-[32px] bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shadow-2xl shadow-blue-500/40 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
+                                        <span className="material-symbols-outlined text-[56px] animate-pulse">psychology</span>
                                     </div>
-                                    <span className="text-slate-300 font-black text-[12px] uppercase tracking-widest">{item}</span>
+                                    <div className="text-left flex-1">
+                                        <div className="flex items-center gap-4 mb-3">
+                                            <h3 className="text-[36px] font-black tracking-tight">Forge with Arkle AI</h3>
+                                            <span className="px-4 py-1.5 rounded-full bg-white/10 text-white text-[12px] font-black uppercase tracking-widest border border-white/20">Advanced Engine</span>
+                                        </div>
+                                        <p className="text-[20px] text-slate-400 font-medium max-w-3xl leading-relaxed">
+                                            Don't see exactly what you need? Describe your unique business logic and Arkle will act as your lead developer to build a bespoke {selectedLauncherTool.label} in real-time.
+                                        </p>
+                                    </div>
+                                    <div className="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-blue-500 text-white transition-all duration-500 border border-white/10">
+                                        <span className="material-symbols-outlined text-[40px] group-hover:translate-x-2 transition-transform">arrow_forward</span>
+                                    </div>
                                 </div>
-                            ))}
+                            </button>
+
+                            {/* Templates Grid - 3 Per Row Large Tiles */}
+                            <div className="space-y-12">
+                                <div className="flex items-center gap-6">
+                                    <h4 className="text-[14px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">Industry Blueprints</h4>
+                                    <div className="h-px w-full bg-slate-100"></div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                                    {(
+                                        selectedLauncherTool.id === 'logo' ? LOGO_TEMPLATES :
+                                            selectedLauncherTool.id === 'ecom' ? ECOM_REAL_TEMPLATES :
+                                                WEB_TEMPLATES
+                                    ).map(template => (
+                                        <button
+                                            key={template.id}
+                                            onClick={() => {
+                                                if (template.path) {
+                                                    router.push(template.path);
+                                                } else {
+                                                    startForging(`Clone Template ${template.id}: ${template.title}.`);
+                                                }
+                                            }}
+                                            className="flex flex-col text-left group bg-white rounded-[40px] border border-slate-200/60 hover:border-blue-500 hover:shadow-[0_30px_60px_rgba(0,0,0,0.1)] transition-all duration-500 overflow-hidden"
+                                        >
+                                            {/* Realistic Wireframe Thumbnail Preview */}
+                                            <div className="aspect-[16/10] w-full relative overflow-hidden bg-slate-50 border-b border-slate-100 flex items-center justify-center p-6">
+                                                {/* Background Grid Pattern */}
+                                                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, black 1px, transparent 0)', backgroundSize: '24px 24px' }}></div>
+
+                                                {/* Website Skeleton / Browser Window */}
+                                                <div className="w-full h-full bg-white rounded-t-xl rounded-b-md shadow-[0_10px_30px_rgba(0,0,0,0.05)] border border-slate-200 overflow-hidden flex flex-col transform group-hover:scale-[1.02] transition-transform duration-700">
+                                                    {/* Browser Header */}
+                                                    <div className="h-8 border-b border-slate-100 bg-slate-50 flex items-center px-3 gap-1.5 shrink-0">
+                                                        <div className="w-2 h-2 rounded-full bg-slate-300"></div>
+                                                        <div className="w-2 h-2 rounded-full bg-slate-300"></div>
+                                                        <div className="w-2 h-2 rounded-full bg-slate-300"></div>
+                                                    </div>
+
+                                                    {/* Website Body Skeleton */}
+                                                    <div className="flex-1 p-4 flex flex-col gap-4 relative">
+                                                        {selectedLauncherTool.id === 'logo' ? (
+                                                            // Logo Presentation Mode
+                                                            <div className="flex-1 flex flex-col items-center justify-center">
+                                                                <div className="w-24 h-24 rounded-full flex items-center justify-center opacity-80" style={{ backgroundColor: `${template.color}15`, color: template.color }}>
+                                                                    <span className="material-symbols-outlined text-[48px]">{template.icon}</span>
+                                                                </div>
+                                                                <div className="mt-4 w-32 h-3 rounded-full bg-slate-200"></div>
+                                                            </div>
+                                                        ) : (
+                                                            // Ecom/Website Presentation Mode
+                                                            <>
+                                                                {/* Nav */}
+                                                                <div className="flex items-center justify-between">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: template.color }}></div>
+                                                                        <div className="w-16 h-2 rounded-full bg-slate-200"></div>
+                                                                    </div>
+                                                                    <div className="flex gap-2">
+                                                                        <div className="w-8 h-1.5 rounded-full bg-slate-100"></div>
+                                                                        <div className="w-8 h-1.5 rounded-full bg-slate-100"></div>
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* Hero Section */}
+                                                                <div className="h-20 rounded-lg flex items-center justify-center relative overflow-hidden" style={{ backgroundColor: `${template.color}15` }}>
+                                                                    <span className="material-symbols-outlined text-[40px] opacity-20 absolute" style={{ color: template.color }}>{template.icon}</span>
+                                                                    <div className="flex flex-col items-center gap-2 relative z-10">
+                                                                        <div className="w-32 h-3 rounded-full bg-white opacity-80"></div>
+                                                                        <div className="w-24 h-2 rounded-full bg-white opacity-50"></div>
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* Grid Section */}
+                                                                <div className="grid grid-cols-3 gap-3 flex-1">
+                                                                    {[1, 2, 3].map(i => (
+                                                                        <div key={i} className="rounded-md bg-slate-50 border border-slate-100 p-2 flex flex-col gap-2">
+                                                                            <div className="flex-1 bg-slate-100 rounded"></div>
+                                                                            <div className="w-full h-1.5 rounded-full bg-slate-200"></div>
+                                                                            <div className="w-1/2 h-1.5 rounded-full bg-slate-200"></div>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </>
+                                                        )}
+
+                                                        {/* Gradient Fade for bottom overflow */}
+                                                        <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white to-transparent"></div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Hover Action Overlay */}
+                                                <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center z-20">
+                                                    <div className="bg-white px-8 py-4 rounded-full shadow-2xl scale-90 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-500 delay-100 font-black text-[13px] uppercase tracking-widest text-slate-900 flex items-center gap-2 hover:bg-slate-50">
+                                                        <span className="material-symbols-outlined text-[18px]">rocket_launch</span>
+                                                        Deploy Template
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Content Area */}
+                                            <div className="p-10 flex-1 bg-white">
+                                                <div className="flex items-center gap-3 mb-4">
+                                                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: template.color }}></div>
+                                                    <span className="text-[12px] font-black uppercase tracking-widest text-slate-400">{template.category}</span>
+                                                </div>
+                                                <h4 className="text-[24px] font-black text-slate-900 leading-tight mb-3 group-hover:text-blue-600 transition-colors">{template.title}</h4>
+                                                <p className="text-[15px] text-slate-500 font-medium line-clamp-2 leading-relaxed">{template.desc}</p>
+
+                                                <div className="mt-8 flex items-center justify-between pt-8 border-t border-slate-50">
+                                                    <div className="flex -space-x-2">
+                                                        {[1, 2, 3].map(i => (
+                                                            <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-400">
+                                                                <span className="material-symbols-outlined text-[14px]">bolt</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                    <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Certified Blueprint</span>
+                                                </div>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* Expansive Footer CTA */}
+                                <div className="mt-12 p-12 rounded-[40px] bg-slate-50 border border-slate-200/60 text-center">
+                                    <h4 className="text-[20px] font-black text-slate-900 mb-4">Need a bespoke solution?</h4>
+                                    <p className="text-slate-500 font-medium mb-8 max-w-xl mx-auto">Our 25+ templates are just the beginning. Arkle can clone any existing website or build custom tools for your specific business niche.</p>
+                                    <button
+                                        onClick={() => {
+                                            startForging("Request custom industry template.");
+                                        }}
+                                        className="px-10 py-4 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md text-slate-900 font-black text-[14px] uppercase tracking-widest transition-all"
+                                    >
+                                        Contact Arkle Studio
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                    </motion.div>
-                </div>
+                    </div>
+                )}
+
             </div>
         );
     };
 
     const renderHome = () => {
         return (
-            <div className="pb-12 flex flex-col items-center min-h-full px-4 animate-in fade-in duration-1000 relative overflow-hidden transition-all duration-1000" 
-                 style={{ backgroundColor: theme.bgBase, backgroundImage: `radial-gradient(at 0% 0%, ${theme.meshColor1} 0px, transparent 50%), radial-gradient(at 100% 0%, ${theme.meshColor2} 0px, transparent 50%), radial-gradient(at 50% 50%, ${theme.primary}11 0px, transparent 100%)` }}>
+            <div className="pb-12 flex flex-col items-center min-h-full px-4 animate-in fade-in duration-1000 relative overflow-hidden transition-all duration-1000"
+                style={{ backgroundColor: theme.bgBase }}>
 
-                {/* Atmospheric Mesh Glows */}
-                <div className="absolute top-[5%] left-1/2 -translate-x-1/2 w-[1600px] h-[1000px] pointer-events-none transition-all duration-1000 opacity-70" 
-                     style={{ background: `radial-gradient(circle at 50% 35%, ${theme.primary}33 0%, ${theme.meshColor1}22 40%, transparent 70%)` }}></div>
-                <div className="absolute top-[-20%] right-[-10%] w-[800px] h-[800px] blur-[150px] rounded-full pointer-events-none opacity-30 transition-all duration-1000 animate-pulse"
-                     style={{ backgroundColor: theme.primary }}></div>
-                <div className="absolute bottom-[-20%] left-[-10%] w-[600px] h-[600px] blur-[120px] rounded-full pointer-events-none opacity-20 transition-all duration-1000"
-                     style={{ backgroundColor: theme.primary }}></div>
+                {/* Premium Edge Shading (Left & Right Emphasis) & Mood Glow */}
+                <div className="absolute inset-0 pointer-events-none z-0 transition-all duration-1000"
+                    style={{
+                        background: `
+                            radial-gradient(circle at 50% 35%, ${theme.primary}18 0%, transparent 60%),
+                            linear-gradient(to right, white 0%, transparent 20%, transparent 80%, white 100%),
+                            linear-gradient(to bottom, white 0%, transparent 15%, transparent 85%, white 100%)
+                         `
+                    }}></div>
 
-                {/* Main Header */}
-                <div className="text-center mt-4 mb-8 w-full max-w-5xl px-4 relative z-10">
-                    <h1 className="text-[52px] md:text-[64px] font-black text-slate-900 tracking-tighter leading-none mb-4 uppercase">
-                        {topTab === 'arkle' ? 'Hi Founder,' : topTab === 'co-founder' ? 'Build Something Big.' : topTab === 'solutions' ? 'Logic Forge.' : 'Hire Your Team.'}
+                {/* Soft Centralized Pulse */}
+                <div className="absolute top-[20%] left-1/2 -translate-x-1/2 w-full max-w-[800px] h-[300px] md:h-[500px] blur-[100px] md:blur-[140px] rounded-full pointer-events-none opacity-20 transition-all duration-1000 z-0 animate-pulse"
+                    style={{ backgroundColor: theme.primary }}></div>
+
+                {/* Main Header - Refined Hierarchy */}
+                <div className="text-center mt-24 mb-12 w-full max-w-5xl px-4 relative z-10">
+                    <h1 className="text-[42px] md:text-[52px] font-black text-slate-900 tracking-tighter leading-none mb-2 uppercase transition-opacity duration-300" style={{ opacity: isMounted ? 1 : 0.8 }}>
+                        Hi {isMounted ? (user?.role || firstName) : 'Founder'},
                     </h1>
-                    <div className="flex items-center justify-center gap-2 mb-8">
-                        <span className="text-[18px] font-bold text-slate-400">Neural Core</span>
-                        <span className="px-3 py-0.5 rounded-full bg-blue-50 text-blue-600 text-[12px] font-black uppercase tracking-widest animate-pulse" style={{ backgroundColor: theme.primary + '11', color: theme.primary }}>Active</span>
+
+                    <div className="flex items-center justify-center gap-3 text-[20px] md:text-[24px] font-bold text-slate-500 tracking-tight">
+                        <span>
+                            {topTab === 'launcher' || topTab === 'tool-lab' ? "Let's Build" :
+                                topTab === 'agents' ? "Hire a new" : "Let's Discuss"}
+                        </span>
+                        {isMounted ? (
+                            <AnimatePresence mode="wait">
+                                <motion.span
+                                    key={currentWords[wordIndex % currentWords.length]}
+                                    initial={{ y: 20, opacity: 0 }}
+                                    animate={{ y: 0, opacity: 1 }}
+                                    exit={{ y: -20, opacity: 0 }}
+                                    className="px-5 py-1.5 rounded-2xl bg-white shadow-[0_10px_30px_rgba(0,0,0,0.06)] border border-slate-100 text-[18px] font-black uppercase tracking-widest inline-block"
+                                    style={{ color: theme.primary }}
+                                >
+                                    {currentWords[wordIndex % currentWords.length]}
+                                </motion.span>
+                            </AnimatePresence>
+                        ) : (
+                            <span className="px-5 py-1.5 rounded-2xl bg-white shadow-[0_10px_30px_rgba(0,0,0,0.06)] border border-slate-100 text-[18px] font-black uppercase tracking-widest inline-block" style={{ color: theme.primary }}>
+                                {currentWords[0]}
+                            </span>
+                        )}
+                        {(topTab === 'launcher' || topTab === 'tool-lab') && <span>something big.</span>}
                     </div>
                 </div>
 
                 {/* Central Attached Prompt Box UI */}
-                <div className="w-full max-w-[860px] mx-auto relative z-20 mt-16 mb-10">
+                <div className="w-full max-w-[760px] mx-auto relative z-20 mt-16 mb-10">
 
                     {/* The Main Pill Prompt Box */}
                     <div className="w-full bg-white rounded-[48px] shadow-[0_20px_60px_rgba(0,0,0,0.06)] border border-slate-100 p-2 relative pt-8">
 
                         {/* --- TOP EMBEDDED COMPONENTS --- */}
-                        {/* 1. Mode Selector Pill - EXACT SCREENSHOT MATCH */}
-                        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-3 px-4 bg-white/50 backdrop-blur-2xl shadow-[0_10px_30px_rgba(0,0,0,0.04)] p-1.5 rounded-full border border-white/60 z-30 group/modes">
+                        {/* 1. Mode Selector Pill - PREMIUM UPGRADE */}
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center bg-[#f1f5f9]/60 backdrop-blur-3xl shadow-[0_15px_30px_rgba(0,0,0,0.05)] p-1.5 rounded-full border border-white/80 z-30 ring-1 ring-black/[0.02]">
 
-                            {/* Snaking Thread SVG - Subtle & Precise */}
-                            <div className="absolute inset-0 pointer-events-none overflow-visible -z-10">
-                                <svg width="100%" height="100%" viewBox="0 0 300 60" preserveAspectRatio="none" className="absolute top-1/2 left-[-150px] -translate-y-1/2 w-[600px] h-16 opacity-30">
-                                    <path
-                                        d="M 0 30 L 120 30 Q 140 30, 155 15 T 185 30 T 215 45 T 245 30 T 275 15 T 305 30 L 450 30"
-                                        fill="none"
-                                        stroke="#3b82f6"
-                                        strokeWidth="1"
-                                        strokeDasharray="4 4"
-                                        className="animate-thread-flow"
-                                    />
-                                </svg>
+                            <div className="flex items-center relative z-10 px-1">
+                                {[
+                                    { id: 'arkle', icon: 'neurology', label: 'Arkle' },
+                                    { id: 'launcher', icon: 'rocket_launch', label: 'Launcher' },
+                                    { id: 'tool-lab', icon: 'grid_view', label: 'Tool Lab' },
+                                    { id: 'agents', icon: 'smart_toy', label: 'Agents' }
+                                ].map((tab) => (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => setTopTab(tab.id as any)}
+                                        className="relative flex items-center justify-center w-[58px] h-10 transition-all duration-300 z-10 group/tab"
+                                    >
+                                        {topTab === tab.id && (
+                                            <motion.div
+                                                layoutId="activeModePill"
+                                                className="absolute inset-0 bg-white shadow-[0_5px_15px_rgba(0,0,0,0.08)] rounded-full border border-white -z-10"
+                                                transition={{ type: "spring", stiffness: 500, damping: 40 }}
+                                            />
+                                        )}
+                                        <span
+                                            className={`material-symbols-outlined text-[24px] transition-all duration-300 ${topTab === tab.id ? 'scale-110' : 'text-slate-400 group-hover/tab:text-slate-600'}`}
+                                            style={{ color: topTab === tab.id ? theme.primary : undefined }}
+                                        >
+                                            {tab.icon}
+                                        </span>
+
+                                        {/* Hover Indicator */}
+                                        {topTab !== tab.id && (
+                                            <div className="absolute inset-0 bg-slate-900/[0.03] opacity-0 group-hover/tab:opacity-100 transition-opacity rounded-[20px] m-1"></div>
+                                        )}
+                                    </button>
+                                ))}
                             </div>
-
-                            {[
-                                { id: 'arkle', icon: 'neurology' },
-                                { id: 'co-founder', icon: 'rocket_launch' },
-                                { id: 'solutions', icon: 'grid_view' },
-                                { id: 'ai-agents', icon: 'smart_toy' }
-                            ].map((tab) => (
-                                <button
-                                    key={tab.id}
-                                    onClick={() => setTopTab(tab.id as any)}
-                                    className={`flex items-center justify-center w-12 h-12 transition-all duration-500 relative ${topTab === tab.id
-                                        ? 'bg-white shadow-[0_4px_12px_rgba(0,0,0,0.05)] rounded-2xl z-10'
-                                        : 'text-slate-300 hover:text-slate-500'
-                                        }`}
-                                >
-                                    <span className={`material-symbols-outlined text-[24px] ${topTab === tab.id ? 'text-blue-600' : ''}`}>
-                                        {tab.icon}
-                                    </span>
-                                    {topTab === tab.id && (
-                                        <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.4)]"></div>
-                                    )}
-                                </button>
-                            ))}
                         </div>
 
                         {/* 2. Paper Rocket (Send) Icon - Screenshot Match */}
@@ -1801,14 +2153,79 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
                                 <span className="material-symbols-outlined text-[22px] text-blue-500/30 -rotate-12 group-hover/rocket:rotate-0 transition-all duration-500 cursor-pointer animate-rocket-hover">send</span>
                             </div>
                         </div>
+
+                        {/* 3. Arkle Voice Trigger - Animated & Draggable Bubble (Screenshot Match) */}
+                        <motion.div
+                            drag
+                            dragMomentum={false}
+                            className="absolute -top-24 left-1/2 -translate-x-1/2 z-40 cursor-grab active:cursor-grabbing"
+                        >
+                            <motion.div
+                                whileHover={{ scale: 1.1, y: -5 }}
+                                whileTap={{ scale: 0.9 }}
+                                onClick={() => useBizStore.getState().setIsVoiceActive(true)}
+                                className="relative flex flex-col items-center group cursor-pointer"
+                            >
+                                <div className="w-28 h-28 rounded-full flex items-center justify-center shadow-[0_20px_60px_rgba(59,130,246,0.35)] relative overflow-hidden">
+                                    <ArkleVoiceIcon 
+                                        size="lg" 
+                                        isListening={isVoiceActive} 
+                                    />
+                                </div>
+
+                                {/* Quick Command Sticker Popup (LaunchPad Match) */}
+                                <div className="absolute -top-20 left-1/2 -translate-x-1/2 flex items-center gap-3 p-2 bg-slate-900/95 backdrop-blur-xl rounded-2xl border border-white/20 shadow-[0_30px_60px_rgba(0,0,0,0.4)] opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:-translate-y-0 z-50">
+                                    <button 
+                                        onClick={(e) => { e.stopPropagation(); useBizStore.getState().setIsMuted(!useBizStore.getState().isMuted); }}
+                                        className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${useBizStore.getState().isMuted ? 'text-orange-400 bg-orange-400/10' : 'text-white hover:bg-white/10'}`}
+                                    >
+                                        <span className="material-symbols-rounded text-[20px]">{useBizStore.getState().isMuted ? 'mic_off' : 'mic'}</span>
+                                    </button>
+                                    <button 
+                                        onClick={(e) => { e.stopPropagation(); useBizStore.getState().setIsVoiceActive(false); }}
+                                        className="w-10 h-10 rounded-xl flex items-center justify-center text-red-400 border border-red-400/20 hover:bg-red-500/20 transition-all"
+                                    >
+                                        <span className="material-symbols-rounded text-[20px]">close</span>
+                                    </button>
+                                    <button 
+                                        onClick={(e) => { e.stopPropagation(); useBizStore.getState().setIsPaused(!useBizStore.getState().isPaused); }}
+                                        className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${useBizStore.getState().isPaused ? 'text-blue-400 bg-blue-400/10' : 'text-white hover:bg-white/10'}`}
+                                    >
+                                        <span className="material-symbols-rounded text-[20px]">{useBizStore.getState().isPaused ? 'play_arrow' : 'pause'}</span>
+                                    </button>
+                                    {/* Arrow */}
+                                    <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-slate-900/95 border-r border-b border-white/20 rotate-45"></div>
+                                </div>
+
+                                <div className="mt-4 px-6 py-2.5 bg-white shadow-2xl rounded-full border border-slate-100 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 flex items-center justify-center">
+                                    <span className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] whitespace-nowrap">Voice Mode Active</span>
+                                </div>
+                            </motion.div>
+                        </motion.div>
                         {/* --- END TOP EMBEDDED COMPONENTS --- */}
 
                         <textarea
-                            value={isRecording && (appState === 'home') && liveTranscript ? liveTranscript : promptInput}
-                            onChange={(e) => setPromptInput(e.target.value)}
-                            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleDirectSubmit(); } }}
+                            ref={(el) => {
+                                if (el) {
+                                    el.style.height = 'auto';
+                                    el.style.height = `${Math.min(Math.max(el.scrollHeight, 96), 220)}px`;
+                                }
+                            }}
+                            value={isVoiceActive && (appState === 'home') && liveTranscript ? liveTranscript : promptInput}
+                            onChange={(e) => {
+                                setPromptInput(e.target.value);
+                                e.target.style.height = 'auto';
+                                e.target.style.height = `${Math.min(Math.max(e.target.scrollHeight, 96), 220)}px`;
+                            }}
+                            onKeyDown={(e) => { 
+                                if (e.key === 'Enter' && !e.shiftKey) { 
+                                    e.preventDefault(); 
+                                    handleDirectSubmit(); 
+                                    if (e.currentTarget) e.currentTarget.style.height = '96px';
+                                } 
+                            }}
                             placeholder="Ask anything..."
-                            className="w-full bg-transparent border-none outline-none text-[18px] font-medium text-slate-700 placeholder-slate-400 px-8 pt-3 pb-6 resize-none no-scrollbar"
+                            className="w-full bg-transparent border-none outline-none text-[18px] font-medium text-slate-700 placeholder-slate-400 px-8 pt-5 pb-8 resize-none custom-scrollbar min-h-[96px] max-h-[220px] transition-[height] duration-100"
                             rows={2}
                         />
 
@@ -1846,86 +2263,117 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
                     </div>
                 </div>
 
-                {/* Sub UI for specific modes */}
-                <div className="w-full max-w-5xl mx-auto px-4 mt-12 relative z-10">
+                {/* Quick Chat Tiles under Prompt Box for Arkle Mode matching screenshot exactly */}
+                {topTab === 'arkle' && (
+                    <div className="w-full max-w-4xl mx-auto mt-2 animate-in fade-in slide-in-from-bottom-4 duration-700 px-4 relative z-20">
+                        <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4">
+                            {[
+                                { label: 'Growth Gaps', icon: 'auto_awesome', prompt: 'Identify growth gaps in my business model and suggest strategies' },
+                                { label: 'AI Automation', icon: 'alt_route', prompt: 'Where can I apply AI automation to streamline daily operations?' },
+                                { label: 'Tech Solutions', icon: 'monitoring', prompt: 'Recommend technical solutions to scale my startup ecosystem' },
+                                { label: 'Social Plan', icon: 'rocket_launch', prompt: 'Generate a complete social media plan for brand awareness' }
+                            ].map((item, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={() => setPromptInput(item.prompt)}
+                                    className="px-5 py-2.5 bg-white/90 hover:bg-white backdrop-blur-md rounded-full shadow-[0_8px_20px_rgba(0,0,0,0.05)] border border-white/60 hover:border-blue-500/30 flex items-center gap-2 hover:scale-105 active:scale-95 transition-all group"
+                                >
+                                    <span className="material-symbols-outlined text-[16px] text-blue-600 group-hover:rotate-12 transition-transform">
+                                        {item.icon}
+                                    </span>
+                                    <span className="text-[13px] font-bold text-slate-800 tracking-tight whitespace-nowrap">
+                                        {item.label}
+                                    </span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
-                    {/* Arkle Mode Quick Tiles */}
-                    {topTab === 'arkle' && (
-                        <div className="w-full flex justify-center mt-[-16px]">
-                            <div className="flex overflow-x-auto no-scrollbar gap-4 px-4 py-4 w-full max-w-[860px] justify-start items-center">
-                                {[
-                                    { label: 'Growth Gaps', icon: 'auto_awesome' },
-                                    { label: 'AI Automation', icon: 'architecture' },
-                                    { label: 'Tech Solutions', icon: 'query_stats' },
-                                    { label: 'Social Plan', icon: 'rocket_launch' },
-                                    { label: 'Market Research', icon: 'manage_search' },
-                                    { label: 'Legal Advice', icon: 'gavel' },
-                                    { label: 'Brand Identity', icon: 'palette' },
-                                    { label: 'Scale Ops', icon: 'domain' }
-                                ].map((tile, i) => (
-                                    <button
-                                        key={i}
-                                        onClick={() => setPromptInput(tile.label)}
-                                        className="flex-shrink-0 flex items-center gap-3 py-2 px-2 w-[175px] rounded-[16px] bg-white/70 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_30px_rgba(0,115,234,0.15)] border border-white/80 hover:border-blue-200 transition-all duration-300 hover:-translate-y-1.5 hover:scale-105 hover:bg-white/95 group animate-in slide-in-from-right-8 fade-in fill-mode-both"
-                                        style={{ animationDelay: `${i * 100}ms`, animationDuration: '500ms' }}
-                                    >
-                                        <div className="w-9 h-9 shrink-0 rounded-[10px] flex items-center justify-center bg-blue-50/80 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
-                                            <span className="material-symbols-outlined text-[18px] group-hover:scale-125 transition-transform duration-300">{tile.icon}</span>
-                                        </div>
-                                        <div className="text-left overflow-hidden">
-                                            <span className="text-[13.5px] font-bold text-slate-800 group-hover:text-blue-900 transition-colors tracking-tight truncate block">{tile.label}</span>
-                                        </div>
-                                    </button>
-                                ))}
-                            </div>
+                {/* Sub UI for specific modes - Edge-to-Edge Enabled */}
+                <div className="w-full px-0 mt-12 relative z-10">
+
+
+                    {/* Launcher/Tool Lab UI Integration */}
+                    {(topTab === 'launcher' || topTab === 'tool-lab') && (
+                        <div className="w-full">
+                            {topTab === 'launcher' && renderLauncherUI()}
+                            {topTab === 'tool-lab' && renderToolLabUI()}
                         </div>
                     )}
 
-                    {/* Solutions Mode Below Card */}
-                    {topTab === 'solutions' && (
-                        <div className="max-w-2xl mx-auto bg-white rounded-[40px] shadow-[0_20px_60px_rgba(0,0,0,0.04)] border border-slate-100 p-12 text-center animate-in fade-in slide-in-from-bottom-4 duration-700 mt-8 relative overflow-hidden">
-                            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-orange-50/30"></div>
-                            <div className="relative z-10">
-                                <div className="w-16 h-16 bg-slate-900 text-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
-                                    <span className="material-symbols-outlined text-[28px]">architecture</span>
+                    {/* Agents Mode Below Card */}
+                    {topTab === 'agents' && (
+                        <div className="w-full max-w-5xl mx-auto space-y-12 animate-in fade-in duration-700 mt-8">
+                            <div className="bg-white rounded-[40px] shadow-[0_20px_60px_rgba(0,0,0,0.04)] border border-slate-100 p-12 text-center relative overflow-hidden">
+                                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-blue-50/30"></div>
+                                <div className="relative z-10">
+                                    <div className="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
+                                        <span className="material-symbols-outlined text-[28px]">smart_toy</span>
+                                    </div>
+                                    <h2 className="text-[32px] md:text-[48px] font-black text-[#0f172a] mb-2 tracking-tight italic pr-4 leading-tight">Your AI Employees.</h2>
+                                    <p className="text-[16px] text-slate-500 font-medium leading-relaxed max-w-2xl mx-auto">Hire specialized AI Agents to handle your marketing, research, and technical operations while you sleep.</p>
+                                    <div className="mt-8 flex justify-center gap-3">
+                                        <div className="flex -space-x-3">
+                                            {[1, 2, 3, 4].map(i => (
+                                                <div key={i} className="w-10 h-10 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center text-[10px] font-black text-slate-400">
+                                                    <span className="material-symbols-outlined text-[18px]">person</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <div className="text-left">
+                                            <p className="text-[11px] font-black text-slate-800 uppercase tracking-widest">Active Workforce</p>
+                                            <p className="text-[10px] font-bold text-slate-400">Ready to execute missions</p>
+                                        </div>
+                                    </div>
                                 </div>
-                                <h2 className="text-[48px] font-black text-[#0f172a] mb-2 tracking-tight italic pr-4">Build from Idea.</h2>
-                                <p className="text-[16px] text-slate-500 font-medium">No templates. No presets. Just raw innovation.</p>
                             </div>
-                        </div>
-                    )}
 
-                    {/* Co-Founder Mode Below Card */}
-                    {topTab === 'co-founder' && (
-                        <div className="mt-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                            <div className="flex justify-center gap-5 flex-wrap mb-16">
-                                {/* Adding the colorful square icons */}
-                                {LAUNCHER_CATEGORIES.slice(0, 8).map(cat => (
-                                    <div key={cat.id} className="flex flex-col items-center gap-3 cursor-pointer group">
-                                        <div className="w-16 h-16 rounded-[20px] flex items-center justify-center text-white shadow-lg group-hover:-translate-y-2 group-hover:shadow-xl transition-all duration-300" style={{ background: `linear-gradient(135deg, ${cat.color}, ${cat.color}ee)` }}>
-                                            <span className="material-symbols-outlined text-[28px]">{cat.icon}</span>
+                            {/* Digital Employees Grid */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
+                                {DIGITAL_EMPLOYEES.map(emp => (
+                                    <div key={emp.id} className="bg-white rounded-[32px] border border-slate-200/60 p-8 flex flex-col justify-between hover:border-blue-500 hover:shadow-2xl transition-all duration-500 relative group overflow-hidden">
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 blur-[40px] rounded-full group-hover:scale-150 transition-transform"></div>
+                                        <div className="relative z-10">
+                                            <div className="flex items-center gap-4 mb-6">
+                                                <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${emp.color} text-white flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform`}>
+                                                    <span className="material-symbols-outlined text-[28px]">{emp.icon}</span>
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-[16px] font-black text-slate-900 leading-tight">{emp.name}</h3>
+                                                    <p className="text-[11px] font-bold text-blue-600">{emp.role}</p>
+                                                </div>
+                                            </div>
+                                            <p className="text-[13px] text-slate-500 font-medium leading-relaxed mb-6">{emp.desc}</p>
+                                            
+                                            {/* Capabilities */}
+                                            <div className="space-y-2 mb-8">
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Core Capabilities</p>
+                                                <div className="flex flex-wrap gap-1.5">
+                                                    {(emp.capabilities || []).map((cap, idx) => (
+                                                        <span key={idx} className="px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-100 text-[11px] font-semibold text-slate-600">
+                                                            {cap}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
                                         </div>
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">{cat.label}</span>
-                                    </div>
-                                ))}
-                            </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-                                {/* The large cards at bottom of Co-Founder mode */}
-                                {['Startup Essentials', 'Marketing Suite', 'Growth Tools'].map((title, i) => (
-                                    <div key={i} className="bg-white/80 backdrop-blur-xl rounded-[32px] p-8 shadow-sm border border-slate-100 hover:shadow-lg hover:border-purple-100 transition-all cursor-pointer">
-                                        <h3 className="text-[20px] font-bold text-slate-900 mb-3">{title}</h3>
-                                        <p className="text-[14px] text-slate-500 font-medium leading-relaxed">
-                                            {i === 0 ? "Build the core identity of your brand with AI-powered design tools." :
-                                                i === 1 ? "Launch high-converting campaigns across all social channels." :
-                                                    "Scale your business with automated systems and analytics."}
-                                        </p>
+                                        <button
+                                            onClick={() => {
+                                                setSelectedAgentId(emp.id);
+                                                setAppState('agent-workspace');
+                                            }}
+                                            className="w-full py-3 bg-slate-900 hover:bg-blue-600 text-white font-bold text-[12px] rounded-xl transition-colors shadow-md flex items-center justify-center gap-2 relative z-10"
+                                        >
+                                            <span>Hire / Manage Agent</span>
+                                            <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                                        </button>
                                     </div>
                                 ))}
                             </div>
                         </div>
                     )}
-
                 </div>
             </div>
         );
@@ -1981,7 +2429,7 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
                 </button>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {builtAssets.map(asset => (
                     <div key={asset.id} onClick={() => asset.status === 'done' && setViewingAsset(asset)} className="bg-white p-5 rounded-xl border border-[#e6e9ef] hover:border-[#0073ea] hover:shadow-lg transition-all cursor-pointer group">
                         <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition-transform" style={{ background: `${asset.color}18` }}>
@@ -2033,7 +2481,7 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
                             <span className="material-symbols-outlined text-[18px]">arrow_back</span>
                         </button>
                         <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-md relative" style={{ backgroundColor: `${agent.clr}15`, color: agent.clr }}>
+                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-md relative bg-gradient-to-br ${agent.color} text-white`}>
                                 <span className="material-symbols-outlined text-[24px]">{agent.icon}</span>
                                 <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#00c875] border-2 border-white flex items-center justify-center shadow-sm">
                                     <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>
@@ -2041,7 +2489,7 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
                             </div>
                             <div>
                                 <h1 className="text-[18px] font-bold text-[#323338] leading-tight flex items-center gap-2">
-                                    {agent.title}
+                                    {agent.name}
                                     <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-slate-800 text-white">AI Worker</span>
                                 </h1>
                                 <p className="text-[13px] text-[#676879] flex items-center gap-1.5 mt-0.5">
@@ -2123,7 +2571,7 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
                             value={isRecording && liveTranscript ? liveTranscript : agentTaskInput}
                             onChange={(e) => setAgentTaskInput(e.target.value)}
                             onKeyDown={(e) => { if (e.key === 'Enter') handleAgentTaskSubmit(); }}
-                            placeholder={`Assign a task to ${agent.title}...`}
+                            placeholder={`Assign a task to ${agent.name}...`}
                             className="w-full bg-transparent outline-none text-[14px] text-slate-800 placeholder-slate-400 mb-1.5"
                             disabled={isAgentWorking}
                         />
@@ -2220,11 +2668,10 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
         <div className="flex h-full overflow-hidden bg-white relative">
 
             {/* Main Content */}
-            {/* Main Content Area with Dynamic Mood Lighting (Light Theme Restore) */}
-            <div className="flex-1 overflow-y-auto overflow-x-hidden relative custom-scrollbar bg-[#020617] transition-all duration-1000">
-
-                {/* DYNAMIC MOOD BACKGROUND (The Core Identity) */}
-                <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            {/* Main Content Area with Atmospheric Mood Surface (Vibrant Mode for Launcher) */}
+            <div className="flex-1 overflow-y-auto overflow-x-hidden relative custom-scrollbar bg-[#090b1a] transition-all duration-1000 z-10">
+                {/* ══════ VIBRANT ATMOSPHERIC SURFACE ══════ */}
+                <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
                     {/* Primary Atmospheric Glow */}
                     <div
                         className="absolute -top-[20%] left-1/2 -translate-x-1/2 w-[120%] h-[80%] rounded-[100%] opacity-30 blur-[120px] transition-all duration-1000"
@@ -2243,6 +2690,8 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
 
 
 
+
+
                 {/* QA Overlay */}
                 <QAOverlay isScanning={forgeStatus === 'building'} />
 
@@ -2251,7 +2700,6 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
                 {/* Content Router */}
                 {appState === 'home' && renderHome()}
                 {appState === 'discuss' && renderChat(chatThread, chatInput, setChatInput, handleDiscussSubmit, chatEndRef, 'Co-Founder Discussion')}
-                {appState === 'solutions-chat' && renderChat(solThread, solInput, setSolInput, handleSolSubmit, solEndRef, 'Solutions Lab')}
                 {appState === 'building' && renderBuilding()}
                 {appState === 'ready' && renderReady()}
                 {appState === 'agent-workspace' && renderAgentWorkspace()}
@@ -2271,150 +2719,158 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
                     >
                         <div className="p-0 flex flex-col h-full bg-[#fcfcfd] overflow-hidden">
 
-                    {/* Header by Mode */}
-                    <div className={`p-4 pt-8 transition-all duration-500 ${isTrayExpanded ? 'opacity-100' : 'opacity-0 scale-90 translate-x-10'}`}>
-                        {topTab === 'arkle' && (
-                            <div>
-                                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Arkle Intelligence</h3>
-                                <h2 className="text-[16px] font-black text-slate-800 tracking-tighter leading-none">Brain Memory</h2>
-                            </div>
-                        )}
-                        {topTab === 'co-founder' && (
-                            <div>
-                                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Launcher Center</h3>
-                                <h2 className="text-[16px] font-black text-slate-800 tracking-tighter leading-none">Startup Assets</h2>
-                            </div>
-                        )}
-                        {topTab === 'solutions' && (
-                            <div>
-                                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Development Lab</h3>
-                                <h2 className="text-[16px] font-black text-slate-800 tracking-tighter leading-none">Tool Factory</h2>
-                            </div>
-                        )}
-                        {topTab === 'ai-agents' && (
-                            <div>
-                                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Agent Ops</h3>
-                                <h2 className="text-[16px] font-black text-slate-800 tracking-tighter leading-none">Digital Team</h2>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Dynamic Action Buttons */}
-                    <div className="px-3 space-y-3 mt-4">
-                        {topTab === 'arkle' && (
-                            <>
-                                <button onClick={() => setAppState('home')} className={`w-full flex items-center bg-[#0073ea] text-white rounded-2xl shadow-lg shadow-blue-500/20 transition-all hover:scale-105 active:scale-95 ${isTrayExpanded ? 'px-4 py-3 justify-between' : 'h-10 w-10 justify-center p-0 mx-auto'}`}>
-                                    <div className="flex items-center gap-3">
-                                        <span className="material-symbols-outlined text-[20px]">add_comment</span>
-                                        {isTrayExpanded && <span className="text-[13px] font-bold">New Session</span>}
+                            {/* Header by Mode */}
+                            <div className={`p-4 pt-8 transition-all duration-500 ${isTrayExpanded ? 'opacity-100' : 'opacity-0 scale-90 translate-x-10'}`}>
+                                {topTab === 'arkle' && (
+                                    <div>
+                                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Arkle Intelligence</h3>
+                                        <h2 className="text-[16px] font-black text-slate-800 tracking-tighter leading-none">Brain Memory</h2>
                                     </div>
-                                    {isTrayExpanded && <span className="text-[10px] opacity-60">⌘K</span>}
-                                </button>
-                                <button className={`w-full flex items-center bg-white border border-slate-100 rounded-2xl text-slate-600 hover:bg-slate-50 transition-all ${isTrayExpanded ? 'px-4 py-3 gap-3' : 'h-10 w-10 justify-center p-0 mx-auto'}`}>
-                                    <span className="material-symbols-outlined text-[20px]">psychology</span>
-                                    {isTrayExpanded && <span className="text-[13px] font-bold">Strategy Lab</span>}
-                                </button>
-                            </>
-                        )}
-                        {topTab === 'co-founder' && (
-                            <>
-                                <button onClick={() => setAppState('home')} className={`w-full flex items-center bg-[#00c875] text-white rounded-2xl shadow-lg shadow-green-500/20 transition-all hover:scale-105 active:scale-95 ${isTrayExpanded ? 'px-4 py-3 gap-3' : 'h-10 w-10 justify-center p-0 mx-auto'}`}>
-                                    <span className="material-symbols-outlined text-[20px]">rocket_launch</span>
-                                    {isTrayExpanded && <span className="text-[13px] font-bold">Launch Hub</span>}
-                                </button>
-                                <button className={`w-full flex items-center bg-white border border-slate-100 rounded-2xl text-slate-600 hover:bg-slate-50 transition-all ${isTrayExpanded ? 'px-4 py-3 gap-3' : 'h-10 w-10 justify-center p-0 mx-auto'}`}>
-                                    <span className="material-symbols-outlined text-[20px]">branding_watermark</span>
-                                    {isTrayExpanded && <span className="text-[13px] font-bold">Brand Kit</span>}
-                                </button>
-                            </>
-                        )}
-                        {topTab === 'solutions' && (
-                            <>
-                                <button onClick={() => startForging("Build a new business tool")} className={`w-full flex items-center bg-[#ff7b00] text-white rounded-2xl shadow-lg shadow-orange-500/20 transition-all hover:scale-105 active:scale-95 ${isTrayExpanded ? 'px-4 py-3 gap-3' : 'h-10 w-10 justify-center p-0 mx-auto'}`}>
-                                    <span className="material-symbols-outlined text-[20px]">precision_manufacturing</span>
-                                    {isTrayExpanded && <span className="text-[13px] font-bold">Build App</span>}
-                                </button>
-                                <button className={`w-full flex items-center bg-white border border-slate-100 rounded-2xl text-slate-600 hover:bg-slate-50 transition-all ${isTrayExpanded ? 'px-4 py-3 gap-3' : 'h-10 w-10 justify-center p-0 mx-auto'}`}>
-                                    <span className="material-symbols-outlined text-[20px]">extension</span>
-                                    {isTrayExpanded && <span className="text-[13px] font-bold">Skill Library</span>}
-                                </button>
-                            </>
-                        )}
-                    </div>
-
-                    {/* Contextual History/List */}
-                    <div className={`flex-1 overflow-y-auto no-scrollbar px-3 mt-10 transition-all duration-500 ${isTrayExpanded ? 'opacity-100' : 'opacity-0 translate-x-10'}`}>
-                        <div className="flex items-center justify-between mb-4 px-1">
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">History</span>
-                            <span className="material-symbols-outlined text-slate-300 text-[16px]">history</span>
-                        </div>
-
-                        <div className="space-y-1">
-                            {topTab === 'arkle' && (
-                                <>
-                                    {chatThread.filter(m => m.role === 'user').length > 0 ? (
-                                        chatThread.filter(m => m.role === 'user').slice(-5).reverse().map((msg, i) => (
-                                            <button key={i} onClick={() => setAppState('discuss')} className="w-full px-3 py-2 text-left rounded-lg text-slate-500 hover:bg-slate-50 hover:text-blue-600 transition-all text-[12px] font-medium flex items-center gap-2 truncate group">
-                                                <span className="material-symbols-outlined text-[14px] opacity-40 group-hover:opacity-100 transition-opacity">chat_bubble</span>
-                                                <span className="truncate">{msg.text}</span>
-                                            </button>
-                                        ))
-                                    ) : (
-                                        <p className="px-3 py-2 text-[11px] text-slate-400 italic">No recent prompts.</p>
-                                    )}
-                                </>
-                            )}
-                            {topTab === 'solutions' && (
-                                <>
-                                    {solThread.filter(m => m.role === 'user').length > 0 ? (
-                                        solThread.filter(m => m.role === 'user').slice(-5).reverse().map((msg, i) => (
-                                            <button key={i} onClick={() => setAppState('solutions-chat')} className="w-full px-3 py-2 text-left rounded-lg text-slate-500 hover:bg-slate-50 hover:text-orange-600 transition-all text-[12px] font-medium flex items-center gap-2 truncate group">
-                                                <span className="material-symbols-outlined text-[14px] opacity-40 group-hover:opacity-100 transition-opacity">lightbulb</span>
-                                                <span className="truncate">{msg.text}</span>
-                                            </button>
-                                        ))
-                                    ) : (
-                                        <p className="px-3 py-2 text-[11px] text-slate-400 italic">No solution history.</p>
-                                    )}
-                                </>
-                            )}
-                            {topTab === 'co-founder' && (
-                                <>
-                                    {builtAssets.length > 0 ? (
-                                        builtAssets.filter(a => a.status === 'done').map(asset => (
-                                            <button key={asset.id} className="w-full px-3 py-2 text-left rounded-lg text-slate-500 hover:bg-slate-50 hover:text-green-600 transition-all text-[12px] font-medium flex items-center gap-2 truncate">
-                                                <span className="material-symbols-outlined text-[14px]" style={{ color: asset.color }}>{asset.icon}</span>
-                                                {asset.label}
-                                            </button>
-                                        ))
-                                    ) : (
-                                        <p className="text-[11px] text-slate-400 italic px-3">No assets yet.</p>
-                                    )}
-                                </>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Bottom Status / Profile */}
-                    <div className="mt-auto p-2 border-t border-slate-100 bg-slate-50/50">
-                        <div className={`flex items-center gap-3 bg-white p-2 rounded-2xl border border-slate-100 shadow-sm transition-all ${isTrayExpanded ? 'w-full px-3 py-3' : 'w-10 h-10 justify-center p-0 mx-auto'}`}>
-                            <div className="shrink-0 w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white text-[10px] font-black">
-                                {firstName[0]}
-                            </div>
-                            {isTrayExpanded && (
-                                <div className="flex-1 overflow-hidden animate-in fade-in slide-in-from-left-2">
-                                    <p className="text-[11px] font-black text-slate-800 truncate">{firstName}'s Hub</p>
-                                    <div className="flex items-center gap-1">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                        <p className="text-[8px] text-slate-400 font-black uppercase tracking-widest">Active</p>
+                                )}
+                                {topTab === 'launcher' && (
+                                    <div>
+                                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Launcher Center</h3>
+                                        <h2 className="text-[16px] font-black text-slate-800 tracking-tighter leading-none">Startup Assets</h2>
                                     </div>
+                                )}
+                                {topTab === 'tool-lab' && (
+                                    <div>
+                                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Development Lab</h3>
+                                        <h2 className="text-[16px] font-black text-slate-800 tracking-tighter leading-none">Tool Factory</h2>
+                                    </div>
+                                )}
+                                {topTab === 'agents' && (
+                                    <div>
+                                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Your AI Employees</h3>
+                                        <h2 className="text-[16px] font-black text-slate-800 tracking-tighter leading-none">AI Agents</h2>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Dynamic Action Buttons */}
+                            <div className="px-3 space-y-3 mt-4">
+                                {topTab === 'arkle' && (
+                                    <>
+                                        <button onClick={() => setAppState('home')} className={`w-full flex items-center bg-[#0073ea] text-white rounded-2xl shadow-lg shadow-blue-500/20 transition-all hover:scale-105 active:scale-95 ${isTrayExpanded ? 'px-4 py-3 justify-between' : 'h-10 w-10 justify-center p-0 mx-auto'}`}>
+                                            <div className="flex items-center gap-3">
+                                                <span className="material-symbols-outlined text-[20px]">add_comment</span>
+                                                {isTrayExpanded && <span className="text-[13px] font-bold">New Session</span>}
+                                            </div>
+                                            {isTrayExpanded && <span className="text-[10px] opacity-60">⌘K</span>}
+                                        </button>
+                                        <button className={`w-full flex items-center bg-white border border-slate-100 rounded-2xl text-slate-600 hover:bg-slate-50 transition-all ${isTrayExpanded ? 'px-4 py-3 gap-3' : 'h-10 w-10 justify-center p-0 mx-auto'}`}>
+                                            <span className="material-symbols-outlined text-[20px]">psychology</span>
+                                            {isTrayExpanded && <span className="text-[13px] font-bold">Strategy Lab</span>}
+                                        </button>
+                                    </>
+                                )}
+                                {topTab === 'launcher' && (
+                                    <>
+                                        <button onClick={() => setAppState('home')} className={`w-full flex items-center bg-[#00c875] text-white rounded-2xl shadow-lg shadow-green-500/20 transition-all hover:scale-105 active:scale-95 ${isTrayExpanded ? 'px-4 py-3 gap-3' : 'h-10 w-10 justify-center p-0 mx-auto'}`}>
+                                            <span className="material-symbols-outlined text-[20px]">rocket_launch</span>
+                                            {isTrayExpanded && <span className="text-[13px] font-bold">Launch Hub</span>}
+                                        </button>
+                                        <button className={`w-full flex items-center bg-white border border-slate-100 rounded-2xl text-slate-600 hover:bg-slate-50 transition-all ${isTrayExpanded ? 'px-4 py-3 gap-3' : 'h-10 w-10 justify-center p-0 mx-auto'}`}>
+                                            <span className="material-symbols-outlined text-[20px]">branding_watermark</span>
+                                            {isTrayExpanded && <span className="text-[13px] font-bold">Brand Kit</span>}
+                                        </button>
+                                    </>
+                                )}
+                                {topTab === 'tool-lab' && (
+                                    <>
+                                        <button onClick={() => startForging("Build a new business tool")} className={`w-full flex items-center bg-[#ff7b00] text-white rounded-2xl shadow-lg shadow-orange-500/20 transition-all hover:scale-105 active:scale-95 ${isTrayExpanded ? 'px-4 py-3 gap-3' : 'h-10 w-10 justify-center p-0 mx-auto'}`}>
+                                            <span className="material-symbols-outlined text-[20px]">precision_manufacturing</span>
+                                            {isTrayExpanded && <span className="text-[13px] font-bold">Build App</span>}
+                                        </button>
+                                        <button className={`w-full flex items-center bg-white border border-slate-100 rounded-2xl text-slate-600 hover:bg-slate-50 transition-all ${isTrayExpanded ? 'px-4 py-3 gap-3' : 'h-10 w-10 justify-center p-0 mx-auto'}`}>
+                                            <span className="material-symbols-outlined text-[20px]">extension</span>
+                                            {isTrayExpanded && <span className="text-[13px] font-bold">Skill Library</span>}
+                                        </button>
+                                    </>
+                                )}
+                                {topTab === 'agents' && (
+                                    <>
+                                        <button onClick={() => setAppState('home')} className={`w-full flex items-center bg-[#f59e0b] text-white rounded-2xl shadow-lg shadow-amber-500/20 transition-all hover:scale-105 active:scale-95 ${isTrayExpanded ? 'px-4 py-3 gap-3' : 'h-10 w-10 justify-center p-0 mx-auto'}`}>
+                                            <span className="material-symbols-outlined text-[20px]">smart_toy</span>
+                                            {isTrayExpanded && <span className="text-[13px] font-bold">Hire Agent</span>}
+                                        </button>
+                                    </>
+                                )}
+                            </div>
+
+                            {/* Contextual History/List */}
+                            <div className={`flex-1 overflow-y-auto no-scrollbar px-3 mt-10 transition-all duration-500 ${isTrayExpanded ? 'opacity-100' : 'opacity-0 translate-x-10'}`}>
+                                <div className="flex items-center justify-between mb-4 px-1">
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">History</span>
+                                    <span className="material-symbols-outlined text-slate-300 text-[16px]">history</span>
                                 </div>
-                            )}
+
+                                <div className="space-y-1">
+                                    {topTab === 'arkle' && (
+                                        <>
+                                            {chatThread.filter(m => m.role === 'user').length > 0 ? (
+                                                chatThread.filter(m => m.role === 'user').slice(-5).reverse().map((msg, i) => (
+                                                    <button key={i} onClick={() => setAppState('discuss')} className="w-full px-3 py-2 text-left rounded-lg text-slate-500 hover:bg-slate-50 hover:text-blue-600 transition-all text-[12px] font-medium flex items-center gap-2 truncate group">
+                                                        <span className="material-symbols-outlined text-[14px] opacity-40 group-hover:opacity-100 transition-opacity">chat_bubble</span>
+                                                        <span className="truncate">{msg.text}</span>
+                                                    </button>
+                                                ))
+                                            ) : (
+                                                <p className="px-3 py-2 text-[11px] text-slate-400 italic">No recent prompts.</p>
+                                            )}
+                                        </>
+                                    )}
+                                    {topTab === 'launcher' && (
+                                        <>
+                                            {builtAssets.length > 0 ? (
+                                                builtAssets.filter(a => a.status === 'done').map(asset => (
+                                                    <button key={asset.id} className="w-full px-3 py-2 text-left rounded-lg text-slate-500 hover:bg-slate-50 hover:text-green-600 transition-all text-[12px] font-medium flex items-center gap-2 truncate">
+                                                        <span className="material-symbols-outlined text-[14px]" style={{ color: asset.color }}>{asset.icon}</span>
+                                                        {asset.label}
+                                                    </button>
+                                                ))
+                                            ) : (
+                                                <p className="text-[11px] text-slate-400 italic px-3">No assets yet.</p>
+                                            )}
+                                        </>
+                                    )}
+                                    {topTab === 'tool-lab' && (
+                                        <>
+                                            {solThread.filter(m => m.role === 'user').length > 0 ? (
+                                                solThread.filter(m => m.role === 'user').slice(-5).reverse().map((msg, i) => (
+                                                    <button key={i} onClick={() => setAppState('home')} className="w-full px-3 py-2 text-left rounded-lg text-slate-500 hover:bg-slate-50 hover:text-orange-600 transition-all text-[12px] font-medium flex items-center gap-2 truncate group">
+                                                        <span className="material-symbols-outlined text-[14px] opacity-40 group-hover:opacity-100 transition-opacity">lightbulb</span>
+                                                        <span className="truncate">{msg.text}</span>
+                                                    </button>
+                                                ))
+                                            ) : (
+                                                <p className="px-3 py-2 text-[11px] text-slate-400 italic">No history.</p>
+                                            )}
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Bottom Status / Profile */}
+                            <div className="mt-auto p-2 border-t border-slate-100 bg-slate-50/50">
+                                <div className={`flex items-center gap-3 bg-white p-2 rounded-2xl border border-slate-100 shadow-sm transition-all ${isTrayExpanded ? 'w-full px-3 py-3' : 'w-10 h-10 justify-center p-0 mx-auto'}`}>
+                                    <div className="shrink-0 w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white text-[10px] font-black">
+                                        {firstName[0]}
+                                    </div>
+                                    {isTrayExpanded && (
+                                        <div className="flex-1 overflow-hidden animate-in fade-in slide-in-from-left-2">
+                                            <p className="text-[11px] font-black text-slate-800 truncate">{firstName}'s Hub</p>
+                                            <div className="flex items-center gap-1">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                                <p className="text-[8px] text-slate-400 font-black uppercase tracking-widest">Active</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
-            </motion.div>
-            )}
+                    </motion.div>
+                )}
             </AnimatePresence>
 
             <style>{`
@@ -2436,10 +2892,6 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
             <WelcomeModal />
             <DiscoveryWizard />
             <MagicLoading />
-
-            {showVoiceStudio && (
-                <VoiceBuilderStudio onClose={() => setShowVoiceStudio(false)} context={bizCtx} />
-            )}
 
             {/* Asset Viewer Modal */}
             {viewingAsset && (
@@ -2532,6 +2984,16 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
 
             {/* RENDER PURE CREATION IDE IF ACTIVE */}
             {forgeStatus !== 'idle' && renderPureCreationForge()}
+
+            {showProjectLibrary && (
+                <ProjectLibraryModal
+                    show={showProjectLibrary}
+                    onClose={() => setShowProjectLibrary(false)}
+                    userId={user?.id || user?.uid}
+                    onSelectProject={handleSelectProject}
+                />
+            )}
+
         </div>
     );
 };
