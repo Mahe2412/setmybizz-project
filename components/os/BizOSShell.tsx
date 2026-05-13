@@ -328,7 +328,7 @@ export default function BizOSShell({ data: initialData }: BizOSShellProps) {
 
           <div className="hidden lg:block text-right mr-1">
             <p className="text-[9px] font-black text-slate-900 leading-none uppercase tracking-widest">
-              {dbBusiness?.business_name || dbUser?.business_name || bizData.name || 'My Startup'}
+              {dbBusiness?.name || dbBusiness?.business_name || dbUser?.business_name || bizData.name || 'My Startup'}
             </p>
             <div className="flex items-center justify-end gap-1 mt-1">
               <span className="text-[8px] font-black text-sky-600 italic leading-none">{bizData.healthScore || 72}%</span>

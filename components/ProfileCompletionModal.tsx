@@ -76,11 +76,9 @@ const ProfileCompletionModal: React.FC<ProfileCompletionModalProps> = ({ isOpen,
                 // Also save/update the 'businesses' table
                 const { error: bizError } = await supabase.from('businesses').upsert({
                     user_id: user.id,
-                    business_name: formData.businessName,
-                    industry: formData.sector,
-                    tagline: formData.size,
-                    region: `${formData.city || 'City'}, ${formData.state || 'State'}, ${formData.country || 'India'}`,
-                    updated_at: new Date().toISOString()
+                    name: formData.businessName,
+                    address: `${formData.city || 'City'}, ${formData.state || 'State'}, ${formData.country || 'India'}`,
+                    state: formData.state
                 }, { onConflict: 'user_id' });
                 
                 if (bizError) throw bizError;

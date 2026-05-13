@@ -44,9 +44,9 @@ export default function CompanyTab() {
   const toggle = (s: Section) => setOpen(o => o === s ? null : s);
   const { user, dbUser, dbBusiness } = useAuth();
 
-  const liveBizName = dbBusiness?.business_name || dbUser?.business_name || BIZ.name;
+  const liveBizName = dbBusiness?.name || dbBusiness?.business_name || dbUser?.business_name || BIZ.name;
   const liveUserName = dbUser?.full_name || user?.user_metadata?.full_name || 'Founder';
-  const liveRegion = dbBusiness?.region || BIZ.address;
+  const liveRegion = dbBusiness?.address || dbBusiness?.region || BIZ.address;
   const liveFirstName = liveUserName.split(' ')[0] || 'Operator';
 
   // Override primary director placeholder dynamically
