@@ -28,6 +28,8 @@ import LaunchPadTab from '@/components/os/LaunchPadTab';
 import Workspace from '@/components/dashboard/Workspace';
 import IntegrationsPanel from '@/components/os/IntegrationsPanel';
 import { ArkleCoreProvider } from '@/context/ArkleCoreContext';
+import { useAuth } from '@/context/AuthContext';
+import LoginStep from '@/components/steps/LoginStep';
 
 /* ───────────── SIDEBAR NAV CONFIG (BizDesk) ───────────── */
 type SidebarSection = { section: string; items: { id: OsTab; icon: string; label: string; badge?: string }[] };
@@ -156,7 +158,9 @@ export default function OSPage() {
   const [bizData, setBizData] = useState(BIZ);
   const [integrationsOpen, setIntegrationsOpen] = useState(false);
   const [globalLang, setGlobalLang] = useState('en-IN');
+  const [skippedAuth, setSkippedAuth] = useState(false);
   const { whiteboardOpen, setWhiteboardOpen, conversationMode, sidebarOpen: storeSidebarOpen, setSidebarOpen: setStoreSidebarOpen } = useBizStore();
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
     if (conversationMode) {
@@ -206,6 +210,29 @@ export default function OSPage() {
 
   /* All flat items for drag logic */
   const allSidebarItems = BIZDESK_SIDEBAR.flatMap(s => s.items);
+
+  if (authLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-slate-50">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <p className="text-slate-500 text-sm font-medium animate-pulse">Verifying Access Credentials...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Mandatory access protection gate
+  if (!user && !skippedAuth) {
+    return (
+      <LoginStep 
+        onLogin={(skip) => {
+          if (skip) setSkippedAuth(true);
+        }} 
+        businessName={bizData.name || 'Your Business'} 
+      />
+    );
+  }
 
   return (
     <ArkleCoreProvider>
