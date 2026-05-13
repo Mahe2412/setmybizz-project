@@ -30,6 +30,7 @@ import IntegrationsPanel from '@/components/os/IntegrationsPanel';
 import { ArkleCoreProvider } from '@/context/ArkleCoreContext';
 import { useAuth } from '@/context/AuthContext';
 import LoginStep from '@/components/steps/LoginStep';
+import ProfileCompletionModal from '@/components/ProfileCompletionModal';
 
 /* ───────────── SIDEBAR NAV CONFIG (BizDesk) ───────────── */
 type SidebarSection = { section: string; items: { id: OsTab; icon: string; label: string; badge?: string }[] };
@@ -159,7 +160,19 @@ export default function OSPage() {
   const [integrationsOpen, setIntegrationsOpen] = useState(false);
   const [globalLang, setGlobalLang] = useState('en-IN');
   const { whiteboardOpen, setWhiteboardOpen, conversationMode, sidebarOpen: storeSidebarOpen, setSidebarOpen: setStoreSidebarOpen } = useBizStore();
-  const { user, loading: authLoading } = useAuth();
+  const { user, dbUser, loading: authLoading } = useAuth();
+  const [showProfileModal, setShowProfileModal] = useState(false);
+
+  useEffect(() => {
+    // Trigger ProfileCompletionModal if core profile details are missing
+    if (user && !authLoading) {
+      if (!dbUser || !dbUser.full_name || !dbUser.phone) {
+        setShowProfileModal(true);
+      } else {
+        setShowProfileModal(false);
+      }
+    }
+  }, [user, dbUser, authLoading]);
 
   useEffect(() => {
     if (conversationMode) {
