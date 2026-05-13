@@ -160,19 +160,24 @@ export default function OSPage() {
   const [integrationsOpen, setIntegrationsOpen] = useState(false);
   const [globalLang, setGlobalLang] = useState('en-IN');
   const { whiteboardOpen, setWhiteboardOpen, conversationMode, sidebarOpen: storeSidebarOpen, setSidebarOpen: setStoreSidebarOpen } = useBizStore();
-  const { user, dbUser, loading: authLoading } = useAuth();
+  const { user, dbUser, dbBusiness, loading: authLoading } = useAuth();
   const [showProfileModal, setShowProfileModal] = useState(false);
 
+  // Dynamic UI replacement accessors to completely remove static mock data placeholders
+  const liveBizName = dbBusiness?.business_name || dbUser?.business_name || bizData.name || 'Your Startup';
+  const liveUserName = dbUser?.full_name || user?.user_metadata?.full_name || 'Operator';
+  const liveUserInitials = liveUserName.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() || 'MK';
+
   useEffect(() => {
-    // Trigger ProfileCompletionModal if core profile details are missing
+    // Trigger ProfileCompletionModal if core profile details or verified business workspaces are missing
     if (user && !authLoading) {
-      if (!dbUser || !dbUser.full_name || !dbUser.phone) {
+      if (!dbUser || !dbUser.full_name || !dbUser.phone || !dbBusiness || !dbBusiness.business_name) {
         setShowProfileModal(true);
       } else {
         setShowProfileModal(false);
       }
     }
-  }, [user, dbUser, authLoading]);
+  }, [user, dbUser, dbBusiness, authLoading]);
 
   useEffect(() => {
     if (conversationMode) {
@@ -266,6 +271,17 @@ export default function OSPage() {
           font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
       `}</style>
+
+      {/* Enterprise First-Time Onboarding Details Intake Modal */}
+      <ProfileCompletionModal 
+        isOpen={showProfileModal} 
+        onComplete={(data) => {
+          setShowProfileModal(false);
+          if (data) {
+            window.location.reload();
+          }
+        }} 
+      />
 
       {/* ═══════ COMPACT LIGHT TOP BAR ═══════ */}
       <header className={`shrink-0 h-14 md:h-15 lg:h-16 flex items-center justify-between px-6 md:px-8 gap-4 z-50 backdrop-blur-md transition-all duration-500 bg-transparent`}>
@@ -368,7 +384,7 @@ export default function OSPage() {
           </div>
 
           <div className="hidden lg:block text-right mr-1">
-            <p className={`text-[9px] font-black leading-none uppercase tracking-widest text-slate-900`}>{BIZ.name}</p>
+            <p className={`text-[9px] font-black leading-none uppercase tracking-widest text-slate-900`}>{liveBizName}</p>
             <div className="flex items-center justify-end gap-1 mt-1">
               <div className={`h-0.5 w-10 rounded-full overflow-hidden bg-sky-100`}>
                 <div className="h-full rounded-full bg-sky-600" style={{ width: `${BIZ.healthScore}%` }} />
@@ -381,9 +397,9 @@ export default function OSPage() {
             <div
               onClick={() => { setActiveTab('user-profile'); switchTopNav('bizdesk'); }}
               className="w-10 h-10 rounded-full flex items-center justify-center font-black text-xs bg-linear-to-tr from-sky-600 to-blue-700 text-white cursor-pointer shadow-md hover:scale-105 active:scale-95 transition-all border-2 border-white/80"
-              title="User Profile"
+              title={liveUserName}
             >
-              MK
+              {liveUserInitials}
             </div>
           </div>
         </div>

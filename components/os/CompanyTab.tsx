@@ -4,6 +4,8 @@ import { BIZ, MCA_FILINGS } from '@/lib/mockBizData';
 import { StatusBadge } from '@/components/os/shared';
 import { motion, AnimatePresence } from 'framer-motion';
 
+import { useAuth } from '@/context/AuthContext';
+
 type Section = 'identity' | 'vault' | 'directors' | 'compliance' | 'startup' | null;
 
 const AccordionItem = ({
@@ -40,6 +42,18 @@ const AccordionItem = ({
 export default function CompanyTab() {
   const [open, setOpen] = useState<Section>('identity');
   const toggle = (s: Section) => setOpen(o => o === s ? null : s);
+  const { user, dbUser, dbBusiness } = useAuth();
+
+  const liveBizName = dbBusiness?.business_name || dbUser?.business_name || BIZ.name;
+  const liveUserName = dbUser?.full_name || user?.user_metadata?.full_name || 'Founder';
+  const liveRegion = dbBusiness?.region || BIZ.address;
+  const liveFirstName = liveUserName.split(' ')[0] || 'Operator';
+
+  // Override primary director placeholder dynamically
+  const liveDirectors = BIZ.directors ? [...BIZ.directors] : [];
+  if (liveDirectors.length > 0) {
+    liveDirectors[0] = { ...liveDirectors[0], name: liveUserName };
+  }
 
   const vaultDocs = [
     { name: 'Incorporation Certificate', type: 'PDF', date: 'Mar 10, 2025' },
@@ -55,15 +69,15 @@ export default function CompanyTab() {
         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50/50 rounded-full blur-[80px] -z-10 animate-pulse" />
         <div className="flex flex-col md:flex-row items-center gap-6 md:gap-10 relative z-10 text-center md:text-left">
           <div className="w-24 h-24 rounded-[2rem] bg-slate-900 shadow-2xl flex items-center justify-center font-black text-4xl text-white group-hover:scale-110 group-hover:rotate-6 transition-all shrink-0">
-              {BIZ.name[0]}
+              {liveBizName[0] || 'B'}
           </div>
           <div className="flex-1">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-100 mb-4">
                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                  <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest leading-none">Entity Live & Synced</p>
               </div>
-              <h1 className="text-3xl md:text-4xl font-black mb-1 tracking-tight italic">{BIZ.name}</h1>
-              <p className="text-slate-400 text-[11px] font-black uppercase tracking-[0.3em]">{BIZ.structure} • {BIZ.roc}</p>
+              <h1 className="text-3xl md:text-4xl font-black mb-1 tracking-tight italic">{liveBizName}</h1>
+              <p className="text-slate-400 text-[11px] font-black uppercase tracking-[0.3em]">{dbBusiness?.industry || BIZ.structure} • {BIZ.roc}</p>
           </div>
           <div className="bg-slate-50 flex flex-col items-center justify-center px-8 py-5 rounded-[2rem] border border-slate-100 shadow-inner">
              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Health</p>
@@ -82,7 +96,7 @@ export default function CompanyTab() {
               { label: 'PAN Identity', value: BIZ.pan, icon: 'badge' },
               { label: 'Base ROC', value: BIZ.roc, icon: 'account_balance' },
               { label: 'Paid-up Capital', value: BIZ.paidUpCapital, icon: 'payments' },
-              { label: 'Official Nexus', value: BIZ.address, full: true },
+              { label: 'Official Nexus', value: liveRegion, full: true },
             ].map(d => (
               <div key={d.label} className={`${d.full ? 'md:col-span-2' : ''} bg-slate-50 rounded-2xl p-5 border border-slate-100/50 hover:bg-white hover:shadow-xl transition-all group`}>
                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 group-hover:text-indigo-600 transition-colors">{d.label}</p>
@@ -118,7 +132,7 @@ export default function CompanyTab() {
         {/* Primary Operators */}
         <AccordionItem id="directors" icon="groups" title="Primary Operators" isOpen={open === 'directors'} onToggle={() => toggle('directors')}>
           <div className="space-y-4 mt-2">
-            {BIZ.directors?.map((d, i) => (
+            {liveDirectors.map((d, i) => (
               <div key={i} className="flex flex-col sm:flex-row items-center gap-5 p-5 bg-slate-50 rounded-[2rem] border border-slate-100/50 hover:bg-white hover:shadow-xl transition-all group">
                 <div className="w-16 h-16 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black text-xl shadow-lg group-hover:rotate-12 transition-transform shrink-0">
                   {d.name.split(' ').map(w => w[0]).join('')}
@@ -167,7 +181,7 @@ export default function CompanyTab() {
         >
           <div className="mt-2 space-y-8 bg-slate-900 p-8 rounded-[2.5rem] text-white relative overflow-hidden">
             <div className="absolute top-0 right-0 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl" />
-            <p className="text-slate-400 text-xs font-bold leading-relaxed italic relative z-10">"Mahendra, your entity is eligible for Section 80-IAC tax exemption. Launching the Startup India protocol will unlock benefits worth approx ₹12 Lakhs over 3 years."</p>
+            <p className="text-slate-400 text-xs font-bold leading-relaxed italic relative z-10">"{liveFirstName}, your entity is eligible for Section 80-IAC tax exemption. Launching the Startup India protocol will unlock benefits worth approx ₹12 Lakhs over 3 years."</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 relative z-10">
               {[
                 { icon: 'savings', title: 'Tax-Free Loop' },

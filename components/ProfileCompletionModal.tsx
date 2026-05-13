@@ -9,13 +9,16 @@ interface ProfileCompletionModalProps {
 }
 
 const ProfileCompletionModal: React.FC<ProfileCompletionModalProps> = ({ isOpen, onComplete }) => {
-    const { user, dbUser } = useAuth();
+    const { user, dbUser, dbBusiness } = useAuth();
     const [formData, setFormData] = useState({
         displayName: '',
         businessName: '',
         phone: '',
         state: '',
         city: '',
+        country: 'India',
+        size: '1-10 Employees',
+        sector: 'E-commerce & Retail',
     });
     const [loading, setLoading] = useState(false);
 
@@ -24,13 +27,16 @@ const ProfileCompletionModal: React.FC<ProfileCompletionModalProps> = ({ isOpen,
         if (isOpen && user) {
             setFormData({
                 displayName: dbUser?.full_name || user.user_metadata?.full_name || '',
-                businessName: dbUser?.business_name || '',
+                businessName: dbBusiness?.business_name || dbUser?.business_name || '',
                 phone: dbUser?.phone || '',
                 state: dbUser?.state || '',
                 city: dbUser?.city || '',
+                country: dbBusiness?.region?.includes(',') ? dbBusiness.region.split(',').pop()?.trim() || 'India' : 'India',
+                size: dbBusiness?.tagline || '1-10 Employees',
+                sector: dbBusiness?.industry || 'E-commerce & Retail',
             });
         }
-    }, [isOpen, user, dbUser]);
+    }, [isOpen, user, dbUser, dbBusiness]);
 
     if (!isOpen) return null;
 
@@ -48,8 +54,6 @@ const ProfileCompletionModal: React.FC<ProfileCompletionModalProps> = ({ isOpen,
                     id: user.id,
                     full_name: formData.displayName,
                     email: user.email,
-                    // Additional fields can be stored in metadata or separate columns
-                    // For now, updating the 'users' table columns we have
                     updated_at: new Date().toISOString(),
                 };
 
@@ -61,10 +65,26 @@ const ProfileCompletionModal: React.FC<ProfileCompletionModalProps> = ({ isOpen,
                 const { error: bizError } = await supabase.from('businesses').upsert({
                     user_id: user.id,
                     business_name: formData.businessName,
+                    industry: formData.sector,
+                    tagline: formData.size,
+                    region: `${formData.city || 'City'}, ${formData.state || 'State'}, ${formData.country || 'India'}`,
                     updated_at: new Date().toISOString()
                 }, { onConflict: 'user_id' });
                 
                 if (bizError) throw bizError;
+
+                // Broadcast local state cache updates instantly
+                const localPayload = {
+                    userName: formData.displayName,
+                    name: formData.businessName,
+                    phone: formData.phone,
+                    state: formData.state,
+                    country: formData.country,
+                    sector: formData.sector,
+                    size: formData.size,
+                    email: user.email,
+                };
+                localStorage.setItem('setmybizz_data', JSON.stringify(localPayload));
 
                 onComplete({ ...formData, registeredId: uniqueId });
             }
@@ -142,18 +162,7 @@ const ProfileCompletionModal: React.FC<ProfileCompletionModalProps> = ({ isOpen,
                             />
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 ml-1">State</label>
-                            <input
-                                type="text"
-                                required
-                                value={formData.state}
-                                onChange={e => setFormData({ ...formData, state: e.target.value })}
-                                className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900 font-medium placeholder-slate-400"
-                                placeholder="State"
-                            />
-                        </div>
+                    <div className="grid grid-cols-3 gap-3">
                         <div>
                             <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 ml-1">City</label>
                             <input
@@ -161,9 +170,64 @@ const ProfileCompletionModal: React.FC<ProfileCompletionModalProps> = ({ isOpen,
                                 required
                                 value={formData.city}
                                 onChange={e => setFormData({ ...formData, city: e.target.value })}
-                                className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900 font-medium placeholder-slate-400"
+                                className="w-full px-3 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900 text-xs font-medium placeholder-slate-400"
                                 placeholder="City"
                             />
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 ml-1">State</label>
+                            <input
+                                type="text"
+                                required
+                                value={formData.state}
+                                onChange={e => setFormData({ ...formData, state: e.target.value })}
+                                className="w-full px-3 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900 text-xs font-medium placeholder-slate-400"
+                                placeholder="State"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 ml-1">Country</label>
+                            <input
+                                type="text"
+                                required
+                                value={formData.country}
+                                onChange={e => setFormData({ ...formData, country: e.target.value })}
+                                className="w-full px-3 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900 text-xs font-medium placeholder-slate-400"
+                                placeholder="Country"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 ml-1">Industry Sector</label>
+                            <select
+                                value={formData.sector}
+                                onChange={e => setFormData({ ...formData, sector: e.target.value })}
+                                className="w-full px-3 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900 text-xs font-medium"
+                            >
+                                <option value="E-commerce & Retail">E-commerce & Retail</option>
+                                <option value="SaaS & Technology">SaaS & Technology</option>
+                                <option value="Professional Services">Professional Services</option>
+                                <option value="Health & Wellness">Health & Wellness</option>
+                                <option value="Food & Hospitality">Food & Hospitality</option>
+                                <option value="Manufacturing & Logistics">Manufacturing & Logistics</option>
+                                <option value="Creative & Media">Creative & Media</option>
+                                <option value="Other Startup Sector">Other Startup Sector</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 ml-1">Team Size</label>
+                            <select
+                                value={formData.size}
+                                onChange={e => setFormData({ ...formData, size: e.target.value })}
+                                className="w-full px-3 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900 text-xs font-medium"
+                            >
+                                <option value="Solo Founder">Solo Founder</option>
+                                <option value="1-10 Employees">1-10 Employees</option>
+                                <option value="11-50 Employees">11-50 Employees</option>
+                                <option value="50+ Scaled Team">50+ Scaled Team</option>
+                            </select>
                         </div>
                     </div>
 

@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useCallback, useEffect } from 'react';
+import { useAuth } from '@/context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BIZ } from '@/lib/mockBizData';
 import type { OsTab } from '@/components/os/shared';
@@ -157,6 +158,7 @@ interface BizOSShellProps {
 }
 
 export default function BizOSShell({ data: initialData }: BizOSShellProps) {
+  const { user, dbUser, dbBusiness } = useAuth();
   const [activeTab, setActiveTab] = useState<OsTab>('home');
   const [arkleOpen, setArkleOpen] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
@@ -325,14 +327,19 @@ export default function BizOSShell({ data: initialData }: BizOSShellProps) {
           </div>
 
           <div className="hidden lg:block text-right mr-1">
-            <p className="text-[9px] font-black text-slate-900 leading-none uppercase tracking-widest">{bizData.name}</p>
+            <p className="text-[9px] font-black text-slate-900 leading-none uppercase tracking-widest">
+              {dbBusiness?.business_name || dbUser?.business_name || bizData.name || 'My Startup'}
+            </p>
             <div className="flex items-center justify-end gap-1 mt-1">
               <span className="text-[8px] font-black text-sky-600 italic leading-none">{bizData.healthScore || 72}%</span>
             </div>
           </div>
 
-          <div className="w-10 h-10 rounded-full flex items-center justify-center font-black text-xs bg-linear-to-tr from-sky-600 to-blue-700 text-white cursor-pointer shadow-md border-2 border-white/80">
-            {bizData?.userName?.charAt(0) || 'U'}
+          <div 
+            title={dbUser?.full_name || user?.user_metadata?.full_name || bizData.userName || 'Operator'}
+            className="w-10 h-10 rounded-full flex items-center justify-center font-black text-xs bg-linear-to-tr from-sky-600 to-blue-700 text-white cursor-pointer shadow-md border-2 border-white/80"
+          >
+            {(dbUser?.full_name || user?.user_metadata?.full_name || bizData.userName || 'U').split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()}
           </div>
         </div>
       </header>

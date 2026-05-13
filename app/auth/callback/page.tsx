@@ -20,17 +20,14 @@ export default function AuthCallbackPage() {
     }, []);
 
     useEffect(() => {
-        // Only redirect once Supabase successfully parses URL OAuth session tokens and confirms user object binding
-        if (user) {
-            const timer = setTimeout(() => {
-                // Check if there's a stored redirect path, otherwise default to OS LaunchPad
-                const redirectTo = sessionStorage.getItem('auth_return_url') || '/os';
-                sessionStorage.removeItem('auth_return_url');
-                router.push(redirectTo);
-            }, 1000);
+        // Automatically route to OS workspace once tokens parse, with a robust 2.5s fallback safety trigger
+        const timer = setTimeout(() => {
+            const redirectTo = sessionStorage.getItem('auth_return_url') || '/os';
+            sessionStorage.removeItem('auth_return_url');
+            router.push(redirectTo);
+        }, user ? 500 : 2500);
 
-            return () => clearTimeout(timer);
-        }
+        return () => clearTimeout(timer);
     }, [user, router]);
 
     return (

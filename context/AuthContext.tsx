@@ -8,6 +8,7 @@ interface AuthContextType {
     user: User | null;
     session: Session | null;
     dbUser: any | null;
+    dbBusiness: any | null;
     guestId: string | null;
     loading: boolean;
     signOut: () => Promise<void>;
@@ -17,6 +18,7 @@ const AuthContext = createContext<AuthContextType>({
     user: null,
     session: null,
     dbUser: null,
+    dbBusiness: null,
     guestId: null,
     loading: true,
     signOut: async () => {},
@@ -28,6 +30,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [user, setUser] = useState<User | null>(null);
     const [session, setSession] = useState<Session | null>(null);
     const [dbUser, setDbUser] = useState<any | null>(null);
+    const [dbBusiness, setDbBusiness] = useState<any | null>(null);
     const [guestId, setGuestId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -64,6 +67,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 await fetchDbUser(session.user.id);
             } else {
                 setDbUser(null);
+                setDbBusiness(null);
             }
             setLoading(false);
         });
@@ -88,8 +92,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (data) {
                 setDbUser(data);
             }
+
+            // Concurrently pull the verified business identity to drive UI shells
+            const { data: bizData } = await supabase
+                .from('businesses')
+                .select('*')
+                .eq('user_id', userId)
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .single();
+
+            if (bizData) {
+                setDbBusiness(bizData);
+            } else {
+                setDbBusiness(null);
+            }
         } catch (err) {
-            console.error("DB User Fetch Error:", err);
+            console.error("DB Context Synchronization Error:", err);
         }
     };
 
@@ -98,7 +117,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     return (
-        <AuthContext.Provider value={{ user, session, dbUser, guestId, loading, signOut }}>
+        <AuthContext.Provider value={{ user, session, dbUser, dbBusiness, guestId, loading, signOut }}>
             {children}
         </AuthContext.Provider>
     );
