@@ -124,7 +124,7 @@ export default function CompanyTab() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pb-24 px-4">
+    <div className="max-w-5xl mx-auto space-y-6 pb-24 px-4">
       {/* Neural Entity Pulse */}
       <div className="rounded-[2.5rem] md:rounded-[3rem] p-8 md:p-10 text-slate-900 border-2 border-slate-100 bg-white shadow-2xl relative overflow-hidden group">
         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50/50 rounded-full blur-[80px] -z-10 animate-pulse" />

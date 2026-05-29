@@ -61,7 +61,7 @@ export default function LegalTab() {
     };
 
     return (
-        <div className="max-w-5xl mx-auto space-y-10 pb-24 px-4">
+        <div className="max-w-6xl mx-auto space-y-10 pb-24 px-4">
             {/* SAIL Header */}
             <div className="flex flex-col md:flex-row items-center justify-between gap-8 bg-white p-10 rounded-[3rem] border border-slate-200 shadow-sm relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-40 h-40 bg-purple-50 rounded-full blur-3xl -z-0" />

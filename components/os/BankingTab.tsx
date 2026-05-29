@@ -223,7 +223,7 @@ export default function BankingTab() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pb-24 px-4">
+    <div className="max-w-5xl mx-auto space-y-6 pb-24 px-4">
       
       {/* Header and Toggle Navigation */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">

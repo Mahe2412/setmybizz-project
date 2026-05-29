@@ -33,7 +33,7 @@ export default function GSTTab() {
     : null;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pb-24 px-4">
+    <div className="max-w-5xl mx-auto space-y-6 pb-24 px-4">
       {/* Dynamic Header */}
       <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-2xl">
          <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/20 rounded-full blur-[100px] -z-0" />
