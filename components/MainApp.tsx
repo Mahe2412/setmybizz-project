@@ -142,9 +142,21 @@ const AppContent: React.FC = () => {
 
     if (loading) return <div>Initializing...</div>;
 
+    // Redirect to /os when onboarding completes
+    useEffect(() => {
+        if (view === 'dashboard') {
+            router.push('/os');
+        }
+    }, [view, router]);
+
     if (view === 'dashboard') {
         return (
-            <BizOSShell data={data} onLogin={() => setView('login')} />
+            <div className="flex h-screen items-center justify-center bg-slate-50">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                    <p className="text-slate-500 text-sm font-medium animate-pulse">Launching BizOS Workspace...</p>
+                </div>
+            </div>
         );
     }
 
