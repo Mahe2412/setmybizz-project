@@ -688,7 +688,7 @@ export default function HomePage() {
                 </motion.div>
 
                 {/* ── BIZDESK SECTION ── */}
-                <motion.section {...fadeUp} id="bizdesk-section" className="py-12 px-4 sm:px-12 md:px-24 lg:px-32 xl:px-48 bg-white relative overflow-hidden border-t border-slate-55">
+                <motion.section {...fadeUp} id="bizdesk-section" className="py-12 px-4 sm:px-12 md:px-24 lg:px-32 xl:px-48 bg-white relative overflow-hidden">
                     <div onMouseEnter={() => setBizAutoplayPaused(true)} onMouseLeave={() => setBizAutoplayPaused(false)} className="max-w-[1310px] mx-auto flex flex-col lg:flex-row items-stretch rounded-[3rem] border border-slate-100 bg-slate-50/50 shadow-2xl overflow-hidden min-h-[260px]">
                         
                         {/* Left Column (30% width) - Sky Blue Gradient with Vector Pattern */}
@@ -951,7 +951,7 @@ export default function HomePage() {
                 </motion.section>
 
                 {/* ── LAUNCHPAD SECTION ── */}
-                <motion.section {...fadeUp} id="launchpad-section" className="py-12 px-4 sm:px-12 md:px-24 lg:px-32 xl:px-48 bg-white relative overflow-hidden border-t border-slate-55">
+                <motion.section {...fadeUp} id="launchpad-section" className="py-12 px-4 sm:px-12 md:px-24 lg:px-32 xl:px-48 bg-white relative overflow-hidden">
                     <div onMouseEnter={() => setLaunchAutoplayPaused(true)} onMouseLeave={() => setLaunchAutoplayPaused(false)} className="max-w-[1310px] mx-auto flex flex-col lg:flex-row items-stretch rounded-[3rem] border border-slate-100 bg-slate-50/50 shadow-2xl overflow-hidden min-h-[260px]">
                         
                         {/* Left Column (30% width) - Sky Blue Gradient */}
@@ -1318,7 +1318,7 @@ export default function HomePage() {
                 </motion.section>
 
                 {/* ── AI WORKSPACE SECTION ── */}
-                <motion.section {...fadeUp} id="workspace-section" className="py-12 px-4 sm:px-12 md:px-24 lg:px-32 xl:px-48 bg-white relative overflow-hidden border-t border-slate-55">
+                <motion.section {...fadeUp} id="workspace-section" className="py-12 px-4 sm:px-12 md:px-24 lg:px-32 xl:px-48 bg-white relative overflow-hidden">
                     <div className="max-w-[1310px] mx-auto flex flex-col lg:flex-row items-stretch rounded-[3rem] border border-slate-100 bg-slate-50/50 shadow-2xl overflow-hidden min-h-[260px]">
                         
                         {/* Left Column (30% width) - Sky Blue Gradient */}
