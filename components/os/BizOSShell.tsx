@@ -46,12 +46,6 @@ const BIZDESK_SIDEBAR: SidebarSection[] = [
     ],
   },
   {
-    section: 'AI AUTOMATIONS',
-    items: [
-      { id: 'workflows', icon: '⚡', label: 'AI Workflows', badge: 'New' },
-    ],
-  },
-  {
     section: 'OPERATIONAL CORE',
     items: [
       { id: 'company',  icon: '🛡️', label: 'Business Vault' },
