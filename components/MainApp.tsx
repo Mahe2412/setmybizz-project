@@ -76,7 +76,7 @@ const AppContent: React.FC = () => {
     }, [searchParams]);
 
     // Auth Context
-    const { user, loading, leadId } = useAuth();
+    const { user, loading } = useAuth();
     const [showProfileModal, setShowProfileModal] = useState(false);
 
     // 1. Generate Unique User ID if not exists
@@ -129,7 +129,7 @@ const AppContent: React.FC = () => {
         <WelcomeStep key="welcome" onNext={nextStep} />,
         <StageStep key="stage" data={data} updateData={updateData} onNext={nextStep} onBack={prevStep} />,
         <IdentityStep key="identity" data={data} updateData={updateData} onNext={nextStep} onBack={prevStep} />,
-        <NameStep key="name" data={data} updateData={updateData} onNext={nextStep} onBack={prevStep} />,
+        <NameStep key="name" data={data} updateData={updateData} onNext={nextStep} />,
         <LocationStep key="location" data={data} updateData={updateData} onNext={nextStep} onBack={prevStep} />,
         <IndustryOfferStep key="industry" data={data} updateData={updateData} onNext={nextStep} onBack={prevStep} uiStep={1} totalSteps={9} />,
         <IndustryDetailStep key="detail" data={data} updateData={updateData} onNext={nextStep} onBack={prevStep} uiStep={2} totalSteps={9} />,
