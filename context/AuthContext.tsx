@@ -35,6 +35,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        // Safety timeout: guarantee loading finishes in 2.5s even if Supabase hangs
+        const safetyTimeout = setTimeout(() => {
+            setLoading(false);
+            console.warn("[Arkle OS] Supabase auth fallback triggered.");
+        }, 2500);
+
         // Initialize Guest ID
         let storedGuestId = localStorage.getItem('setmybizz_guest_id');
         if (!storedGuestId) {
@@ -57,6 +63,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             } catch (e) {
                 console.error("Failed to initialize session", e);
             } finally {
+                clearTimeout(safetyTimeout);
                 setLoading(false);
             }
         };
