@@ -1,222 +1,210 @@
 "use client";
-import React, { useState, useEffect, ReactNode, Suspense } from 'react';
+import React, { useState, ReactNode, Suspense } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
-type AdminRole = 'super_admin' | 'incorporation_team' | 'launchpad_team' | 'content_team';
-type AdminModule = 'business_setup' | 'launch_pad' | 'learn' | 'workspace';
+interface AdminLayoutProps { children: ReactNode; }
 
-interface AdminLayoutProps {
-    children: ReactNode;
-}
+type ModuleId = 'crm' | 'leads' | 'documents' | 'analytics' | 'team' | 'settings' | 'marketing' | 'content' | 'tickets';
+
+const MODULES: { id: ModuleId; label: string; icon: string; badge?: string }[] = [
+  // SetMyBizz Modules
+  { id: 'crm',        label: 'Leads & Onboarding', icon: 'person_add' },
+  { id: 'marketing',  label: 'Ads & Social Media', icon: 'campaign' },
+  { id: 'content',    label: 'Web & Landing Pages',icon: 'web' },
+  
+  // BizDesk Modules
+  { id: 'leads',      label: 'Service Operations', icon: 'account_balance', badge: 'Live' },
+  { id: 'tickets',    label: 'Performance & Support',icon: 'confirmation_number' },
+  { id: 'team',       label: 'Team Management',    icon: 'groups' },
+  
+  // Shared/Global
+  { id: 'documents',  label: 'Universal Vault',    icon: 'folder_shared' },
+  { id: 'analytics',  label: 'Platform Metrics',   icon: 'bar_chart' },
+  { id: 'settings',   label: 'Platform Rules',     icon: 'settings' },
+];
 
 function AdminLayoutContent({ children }: AdminLayoutProps) {
-    const [activeRole, setActiveRole] = useState<AdminRole>('super_admin');
-    const searchParams = useSearchParams();
-    const router = useRouter();
-    const currentView = searchParams.get('view') as AdminModule || 'workspace';
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const activeModule = (searchParams.get('view') as ModuleId) || 'crm';
+  const activeSpace = searchParams.get('space') || 'setmybizz';
+  const [collapsed, setCollapsed] = useState(false);
 
-    // Sync state with URL
-    const [activeModule, setActiveModule] = useState<AdminModule>(currentView);
+  const navigate = (id: ModuleId) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('view', id);
+    router.push(`/admin?${params.toString()}`);
+  };
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            if (currentView) setActiveModule(currentView);
-        }, 0);
-        return () => clearTimeout(timer);
-    }, [currentView]);
+  const setSpace = (space: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('space', space);
+    // Reset view when switching space
+    if (space === 'setmybizz') params.set('view', 'crm');
+    if (space === 'bizdesk') params.set('view', 'leads');
+    if (space === 'saas') params.set('view', 'analytics');
+    router.push(`/admin?${params.toString()}`);
+  };
 
-    const handleTabChange = (moduleId: AdminModule) => {
-        setActiveModule(moduleId);
-        router.push(`/admin?view=${moduleId}`);
-    };
+  return (
+    <div className="min-h-screen flex bg-[#0f1117] font-sans" style={{ fontFamily: '"Inter", sans-serif' }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
+        .material-symbols-rounded { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #2a2d3a; border-radius: 4px; }
+      `}</style>
 
-    // Module definitions with their accessible roles
-    const modules: { id: AdminModule; label: string; icon: string; roles: AdminRole[] }[] = [
-        { id: 'business_setup', label: 'Business Setup', icon: 'business', roles: ['super_admin', 'incorporation_team'] },
-        { id: 'launch_pad', label: 'Launch Pad', icon: 'rocket_launch', roles: ['super_admin', 'launchpad_team'] },
-        { id: 'learn', label: 'Learn', icon: 'school', roles: ['super_admin', 'content_team'] },
-        { id: 'workspace', label: 'Workspace', icon: 'workspaces', roles: ['super_admin', 'incorporation_team', 'launchpad_team', 'content_team'] },
-    ];
-
-    // Sidebar items based on active module
-    const getSidebarItems = () => {
-        switch (activeModule) {
-            case 'business_setup':
-                return [
-                    { href: '/admin?view=business_setup', label: 'Incorporation Leads', icon: 'list_alt' },
-                    { href: '/admin/applications', label: 'Applications', icon: 'assignment' },
-                    { href: '/admin/compliance', label: 'Compliance', icon: 'gavel' },
-                    { href: '/admin/documents', label: 'Document Vault', icon: 'folder_shared' },
-                ];
-            case 'launch_pad':
-                return [
-                    { href: '/admin?view=launch_pad', label: 'Service Catalog', icon: 'grid_view' },
-                    { href: '/admin/partners', label: 'Partner Network', icon: 'handshake' },
-                    { href: '/admin/integrations', label: 'Integrations', icon: 'extension' },
-                ];
-            case 'learn':
-                return [
-                    { href: '/admin?view=learn', label: 'Course Manager', icon: 'class' },
-                    { href: '/admin/articles', label: 'Knowledge Base', icon: 'article' },
-                    { href: '/admin/quizzes', label: 'Quizzes & Certs', icon: 'quiz' },
-                ];
-            case 'workspace':
-                return [
-                    { href: '/admin?view=workspace', label: 'CRM Dashboard', icon: 'dashboard' }, // Mapping current page here
-                    { href: '/admin/tasks', label: 'My Tasks', icon: 'check_circle' },
-                    { href: '/admin/calendar', label: 'Calendar', icon: 'calendar_today' },
-                    { href: '/admin/team', label: 'Team Chat', icon: 'forum' },
-                    { href: '/admin/analytics', label: 'Analytics', icon: 'analytics' },
-                    { href: '/admin/settings', label: 'Global Settings', icon: 'settings_applications' },
-                ];
-            default:
-                return [];
-        }
-    };
-
-    const sidebarItems = getSidebarItems();
-
-    return (
-        <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-900">
-            {/* ── Top Navigation Header ── */}
-            <header className="h-16 bg-slate-900 text-white flex items-center justify-between px-4 shadow-md z-20 flex-shrink-0">
-                <div className="flex items-center gap-8">
-                    {/* Logo Area */}
-                    <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center font-bold text-white">S</div>
-                        <div>
-                            <span className="font-bold text-lg tracking-tight">SetMyBizz</span>
-                            <span className="text-[10px] text-slate-400 block -mt-1 uppercase tracking-widest">Master Admin</span>
-                        </div>
-                    </div>
-
-                    {/* Main Module Tabs */}
-                    <nav className="hidden md:flex items-center gap-1">
-                        {modules.map((mod) => {
-                            if (!mod.roles.includes(activeRole)) return null;
-                            const isActive = activeModule === mod.id;
-                            return (
-                                <button
-                                    key={mod.id}
-                                    onClick={() => handleTabChange(mod.id)}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${isActive
-                                            ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
-                                            : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                                        }`}
-                                >
-                                    <span className="material-icons text-sm">{mod.icon}</span>
-                                    {mod.label}
-                                </button>
-                            );
-                        })}
-                    </nav>
-                </div>
-
-                {/* Right Side: Role Switcher & Profile */}
-                <div className="flex items-center gap-4">
-                    {/* Role Switcher (For Demo/Design purposes) */}
-                    <div className="hidden lg:flex items-center gap-2 bg-slate-800 rounded-lg p-1 pr-3 border border-slate-700">
-                        <span className="bg-slate-900 text-[10px] font-bold text-slate-400 px-2 py-1 rounded uppercase tracking-wider">View As</span>
-                        <select
-                            value={activeRole}
-                            onChange={(e) => {
-                                const newRole = e.target.value as AdminRole;
-                                setActiveRole(newRole);
-                                // Reset module if current one is not allowed
-                                const mod = modules.find(m => m.id === activeModule);
-                                if (!mod?.roles.includes(newRole)) {
-                                    handleTabChange('workspace'); // Fallback
-                                }
-                            }}
-                            className="bg-transparent text-xs font-bold text-indigo-400 focus:outline-none cursor-pointer"
-                        >
-                            <option value="super_admin">Super Admin</option>
-                            <option value="incorporation_team">Incorp Team</option>
-                            <option value="launchpad_team">Launchpad Team</option>
-                            <option value="content_team">Content Team</option>
-                        </select>
-                    </div>
-
-                    <div className="w-px h-8 bg-slate-800 mx-2" />
-
-                    <div className="flex items-center gap-3">
-                        <div className="text-right hidden sm:block">
-                            <p className="text-xs font-bold text-white">Mahendra</p>
-                            <p className="text-[10px] text-slate-400">Super Admin</p>
-                        </div>
-                        <div className="w-9 h-9 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 flex items-center justify-center text-xs font-bold shadow-lg ring-2 ring-slate-800">
-                            MK
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            {/* ── Main Layout Body ── */}
-            <div className="flex flex-1 overflow-hidden">
-                {/* ── Dynamic Sidebar ── */}
-                <aside className="w-64 bg-white border-r border-slate-200 flex-shrink-0 flex flex-col z-10">
-                    <div className="p-4 border-b border-slate-100 bg-slate-50">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Current Context</p>
-                        <h2 className="text-sm font-black text-slate-800 flex items-center gap-2">
-                            <span className="material-icons text-indigo-600 text-base">
-                                {modules.find(m => m.id === activeModule)?.icon}
-                            </span>
-                            {modules.find(m => m.id === activeModule)?.label} Panel
-                        </h2>
-                    </div>
-
-                    <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-                        {sidebarItems.map((item) => (
-                            <Link
-                                key={item.label}
-                                href={item.href}
-                                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-indigo-600 transition-all group"
-                            >
-                                <span className="material-icons text-xl text-slate-400 group-hover:text-indigo-500 transition-colors">{item.icon}</span>
-                                <span className="text-xs font-bold">{item.label}</span>
-                            </Link>
-                        ))}
-                    </nav>
-
-                    {/* Stats / Widget Area in Sidebar */}
-                    <div className="p-4 bg-slate-50 border-t border-slate-100">
-                        <div className="bg-white rounded-xl p-3 shadow-sm border border-slate-100">
-                            <p className="text-[10px] font-bold text-slate-400 mb-1">System Status</p>
-                            <div className="flex items-center gap-2">
-                                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                                <span className="text-xs font-bold text-slate-700">All Systems Operational</span>
-                            </div>
-                        </div>
-                    </div>
-                </aside>
-
-                {/* ── Page Content ── */}
-                <main className="flex-1 overflow-y-auto bg-slate-50/50 p-6 relative">
-                    {/* Background decoration */}
-                    <div className="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-white to-transparent pointer-events-none" />
-
-                    {/* Render Children (Current Page) */}
-                    <div className="relative z-10 max-w-7xl mx-auto">
-                        {/* We can inject a breadcrumb here dynamically if needed */}
-                        <div className="mb-6 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                            <span>Admin</span>
-                            <span className="material-icons text-[10px]">chevron_right</span>
-                            <span className="text-indigo-600">{modules.find(m => m.id === activeModule)?.label}</span>
-                        </div>
-
-                        {children}
-                    </div>
-                </main>
+      {/* ══ DARK SIDEBAR ══ */}
+      <aside className={`${collapsed ? 'w-16' : 'w-60'} flex-shrink-0 bg-[#13151e] border-r border-white/5 flex flex-col transition-all duration-300 relative z-20`}>
+        {/* Logo */}
+        <div className="h-16 flex items-center gap-3 px-4 border-b border-white/5">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center font-black text-white text-sm flex-shrink-0">S</div>
+          {!collapsed && (
+            <div>
+              <p className="text-white text-sm font-black tracking-tight">SetMyBizz</p>
+              <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">Command OS</p>
             </div>
+          )}
         </div>
-    );
+
+        {/* Space Indicator */}
+        {!collapsed && (
+          <div className="px-4 py-3 bg-white/5 mx-3 mt-4 rounded-xl border border-white/10">
+            <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-1">Active Space</p>
+            <p className="text-xs font-bold text-white flex items-center gap-2 capitalize">
+              <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.8)]" />
+              {activeSpace}
+            </p>
+          </div>
+        )}
+
+        {/* Nav */}
+        <nav className="flex-1 p-3 mt-2 space-y-0.5 overflow-y-auto">
+          {!collapsed && <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest px-2 pb-2 pt-3">Space Modules</p>}
+          {MODULES.filter(m => {
+            if (activeSpace === 'setmybizz') return ['crm', 'marketing', 'content', 'documents', 'settings'].includes(m.id);
+            if (activeSpace === 'bizdesk') return ['leads', 'tickets', 'team', 'documents'].includes(m.id);
+            if (activeSpace === 'saas') return ['analytics', 'settings'].includes(m.id);
+            return true;
+          }).map(mod => {
+            const isActive = activeModule === mod.id;
+            return (
+              <button
+                key={mod.id}
+                onClick={() => navigate(mod.id)}
+                title={collapsed ? mod.label : undefined}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all group relative ${
+                  isActive
+                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <span className={`material-symbols-rounded text-xl flex-shrink-0 ${isActive ? 'text-white' : 'text-slate-500 group-hover:text-slate-300'}`} style={{ fontVariationSettings: "'FILL' 1" }}>{mod.icon}</span>
+                {!collapsed && (
+                  <>
+                    <span className="text-xs font-bold flex-1">{mod.label}</span>
+                    {mod.badge && (
+                      <span className="text-[9px] font-black bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded-full">{mod.badge}</span>
+                    )}
+                  </>
+                )}
+                {isActive && <div className="absolute right-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-indigo-400 rounded-full" />}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Bottom: Sidebar Toggle & Identity */}
+        <div className="p-3 border-t border-white/5">
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            className="w-full mb-2 flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-white transition rounded-xl hover:bg-white/5"
+          >
+            <span className="material-symbols-rounded text-base">{collapsed ? 'chevron_right' : 'chevron_left'}</span>
+            {!collapsed && <span className="text-[10px] font-bold">Collapse Sidebar</span>}
+          </button>
+          <div className={`flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 transition cursor-pointer`}>
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-xs font-black text-white flex-shrink-0">MK</div>
+            {!collapsed && (
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-white truncate">Mahendra K</p>
+                <p className="text-[10px] text-indigo-400 font-bold">Super Admin</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </aside>
+
+      {/* ══ MAIN SHELL ══ */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* ══ TOP SPACE NAVIGATION HEADER ══ */}
+        <div className="bg-[#13151e] border-b border-white/5 flex items-center px-6 h-14 gap-12 z-10 shadow-lg shadow-black/20">
+          {[
+            { id: 'setmybizz', label: 'SetMyBizz Intake' },
+            { id: 'bizdesk', label: 'BizDesk Operations' },
+            { id: 'saas', label: 'BizOS SaaS Platform' }
+          ].map(space => (
+            <button
+              key={space.id}
+              onClick={() => setSpace(space.id)}
+              className={`relative h-full text-[12px] font-black uppercase tracking-[0.2em] transition-all flex items-center ${
+                activeSpace === space.id ? 'text-indigo-400' : 'text-slate-500 hover:text-slate-300'
+              }`}
+            >
+              {space.label}
+              {activeSpace === space.id && (
+                <div className="absolute bottom-0 left-0 w-full h-1 bg-indigo-500 shadow-[0_-2px_12px_rgba(99,102,241,0.8)] rounded-t-full" />
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Secondary Bar */}
+        <header className="h-16 bg-[#13151e]/80 backdrop-blur border-b border-white/5 flex items-center justify-between px-6 flex-shrink-0">
+          <div>
+            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{activeSpace} Context</p>
+            <h1 className="text-white font-black text-base tracking-tight capitalize">
+              {MODULES.find(m => m.id === activeModule)?.label || 'Dashboard'}
+            </h1>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-full">
+              <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+              <span className="text-[10px] font-black text-emerald-400 uppercase tracking-wider">All Systems Live</span>
+            </div>
+            <Link
+              href="/os"
+              className="flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-bold text-slate-300 transition"
+            >
+              <span className="material-symbols-rounded text-sm">open_in_new</span>
+              View Client OS
+            </Link>
+          </div>
+        </header>
+
+        {/* Content Area */}
+        <main className="flex-1 overflow-y-auto bg-[#0f1117] p-6">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
 }
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
-    return (
-        <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-100 text-slate-400">Loading Admin...</div>}>
-            <AdminLayoutContent>{children}</AdminLayoutContent>
-        </Suspense>
-    );
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#0f1117] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-slate-500 text-xs font-bold">Loading CommandOS...</p>
+        </div>
+      </div>
+    }>
+      <AdminLayoutContent>{children}</AdminLayoutContent>
+    </Suspense>
+  );
 }

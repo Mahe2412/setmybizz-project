@@ -2,42 +2,42 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { 
-    Mic, BrainCircuit, Activity, ArrowLeft, ChevronRight, CheckCircle2
+    Sparkles, Users2, Workflow, ArrowLeft, ChevronRight, CheckCircle2
 } from 'lucide-react';
 
-const ARKLE_SLIDES = [
+const WORKSPACE_SLIDES = [
     {
-        id: 'voice',
-        title: 'Voice Intelligence',
-        subtitle: 'Super AI Layer',
-        desc: 'Speak to your business as if it were a person. "Arkle, what is my GST liability for this month?"',
-        features: ['Natural Language Voice Ops', 'Instant Context Awareness', 'Multi-lingual Support'],
-        icon: Mic,
-        color: 'blue'
+        id: 'neural',
+        title: 'Neural Hub',
+        subtitle: 'Phase 1: Intelligence',
+        desc: 'Chat with your entire business. Our AI analyzes your documents, legal filings, and data to give you instant answers.',
+        features: ['Doc-to-Insights Engine', 'AI Business Strategist', '24/7 Virtual Assistant'],
+        icon: Sparkles,
+        color: 'violet'
     },
     {
-        id: 'brain',
-        title: 'Autonomous Brain',
-        subtitle: 'Decision Engine',
-        desc: "Arkle doesn't just notify; it acts. From draft responses to scheduling complex compliance workflows.",
-        features: ['Self-optimizing Workflows', 'Smart Data Correlation', 'Autonomous Documentation'],
-        icon: BrainCircuit,
-        color: 'indigo'
+        id: 'sync',
+        title: 'Team Sync',
+        subtitle: 'Phase 2: Collaboration',
+        desc: 'The bridge between your team and our experts. A unified workspace for CAs, developers, and founders.',
+        features: ['Multi-expert Chat Hub', 'Shared Task Boards', 'Secure File Repository'],
+        icon: Users2,
+        color: 'cyan'
     },
     {
-        id: 'proactive',
-        title: 'Proactive Sentinel',
-        subtitle: 'Risk Management',
-        desc: 'Arkle scans the horizon for legal changes and risks, warning you before they become problems.',
-        features: ['24/7 Risk Monitoring', 'Real-time Law Updates', 'Predictive Failure Analysis'],
-        icon: Activity,
-        color: 'rose'
+        id: 'flow',
+        title: 'Autonomous Flow',
+        subtitle: 'Phase 3: Automation',
+        desc: 'Let AI handle your daily grind. From scheduling meetings to generating compliance reports automatically.',
+        features: ['AI Workflow Designer', 'Auto-report Generation', 'Intelligent Reminders'],
+        icon: Workflow,
+        color: 'amber'
     }
 ];
 
-export default function ArklePage() {
+export default function WorkspacePage() {
     const [activeSlide, setActiveSlide] = useState(0);
-    const slide = ARKLE_SLIDES[activeSlide];
+    const slide = WORKSPACE_SLIDES[activeSlide];
     const SlideIcon = slide.icon;
 
     return (
@@ -53,17 +53,17 @@ export default function ArklePage() {
                     </Link>
 
                     <div className="flex items-center gap-3 mb-10">
-                        <div className="w-11 h-11 rounded-2xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                            <BrainCircuit className="w-6 h-6 text-white" />
+                        <div className="w-11 h-11 rounded-2xl bg-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                            <Users2 className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                            <span className="text-[10px] font-black uppercase tracking-widest text-sky-800/80 block">Neural OS</span>
-                            <h1 className="text-2xl font-black tracking-tight text-slate-950">Arkle AI</h1>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-sky-800/80 block">Collaboration OS</span>
+                            <h1 className="text-2xl font-black tracking-tight text-slate-950">Workspace</h1>
                         </div>
                     </div>
 
                     <nav className="space-y-3.5">
-                        {ARKLE_SLIDES.map((item, idx) => {
+                        {WORKSPACE_SLIDES.map((item, idx) => {
                             const Icon = item.icon;
                             const isActive = activeSlide === idx;
                             return (
@@ -78,14 +78,14 @@ export default function ArklePage() {
                                 >
                                     <div className="flex items-center gap-3.5">
                                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isActive ? 'bg-sky-50' : 'bg-slate-100/50'}`}>
-                                            <Icon className={`w-5 h-5 text-indigo-600`} />
+                                            <Icon className={`w-5 h-5 text-emerald-600`} />
                                         </div>
                                         <div>
                                             <h3 className="text-sm font-black text-slate-900">{item.title}</h3>
                                             <span className="text-[10px] font-semibold text-slate-400">{item.subtitle}</span>
                                         </div>
                                     </div>
-                                    <ChevronRight className={`w-4 h-4 text-slate-400 transition-transform ${isActive ? 'translate-x-0.5 text-indigo-600' : ''}`} />
+                                    <ChevronRight className={`w-4 h-4 text-slate-400 transition-transform ${isActive ? 'translate-x-0.5 text-emerald-600' : ''}`} />
                                 </button>
                             );
                         })}
@@ -109,7 +109,7 @@ export default function ArklePage() {
                 
                 <div className="w-full max-w-[85%] mx-auto relative z-10 grid lg:grid-cols-5 gap-12 items-center">
                     <div className="lg:col-span-3 space-y-6 text-left">
-                        <div className={`inline-flex px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase tracking-widest`}>
+                        <div className={`inline-flex px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase tracking-widest`}>
                             {slide.subtitle}
                         </div>
                         <h2 className="text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-tight">
@@ -121,20 +121,20 @@ export default function ArklePage() {
                         <div className="grid sm:grid-cols-2 gap-4 pt-2">
                             {slide.features.map((f) => (
                                 <div key={f} className="flex items-center gap-2.5 text-xs font-bold text-slate-700">
-                                    <CheckCircle2 className="w-4 h-4 text-indigo-500 shrink-0" />
+                                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
                                     <span>{f}</span>
                                 </div>
                             ))}
                         </div>
                         <div className="pt-6">
-                            <Link href="/onboarding" className="px-8 py-4 bg-indigo-600 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-indigo-500/20 hover:bg-indigo-700 transition-colors inline-block">
-                                Explore Arkle Module
+                            <Link href="/onboarding" className="px-8 py-4 bg-emerald-600 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-emerald-500/20 hover:bg-emerald-700 transition-colors inline-block">
+                                Explore Workspace Module
                             </Link>
                         </div>
                     </div>
                     <div className="lg:col-span-2 flex justify-center">
-                        <div className={`w-60 h-60 rounded-[2.5rem] bg-indigo-50/50 border border-indigo-100 flex items-center justify-center shadow-inner relative overflow-hidden group`}>
-                            <SlideIcon className="w-28 h-28 text-indigo-500 group-hover:scale-110 transition-transform duration-500" />
+                        <div className={`w-60 h-60 rounded-[2.5rem] bg-emerald-50/50 border border-emerald-100 flex items-center justify-center shadow-inner relative overflow-hidden group`}>
+                            <SlideIcon className="w-28 h-28 text-emerald-500 group-hover:scale-110 transition-transform duration-500" />
                         </div>
                     </div>
                 </div>

@@ -16,6 +16,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         title: `${service.title} | SetMyBizz — ${service.shortDesc}`,
         description: service.fullDesc,
         keywords: service.seoKeywords.join(', '),
+        alternates: {
+            canonical: `https://setmybizz.com/services/${slug}`,
+        },
         openGraph: {
             title: `${service.title} | SetMyBizz`,
             description: service.shortDesc,
@@ -38,8 +41,44 @@ export default async function ServicePage({ params }: { params: Promise<{ slug: 
     const categoryMeta = CATEGORY_META[service.category];
     const related = SERVICES.filter(s => s.category === service.category && s.slug !== slug).slice(0, 3);
 
+    // Structured JSON-LD Data for Google SEO Ranking
+    const ldService = {
+        '@context': 'https://schema.org',
+        '@type': 'Service',
+        name: service.title,
+        description: service.fullDesc,
+        provider: {
+            '@type': 'Organization',
+            name: 'SetMyBizz',
+            url: 'https://setmybizz.com',
+            logo: 'https://setmybizz.com/images/logo.png',
+        },
+        areaServed: 'IN',
+        offers: service.tiers.map(t => ({
+            '@type': 'Offer',
+            name: `${service.title} - ${t.name} Plan`,
+            price: t.price.replace(/[^\d]/g, '') || '0',
+            priceCurrency: 'INR',
+        })),
+    };
+
+    const ldFaq = {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: service.faq.map(f => ({
+            '@type': 'Question',
+            name: f.q,
+            acceptedAnswer: {
+                '@type': 'Answer',
+                text: f.a,
+            },
+        })),
+    };
+
     return (
         <div className="min-h-screen bg-white font-sans text-slate-900">
+            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ldService) }} />
+            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ldFaq) }} />
             {/* Navbar */}
             <header className="fixed top-0 left-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-slate-100 shadow-sm">
                 <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between">

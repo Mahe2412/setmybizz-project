@@ -2,42 +2,42 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { 
-    Mic, BrainCircuit, Activity, ArrowLeft, ChevronRight, CheckCircle2
+    Monitor, Target, TrendingUp, ArrowLeft, ChevronRight, CheckCircle2
 } from 'lucide-react';
 
-const ARKLE_SLIDES = [
+const LAUNCH_SLIDES = [
     {
-        id: 'voice',
-        title: 'Voice Intelligence',
-        subtitle: 'Super AI Layer',
-        desc: 'Speak to your business as if it were a person. "Arkle, what is my GST liability for this month?"',
-        features: ['Natural Language Voice Ops', 'Instant Context Awareness', 'Multi-lingual Support'],
-        icon: Mic,
+        id: 'web',
+        title: 'Web & Identity',
+        subtitle: 'Phase 1: Presence',
+        desc: 'Get your brand online in 24 hours. High-conversion websites and premium brand kits designed for growth.',
+        features: ['24h Website Delivery', 'Premium Logo & Brand Kit', 'AI-Optimized Copywriting'],
+        icon: Monitor,
         color: 'blue'
     },
     {
-        id: 'brain',
-        title: 'Autonomous Brain',
-        subtitle: 'Decision Engine',
-        desc: "Arkle doesn't just notify; it acts. From draft responses to scheduling complex compliance workflows.",
-        features: ['Self-optimizing Workflows', 'Smart Data Correlation', 'Autonomous Documentation'],
-        icon: BrainCircuit,
-        color: 'indigo'
+        id: 'leads',
+        title: 'The Lead Machine',
+        subtitle: 'Phase 2: Traffic',
+        desc: 'Stop burning money on ads. We build automated lead funnels that find your customers where they live.',
+        features: ['Google & Meta Ad Mgmt', 'SEO & Authority Building', 'Automated Lead Funnels'],
+        icon: Target,
+        color: 'rose'
     },
     {
-        id: 'proactive',
-        title: 'Proactive Sentinel',
-        subtitle: 'Risk Management',
-        desc: 'Arkle scans the horizon for legal changes and risks, warning you before they become problems.',
-        features: ['24/7 Risk Monitoring', 'Real-time Law Updates', 'Predictive Failure Analysis'],
-        icon: Activity,
-        color: 'rose'
+        id: 'scale',
+        title: 'Global Scalability',
+        subtitle: 'Phase 3: Reach',
+        desc: 'Expand your market globally. E-commerce setups and international marketing strategies made simple.',
+        features: ['E-commerce Infrastructure', 'Global Market Analysis', 'CRM & Sales Automation'],
+        icon: TrendingUp,
+        color: 'indigo'
     }
 ];
 
-export default function ArklePage() {
+export default function LaunchpadPage() {
     const [activeSlide, setActiveSlide] = useState(0);
-    const slide = ARKLE_SLIDES[activeSlide];
+    const slide = LAUNCH_SLIDES[activeSlide];
     const SlideIcon = slide.icon;
 
     return (
@@ -53,17 +53,17 @@ export default function ArklePage() {
                     </Link>
 
                     <div className="flex items-center gap-3 mb-10">
-                        <div className="w-11 h-11 rounded-2xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                            <BrainCircuit className="w-6 h-6 text-white" />
+                        <div className="w-11 h-11 rounded-2xl bg-rose-600 flex items-center justify-center shadow-lg shadow-rose-500/20">
+                            <Target className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                            <span className="text-[10px] font-black uppercase tracking-widest text-sky-800/80 block">Neural OS</span>
-                            <h1 className="text-2xl font-black tracking-tight text-slate-950">Arkle AI</h1>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-sky-800/80 block">Growth OS</span>
+                            <h1 className="text-2xl font-black tracking-tight text-slate-950">Launchpad</h1>
                         </div>
                     </div>
 
                     <nav className="space-y-3.5">
-                        {ARKLE_SLIDES.map((item, idx) => {
+                        {LAUNCH_SLIDES.map((item, idx) => {
                             const Icon = item.icon;
                             const isActive = activeSlide === idx;
                             return (
@@ -78,14 +78,14 @@ export default function ArklePage() {
                                 >
                                     <div className="flex items-center gap-3.5">
                                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isActive ? 'bg-sky-50' : 'bg-slate-100/50'}`}>
-                                            <Icon className={`w-5 h-5 text-indigo-600`} />
+                                            <Icon className={`w-5 h-5 text-rose-600`} />
                                         </div>
                                         <div>
                                             <h3 className="text-sm font-black text-slate-900">{item.title}</h3>
                                             <span className="text-[10px] font-semibold text-slate-400">{item.subtitle}</span>
                                         </div>
                                     </div>
-                                    <ChevronRight className={`w-4 h-4 text-slate-400 transition-transform ${isActive ? 'translate-x-0.5 text-indigo-600' : ''}`} />
+                                    <ChevronRight className={`w-4 h-4 text-slate-400 transition-transform ${isActive ? 'translate-x-0.5 text-rose-600' : ''}`} />
                                 </button>
                             );
                         })}
@@ -109,7 +109,7 @@ export default function ArklePage() {
                 
                 <div className="w-full max-w-[85%] mx-auto relative z-10 grid lg:grid-cols-5 gap-12 items-center">
                     <div className="lg:col-span-3 space-y-6 text-left">
-                        <div className={`inline-flex px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase tracking-widest`}>
+                        <div className={`inline-flex px-3 py-1 rounded-full bg-rose-50 text-rose-600 text-[10px] font-black uppercase tracking-widest`}>
                             {slide.subtitle}
                         </div>
                         <h2 className="text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-tight">
@@ -121,20 +121,20 @@ export default function ArklePage() {
                         <div className="grid sm:grid-cols-2 gap-4 pt-2">
                             {slide.features.map((f) => (
                                 <div key={f} className="flex items-center gap-2.5 text-xs font-bold text-slate-700">
-                                    <CheckCircle2 className="w-4 h-4 text-indigo-500 shrink-0" />
+                                    <CheckCircle2 className="w-4 h-4 text-rose-500 shrink-0" />
                                     <span>{f}</span>
                                 </div>
                             ))}
                         </div>
                         <div className="pt-6">
-                            <Link href="/onboarding" className="px-8 py-4 bg-indigo-600 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-indigo-500/20 hover:bg-indigo-700 transition-colors inline-block">
-                                Explore Arkle Module
+                            <Link href="/onboarding" className="px-8 py-4 bg-rose-600 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-rose-500/20 hover:bg-rose-700 transition-colors inline-block">
+                                Explore Launchpad Module
                             </Link>
                         </div>
                     </div>
                     <div className="lg:col-span-2 flex justify-center">
-                        <div className={`w-60 h-60 rounded-[2.5rem] bg-indigo-50/50 border border-indigo-100 flex items-center justify-center shadow-inner relative overflow-hidden group`}>
-                            <SlideIcon className="w-28 h-28 text-indigo-500 group-hover:scale-110 transition-transform duration-500" />
+                        <div className={`w-60 h-60 rounded-[2.5rem] bg-rose-50/50 border border-rose-100 flex items-center justify-center shadow-inner relative overflow-hidden group`}>
+                            <SlideIcon className="w-28 h-28 text-rose-500 group-hover:scale-110 transition-transform duration-500" />
                         </div>
                     </div>
                 </div>

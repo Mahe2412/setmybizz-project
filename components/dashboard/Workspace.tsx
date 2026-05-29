@@ -267,6 +267,13 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
                                 ].map((item: any, idx) => (
                                     <button 
                                         key={idx} 
+                                        onClick={() => {
+                                            if (item.label === 'Leads Pipeline' || item.label === 'CRM Insights') {
+                                                onNavigate('crm');
+                                            } else {
+                                                console.log('Clicked', item.label);
+                                            }
+                                        }}
                                         className={`w-full flex items-center gap-3 px-3 py-2 hover:bg-white hover:border-slate-100 hover:shadow-lg rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-300 group border border-transparent text-slate-500 hover:text-slate-900`}
                                     >
                                         <div className={`p-1.5 rounded-lg ${colorVariants[item.color]?.bg || colorVariants.blue.bg} ${colorVariants[item.color]?.text || colorVariants.blue.text} group-hover:scale-105 transition-transform duration-300 shadow-xs font-normal`}>
@@ -523,7 +530,17 @@ const Workspace: React.FC<WorkspaceProps> = ({ onNavigate }) => {
                                 { label: 'Purchase', icon: 'shopping_bag', color: 'rose' },
                                 { label: 'Workflow Builder', icon: 'account_tree', color: 'indigo', dashed: true }
                             ].map((item, i) => (
-                                <div key={i} className={`p-6 rounded-2xl flex flex-col items-center justify-center gap-4 hover:shadow-md transition-all cursor-pointer group h-full ${item.dashed ? 'border-2 border-dashed border-indigo-200 bg-indigo-50/50 hover:border-indigo-400' : 'bg-white border border-slate-100 shadow-sm'}`}>
+                                <div 
+                                    key={i} 
+                                    onClick={() => {
+                                        if (item.label === 'Workflow Builder') {
+                                            onNavigate('workflows');
+                                        } else {
+                                            console.log('Clicked', item.label);
+                                        }
+                                    }}
+                                    className={`p-6 rounded-2xl flex flex-col items-center justify-center gap-4 hover:shadow-md transition-all cursor-pointer group h-full ${item.dashed ? 'border-2 border-dashed border-indigo-200 bg-indigo-50/50 hover:border-indigo-400' : 'bg-white border border-slate-100 shadow-sm'}`}
+                                >
                                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center transition-transform group-hover:scale-110 ${item.dashed ? 'bg-indigo-100 text-indigo-600' : `${colorVariants[item.color]?.bg || colorVariants.blue.bg} ${colorVariants[item.color]?.text || colorVariants.blue.text}`}`}>
                                         <span className="material-icons text-xl">{item.icon}</span>
                                     </div>

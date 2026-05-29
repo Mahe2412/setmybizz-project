@@ -6,6 +6,7 @@ export const metadata: Metadata = {
     title: 'SetMyBizz Platform — India\'s #1 Business Operating System | Free Business Setup',
     description: 'Build your entire business in minutes — free. Company registration, GST, logo, brand kit, website, GST filing, loans, and global access. One platform to setup, operate, and grow your business.',
     keywords: ['free business setup india', 'business operating system india', 'setup company free india', 'brand kit free startup india', 'one stop business platform india'],
+    alternates: { canonical: 'https://setmybizz.com/platform' },
     openGraph: { title: 'SetMyBizz — Your Business Operating System', description: 'From idea to running business in minutes. Free.' },
 };
 

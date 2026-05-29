@@ -20,16 +20,50 @@ const TEMPLATES: AgreementTemplate[] = [
 export default function LegalTab() {
     const [selectedTemplate, setSelectedTemplate] = useState<AgreementTemplate | null>(null);
     const [isDrafting, setIsDrafting] = useState(false);
+    
+    // Form Inputs
+    const [partyA, setPartyA] = useState('');
+    const [partyB, setPartyB] = useState('');
+    const [extraTerms, setExtraTerms] = useState('');
+    const [generatedText, setGeneratedText] = useState<string | null>(null);
+    const [loadingText, setLoadingText] = useState(false);
 
-    const handleDraft = (template: AgreementTemplate) => {
+    const handleStartDraft = (template: AgreementTemplate) => {
         setSelectedTemplate(template);
+        setGeneratedText(null);
+        setPartyA('');
+        setPartyB('');
+        setExtraTerms('');
         setIsDrafting(true);
+    };
+
+    const handleGenerateContract = (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoadingText(true);
+        setTimeout(() => {
+            const pA = partyA || 'Sri Lakshmi Enterprises';
+            const pB = partyB || 'Partner Corp';
+            const terms = extraTerms || 'No additional parameters provided.';
+            
+            let resultText = '';
+            if (selectedTemplate?.id === '1') {
+                resultText = `CO-FOUNDER AGREEMENT\n\nThis Agreement is entered on May 21, 2026, by and between:\n1. Founder A: ${pA}\n2. Founder B: ${pB}\n\n1. Equity split is allocated as 50% / 50% between Founder A and Founder B.\n2. Both founders agree to a 4-year vesting schedule with a 1-year cliff.\n3. Special Directives: ${terms}\n\nSigned,\n[Founder A Signature]\n[Founder B Signature]`;
+            } else if (selectedTemplate?.id === '2') {
+                resultText = `MUTUAL NON-DISCLOSURE AGREEMENT\n\nThis Agreement is between:\nParty A: ${pA}\nParty B: ${pB}\n\n1. Both parties agree that all shared technological blueprints, pricing models, and IP shall remain confidential.\n2. Neither party will disclose or use this information outside of mutual integration efforts.\n3. Additional Terms: ${terms}\n\nSigned by representatives.`;
+            } else if (selectedTemplate?.id === '3') {
+                resultText = `MASTER SERVICE AGREEMENT\n\nThis Service SLA is between:\nClient: ${pA}\nService Provider: ${pB}\n\n1. Services: The provider agrees to deliver software and operational modules as specified in SOW-01.\n2. Payment: Fees paid within 30 days of monthly invoice generation.\n3. SLA stipulations: ${terms}\n\nApproved on behalf of both parties.`;
+            } else {
+                resultText = `EMPLOYMENT OFFER LETTER\n\nDate: May 21, 2026\nTo: ${pB}\nFrom: ${pA}\n\nDear Candidate,\nWe are pleased to offer you the position of Startup Operator. Your annual compensation package will be as discussed, subject to tax withholding.\nSpecial terms: ${terms}\n\nBest regards,\nHR Desk, ${pA}`;
+            }
+            setGeneratedText(resultText);
+            setLoadingText(false);
+        }, 1500);
     };
 
     return (
         <div className="max-w-5xl mx-auto space-y-10 pb-24 px-4">
             {/* SAIL Header */}
-            <div className="flex flex-col md:flex-row items-center justify-between gap-8 bg-white p-10 rounded-[3rem] border border-slate-100 shadow-xl relative overflow-hidden">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-8 bg-white p-10 rounded-[3rem] border border-slate-200 shadow-sm relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-40 h-40 bg-purple-50 rounded-full blur-3xl -z-0" />
                 <div className="relative z-10 text-center md:text-left">
                     <div className="flex items-center gap-3 justify-center md:justify-start mb-4">
@@ -54,35 +88,86 @@ export default function LegalTab() {
                     <motion.div 
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="bg-white rounded-[3rem] border-2 border-purple-500 p-10 shadow-3xl shadow-purple-500/5 relative"
+                        className="bg-white rounded-[3rem] border-2 border-indigo-600 p-8 shadow-xl relative"
                     >
-                        <button onClick={() => setIsDrafting(false)} className="absolute top-8 right-10 text-[10px] font-black uppercase text-slate-400 hover:text-slate-900">Cancel Draft</button>
-                        <div className="flex items-center gap-4 mb-10">
-                            <span className="material-symbols-outlined text-[40px] text-purple-600">{selectedTemplate?.icon}</span>
+                        <button onClick={() => setIsDrafting(false)} className="absolute top-6 right-8 text-[10px] font-black uppercase text-slate-400 hover:text-slate-900">✕ Close</button>
+                        
+                        <div className="flex items-center gap-4 mb-8">
+                            <span className="material-symbols-outlined text-[40px] text-indigo-600">{selectedTemplate?.icon}</span>
                             <div>
                                 <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight italic">Drafting: {selectedTemplate?.name}</h2>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Arkle is synthesizing the legal clauses...</p>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Fill the parameters to compile the agreement text.</p>
                             </div>
                         </div>
 
-                        <div className="space-y-8">
-                            <div className="p-8 bg-slate-50 rounded-[2rem] border border-slate-100 min-h-[300px] relative overflow-hidden">
-                                <motion.div 
-                                    initial={{ width: 0 }}
-                                    animate={{ width: '100%' }}
-                                    transition={{ duration: 4 }}
-                                    className="absolute top-0 left-0 h-1 bg-purple-500"
-                                />
-                                <pre className="whitespace-pre-wrap font-serif text-sm text-slate-600 leading-relaxed italic">
-                                    "This AGREEMENT is entered into on this ____ day of ____ 2026, by and between... 
-                                    Arkle is generating terms for Intellectual Property Assignment and Vesting Schedules...
-                                    Please provide Founding Member names to continue."
-                                </pre>
-                            </div>
-                            
-                            <div className="flex flex-col md:flex-row gap-4">
-                                <button className="flex-1 bg-slate-900 text-white py-5 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl hover:bg-purple-600 transition-all">Generate Full Draft</button>
-                                <button className="px-10 py-5 border-2 border-slate-100 rounded-2xl text-[11px] font-black uppercase tracking-widest text-slate-400 hover:border-purple-200 hover:text-purple-600 transition-all">Human Review</button>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            <form onSubmit={handleGenerateContract} className="space-y-4">
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">First Party / Discloser / Employer</label>
+                                    <input 
+                                        type="text" 
+                                        required
+                                        placeholder="e.g. Sri Lakshmi Enterprises"
+                                        value={partyA}
+                                        onChange={(e) => setPartyA(e.target.value)}
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Second Party / Receiver / Candidate</label>
+                                    <input 
+                                        type="text" 
+                                        required
+                                        placeholder="e.g. Rajesh Kumar"
+                                        value={partyB}
+                                        onChange={(e) => setPartyB(e.target.value)}
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Custom Clauses & Additional Terms</label>
+                                    <textarea 
+                                        rows={3}
+                                        placeholder="e.g. Non-compete period is 12 months."
+                                        value={extraTerms}
+                                        onChange={(e) => setExtraTerms(e.target.value)}
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 focus:outline-none leading-relaxed"
+                                    />
+                                </div>
+                                <button 
+                                    type="submit" 
+                                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-xl text-xs font-black uppercase tracking-wider shadow-md"
+                                >
+                                    {loadingText ? 'Arkle Composing Clauses...' : 'Generate Full Agreement'}
+                                </button>
+                            </form>
+
+                            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 flex flex-col justify-between min-h-[300px]">
+                                {generatedText ? (
+                                    <div className="space-y-4 flex-1 flex flex-col justify-between">
+                                        <pre className="text-xs text-slate-700 font-mono overflow-y-auto max-h-[220px] whitespace-pre-wrap leading-relaxed bg-white p-4 rounded-xl border border-slate-150">{generatedText}</pre>
+                                        <div className="flex gap-2">
+                                            <button 
+                                                onClick={() => { navigator.clipboard.writeText(generatedText); alert("Copied to clipboard!"); }}
+                                                className="flex-1 py-3 bg-slate-900 text-white text-[10px] font-black uppercase tracking-wider rounded-lg hover:bg-indigo-600 transition-colors"
+                                            >
+                                                📋 Copy Document
+                                            </button>
+                                            <button 
+                                                onClick={() => alert("Agreement saved successfully!")}
+                                                className="flex-1 py-3 bg-white border border-slate-200 text-slate-700 text-[10px] font-black uppercase tracking-wider rounded-lg hover:bg-slate-100 transition-colors"
+                                            >
+                                                Save as PDF
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
+                                        <span className="material-symbols-outlined text-slate-300 text-3xl mb-2 font-light">gavel</span>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Agreement Draft Preview</p>
+                                        <p className="text-[11px] text-slate-500 max-w-[220px]">Click the "Generate" button on the left to see the drafted document terms.</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </motion.div>
@@ -95,8 +180,8 @@ export default function LegalTab() {
                                 {TEMPLATES.map(t => (
                                     <div 
                                         key={t.id} 
-                                        onClick={() => handleDraft(t)}
-                                        className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl transition-all group cursor-pointer flex items-center justify-between"
+                                        onClick={() => handleStartDraft(t)}
+                                        className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm hover:shadow-xl transition-all group cursor-pointer flex items-center justify-between"
                                     >
                                         <div className="flex items-center gap-4">
                                             <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-all">
@@ -141,7 +226,12 @@ export default function LegalTab() {
                                         </div>
                                     </div>
 
-                                    <button className="w-full mt-6 py-5 bg-white text-slate-900 rounded-[2rem] text-[11px] font-black uppercase tracking-widest shadow-2xl hover:bg-slate-50 transition-all">Start Compliance Audit</button>
+                                    <button 
+                                        onClick={() => alert("Launching overall compliance audit for your GST and corporate entities...")}
+                                        className="w-full mt-6 py-5 bg-white text-slate-900 rounded-[2rem] text-[11px] font-black uppercase tracking-widest shadow-2xl hover:bg-slate-50 transition-all"
+                                    >
+                                        Start Compliance Audit
+                                    </button>
                                 </div>
                             </div>
                         </div>

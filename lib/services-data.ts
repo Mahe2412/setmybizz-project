@@ -42,7 +42,7 @@ export const SERVICES: Service[] = [
             { q: 'How long does Pvt Ltd registration take?', a: '5–7 working days with MCA. Our AI pre-validation reduces rejections, so we rarely face delays.' },
             { q: 'Can I register with just 1 person?', a: 'Yes! OPC (One Person Company) is designed for solo founders. We\'ll recommend the best structure for your situation.' },
         ],
-        seoKeywords: ['private limited company registration', 'pvt ltd registration online india', 'company incorporation india'],
+        seoKeywords: ['private limited company registration online', 'pvt ltd registration online india', 'company incorporation india', 'opc registration online india', 'one person company registration', 'register business in india online', 'llp incorporation services', 'mca business registration', 'setmybizz company incorporation'],
         timelineNote: '5–7 working days',
     },
     {
@@ -63,7 +63,7 @@ export const SERVICES: Service[] = [
             { q: 'Is GST registration mandatory?', a: 'Mandatory if annual turnover exceeds ₹40L (₹20L for services, ₹10L for NE states). Also mandatory for e-commerce sellers regardless of turnover.' },
             { q: 'How quickly can I get my GSTIN?', a: '3–5 working days from document submission. Aadhaar-based verification can speed this up to 1 day.' },
         ],
-        seoKeywords: ['gst registration online india', 'gstin apply online', 'gst number registration'],
+        seoKeywords: ['gst registration online india', 'gstin apply online', 'gst number registration', 'apply for gst certificate online', 'gst registration for startup company', 'new gst registration online process', 'gst registration visakhapatnam'],
         timelineNote: '3–5 working days',
     },
     {
@@ -83,7 +83,7 @@ export const SERVICES: Service[] = [
         faq: [
             { q: 'What benefits does MSME registration give?', a: 'Priority bank lending at lower rates, government tender quotas, protection against delayed payments, tax exemptions, and access to 50+ government schemes.' },
         ],
-        seoKeywords: ['msme registration udyam', 'udyam certificate online', 'msme benefits india'],
+        seoKeywords: ['msme registration udyam', 'udyam certificate online', 'msme benefits india', 'register udyam registration online free', 'msme certificate download', 'startup india udyam portal registration'],
         timelineNote: '1–2 working days',
     },
     {
@@ -104,7 +104,7 @@ export const SERVICES: Service[] = [
             { q: 'Will banks accept this project report?', a: 'Yes. Our format is accepted by SBI, HDFC, ICICI, Axis, Union Bank, and all PSU banks. We include all mandatory sections required by Indian banks.' },
             { q: 'How does the AI build my report?', a: 'You answer 10 questions about your business, investment, and revenue plans. Our AI generates the full financial model with market data for your industry in real-time.' },
         ],
-        seoKeywords: ['project report for bank loan', 'dpr detailed project report india', 'project report msme loan', 'project report visakhapatnam'],
+        seoKeywords: ['project report for bank loan', 'dpr detailed project report india', 'project report msme loan', 'project report visakhapatnam', 'ai project report generator for business', 'cma data for bank loan registration', 'detailed project report for startup'],
         timelineNote: '24–48 hours',
     },
     {
@@ -123,7 +123,7 @@ export const SERVICES: Service[] = [
         faq: [
             { q: 'Which banks do you work with?', a: 'HDFC, ICICI, Axis, Kotak, Yes Bank, and RBL Bank for current accounts. We recommend based on your business location and needs.' },
         ],
-        seoKeywords: ['business current account online india', 'open business bank account online', 'current account for startup india'],
+        seoKeywords: ['business current account online india', 'open business bank account online', 'current account for startup india', 'hdfc icici axis current account startup offer', 'open business current account online'],
         timelineNote: '5–7 working days',
     },
     // ── LAUNCH ──
@@ -144,7 +144,7 @@ export const SERVICES: Service[] = [
         faq: [
             { q: 'How long does trademark registration take?', a: '18–24 months for full registration. However, TM ™ symbol can be used immediately after filing. You get priority rights from the filing date.' },
         ],
-        seoKeywords: ['trademark registration india', 'register trademark online india', 'brand protection india'],
+        seoKeywords: ['trademark registration india', 'register trademark online india', 'brand protection india', 'trademark search class finder', 'brand name logo registration online', 'ip india trademark filing online', 'protect brand logo slogan india'],
         timelineNote: 'Filing: 2 days | Certificate: 18–24 months',
     },
     {
@@ -247,6 +247,67 @@ export const SERVICES: Service[] = [
         ],
         seoKeywords: ['iec code registration india', 'import export code online', 'iec dgft india'],
         timelineNote: '2–3 working days',
+    },
+    {
+        slug: 'us-incorporation',
+        category: 'global',
+        icon: '🇺🇸',
+        title: 'US Company Incorporation',
+        shortDesc: 'Register a US LLC or C-Corp in Delaware or Wyoming from India.',
+        fullDesc: 'Launch your business globally by incorporating in the United States. Perfect for SaaS startups, e-commerce brands, and founders seeking US funding. Includes EIN, registered agent, and business bank account setup.',
+        includes: ['Delaware or Wyoming LLC/C-Corp', 'State filing fees pre-validation', 'Registered agent service (1 year)', 'EIN (Tax ID) processing', 'US business bank account opening', 'Post-incorporation compliance guide'],
+        aiCapability: 'AI optimizes your state selection (Delaware vs. Wyoming) based on tax benefits and drafts your company Operating Agreement.',
+        tiers: [
+            { name: 'Free', price: '₹0', features: ['US state tax comparison', 'LLC vs C-Corp analysis', 'Filing cost calculator'], cta: 'Check LLC Costs' },
+            { name: 'Premium', price: '₹14,999', priceNote: '+ State fees', features: ['Delaware/Wyoming LLC registration', '1 year Registered Agent', 'EIN Processing', 'Operating Agreement drafting', 'US bank introduction'], cta: 'Incorporate in US', highlight: true },
+            { name: 'Ultra', price: '₹29,999', priceNote: 'Complete setup', features: ['US C-Corp incorporation', 'Bylaws & stock certificate templates', 'EIN expedite filing', 'US bank account guaranteed opening support', '1 year post-incorporation tax advisory'], cta: 'Get C-Corp Setup' }
+        ],
+        faq: [
+            { q: 'How long does US incorporation take?', a: 'LLC or Corp registration takes 5–7 days. Obtaining the EIN (Tax ID) for non-US residents takes about 10–15 business days. The entire process is remote.' },
+            { q: 'Which is better: Delaware or Wyoming?', a: 'Delaware is preferred by VC-backed startups for its business-friendly court systems. Wyoming is ideal for small businesses and e-commerce due to lower annual fees.' }
+        ],
+        seoKeywords: ['us company registration from india', 'register LLC in usa online', 'incorporate in delaware from india', 'us company setup for indian founders', 'delaware corp setup online', 'register us business without visa'],
+        timelineNote: '5–10 working days',
+    },
+    {
+        slug: 'global-business-setup',
+        category: 'global',
+        icon: '🇬🇧',
+        title: 'Global Company Setup',
+        shortDesc: 'Incorporate your business in UK, Dubai (UAE), or Singapore.',
+        fullDesc: 'Expand your operations globally with strategic company incorporation in key international hubs like London, Dubai Free Zones, or Singapore. Complete tax optimization and local compliance handled.',
+        includes: ['UK Ltd, Dubai Free Zone, or Singapore Pte Ltd setup', 'Local registered office address', 'Corporate secretary & local agent representation', 'International bank account opening', 'Double tax treaty (DTAA) optimization'],
+        aiCapability: 'AI maps your business category to global tax treaties to minimize corporate tax liabilities and find the fastest jurisdiction.',
+        tiers: [
+            { name: 'Free', price: '₹0', features: ['Global hub tax analysis', 'UK vs Dubai vs Singapore comparison', 'FDI requirements checker'], cta: 'Compare Global Hubs' },
+            { name: 'Premium', price: '₹24,999', priceNote: '+ Govt fees', features: ['UK Ltd or Singapore Pte Ltd registration', 'Registered office address', 'Local secretary representation', 'Multi-currency bank account'], cta: 'Incorporate Globally', highlight: true },
+            { name: 'Ultra', price: '₹49,999', priceNote: '+ Govt fees', features: ['Dubai Free Zone company registration', 'Establishment card & e-channel setup', 'Investor visa processing help', 'Corporate bank account opening', 'DTAA tax structure planning'], cta: 'Setup in Dubai' }
+        ],
+        faq: [
+            { q: 'Which country is best for global business?', a: 'Singapore and Dubai are ideal for tax efficiency (low or zero corporate tax). The UK offers the fastest and most affordable entry route. We recommend jurisdictions based on your target market.' }
+        ],
+        seoKeywords: ['incorporate company in dubai from india', 'uk limited company registration online', 'singapore pte ltd setup cost', 'international business incorporation services', 'dubai free zone company setup'],
+        timelineNote: '10–14 working days',
+    },
+    {
+        slug: 'market-access',
+        category: 'global',
+        icon: '🌍',
+        title: 'India Market Access',
+        shortDesc: 'Sell in India, set up subsidiaries, and handle FEMA/RBI compliance.',
+        fullDesc: 'Complete India-entry solutions for foreign corporations, NRI entrepreneurs, and overseas brands. We manage Wholly Owned Subsidiaries (WOS), Joint Ventures, FEMA filing, RBI reporting, and GST registration.',
+        includes: ['Wholly Owned Subsidiary (WOS) or Branch setup', 'FEMA compliance & RBI reporting', 'Foreign Direct Investment (FDI) documentation', 'Distributor agreements & local contracts', 'Customs & import-export compliance guidance'],
+        aiCapability: 'AI automated checklist tracks mandatory FDI inflows reporting and FEMA filings to prevent RBI non-compliance penalties.',
+        tiers: [
+            { name: 'Free', price: '₹0', features: ['India entry roadmap', 'FDI sectoral cap check', 'FEMA basic checklist'], cta: 'Get Entry Guide' },
+            { name: 'Premium', price: '₹39,999', features: ['Subsidiary name reservation & DSC', 'Company incorporation (WOS)', 'FDI reporting to RBI', 'PAN/TAN & bank account setup'], cta: 'Start Indian Subsidiary', highlight: true },
+            { name: 'Ultra', price: '₹79,999', features: ['Complete WOS setup', 'RBI / FEMA legal compliance audit', 'GST registration for foreign entity', 'AD code registration', '1 year corporate compliance package'], cta: 'Full India Entry Solution' }
+        ],
+        faq: [
+            { q: 'Does a foreign director need an Indian passport?', a: 'No. Foreign nationals can be directors of an Indian subsidiary, but at least one director on the board must be a resident of India.' }
+        ],
+        seoKeywords: ['india market entry strategy services', 'set up wholly owned subsidiary in india', 'foreign direct investment company registration', 'fema rbi compliance company setup', 'start business in india for foreigners'],
+        timelineNote: '14–21 working days',
     },
 ];
 

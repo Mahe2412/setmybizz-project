@@ -6,6 +6,7 @@ export const metadata: Metadata = {
     title: 'Start Your Business in India | SetMyBizz – Foreign & NRI Company Setup',
     description: 'Incorporate a company in India, access the Indian market, or start exporting to India. SetMyBizz handles FDI compliance, RBI approvals, GST, and all India-entry requirements for foreign entrepreneurs and NRIs.',
     keywords: ['incorporate in india for foreigners', 'start business in india nri', 'india market access foreign company', 'fdi india company registration', 'setmybizz global'],
+    alternates: { canonical: 'https://setmybizz.com/start-in-india' },
 };
 
 const PATHS = [

@@ -162,6 +162,7 @@ export default function OSPage() {
   const { whiteboardOpen, setWhiteboardOpen, conversationMode, sidebarOpen: storeSidebarOpen, setSidebarOpen: setStoreSidebarOpen } = useBizStore();
   const { user, dbUser, dbBusiness, loading: authLoading } = useAuth();
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [devSkip, setDevSkip] = useState(false);
 
   // Dynamic UI replacement accessors to completely remove static mock data placeholders
   const liveBizName = dbBusiness?.business_name || dbUser?.business_name || bizData.name || 'Your Startup';
@@ -171,7 +172,9 @@ export default function OSPage() {
   useEffect(() => {
     // Trigger ProfileCompletionModal if core profile details or verified business workspaces are missing
     if (user && !authLoading) {
-      if (!dbUser || !dbUser.full_name || !dbUser.phone || !dbBusiness || !dbBusiness.business_name) {
+      const localCached = localStorage.getItem('setmybizz_data');
+      const hasLocalProfile = !!localCached;
+      if (!hasLocalProfile && (!dbUser || !dbUser.full_name || !dbUser.phone || !dbBusiness || (!dbBusiness.business_name && !dbBusiness.name))) {
         setShowProfileModal(true);
       } else {
         setShowProfileModal(false);
@@ -240,14 +243,27 @@ export default function OSPage() {
   }
 
   // Mandatory SaaS access protection gate - absolute zero bypass policy
-  if (!user) {
+  if (!user && !devSkip) {
     return (
-      <LoginStep 
-        onLogin={() => {
-          // Handled autonomously by global AuthProvider active state subscribers
-        }} 
-        businessName={bizData.name || 'Your Business'} 
-      />
+      <div className="relative min-h-screen w-full">
+        <LoginStep 
+          onLogin={() => {
+            // Handled autonomously by global AuthProvider active state subscribers
+          }} 
+          businessName={bizData.name || 'Your Business'} 
+        />
+        {process.env.NODE_ENV === 'development' && (
+          <div className="absolute bottom-6 right-6 z-[9999]">
+            <button
+              onClick={() => setDevSkip(true)}
+              className="px-5 py-3 bg-slate-900/90 hover:bg-slate-900 text-white rounded-2xl text-xs font-bold shadow-2xl transition-all flex items-center gap-2 border border-white/20 backdrop-blur-md"
+            >
+              <span className="material-symbols-rounded text-sm">code</span>
+              Developer Skip Login
+            </button>
+          </div>
+        )}
+      </div>
     );
   }
 

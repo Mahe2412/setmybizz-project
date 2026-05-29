@@ -24,6 +24,7 @@ import LearnTab from '@/components/os/LearnTab';
 import StartupStoreTab from '@/components/os/StartupStoreTab';
 import RetailerTab from '@/components/os/RetailerTab';
 import { useBizStore } from '@/lib/useBizStore';
+import WorkflowBuilderTab from '@/components/os/WorkflowBuilderTab';
 import LaunchPadTab from '@/components/os/LaunchPadTab';
 import { ArkleVoiceIcon } from '../shared/ArkleVoiceIcon';
 import Workspace from '@/components/dashboard/Workspace';
@@ -42,6 +43,12 @@ const BIZDESK_SIDEBAR: SidebarSection[] = [
     section: 'NEURAL OPERATOR',
     items: [
       { id: 'home', icon: '🧠', label: 'Arkle Control', badge: 'Live' },
+    ],
+  },
+  {
+    section: 'AI AUTOMATIONS',
+    items: [
+      { id: 'workflows', icon: '⚡', label: 'AI Workflows', badge: 'New' },
     ],
   },
   {
@@ -223,6 +230,17 @@ export default function BizOSShell({ data: initialData }: BizOSShellProps) {
     if (navId === 'launchpad') setActiveTab('launchpad');
     if (navId === 'learn') setActiveTab('learn');
   }, [activeTopNav]);
+
+  useEffect(() => {
+    const handleSwitch = (e: Event) => {
+      const customEvent = e as CustomEvent<TopNavId>;
+      if (customEvent.detail) {
+        switchTopNav(customEvent.detail);
+      }
+    };
+    window.addEventListener('switch-top-nav', handleSwitch);
+    return () => window.removeEventListener('switch-top-nav', handleSwitch);
+  }, [switchTopNav]);
 
   useEffect(() => {
     if (conversationMode) {
@@ -410,14 +428,16 @@ export default function BizOSShell({ data: initialData }: BizOSShellProps) {
                   {activeTab === 'suppliers' && <SuppliersTab />}
                   {activeTab === 'retailer' && <RetailerTab />}
                   {activeTab === 'spotlight' && <BizboardSpotlight />}
+                  {activeTab === 'workflows' && <WorkflowBuilderTab />}
                 </div>
               )}
               {activeTopNav === 'launchpad' && <LaunchPadTab data={bizData} externalLang={globalLang} onLangChange={setGlobalLang} />}
               {activeTopNav === 'learn' && <LearnTab />}
-              {activeTopNav === 'ai-workspace' && <Workspace onNavigate={(tab) => {
+              {activeTopNav === 'ai-workspace' && <Workspace onNavigate={(tab: any) => {
                   if (tab === 'A' || tab === 'B') setActiveTopNav('bizdesk');
                   if (tab === 'LearnerStudio') setActiveTopNav('learn');
                   if (tab === 'Workspace') setActiveTopNav('ai-workspace');
+                  if (tab === 'workflows') { setActiveTopNav('bizdesk'); setActiveTab('workflows'); }
               }} />}
             </motion.div>
           </AnimatePresence>
@@ -483,7 +503,7 @@ export default function BizOSShell({ data: initialData }: BizOSShellProps) {
         )}
       </AnimatePresence>
 
-      <ArklePanel open={arkleOpen} onClose={() => setArkleOpen(false)} selectedLang={globalLang} />
+      <ArklePanel onClose={() => setArkleOpen(false)} selectedLang={globalLang} />
              </div>
           </div>
         )}
