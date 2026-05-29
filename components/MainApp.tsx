@@ -16,7 +16,6 @@ import FocusStep from './steps/FocusStep';
 import SummaryStep from './steps/SummaryStep';
 import MarketHookStep from './steps/MarketHookStep';
 import LoginStep from './steps/LoginStep';
-import BizOSShell from './os/BizOSShell';
 import Layout from './Layout';
 import ProfileCompletionModal from './ProfileCompletionModal';
 import SmartFooter from './marketing/SmartFooter';
