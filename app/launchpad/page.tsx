@@ -2,36 +2,49 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { 
-    Monitor, Target, TrendingUp, ArrowLeft, ChevronRight, CheckCircle2
+    Monitor, Target, TrendingUp, ArrowLeft, ChevronRight, CheckCircle2, Sparkles
 } from 'lucide-react';
 
 const LAUNCH_SLIDES = [
     {
+        id: 'pitch',
+        title: 'AI Pitch Deck Maker',
+        subtitle: 'Phase 0: Foundation',
+        desc: 'Generate a stunning, investor-ready pitch presentation in minutes. Speak or type your business idea and export it directly to PDF.',
+        features: ['Voice-to-Slide Structuring', 'Neon, Notion, Ocean Themes', 'Interactive Web & PDF Exports'],
+        icon: Sparkles,
+        color: 'purple',
+        link: '/launchpad/pitch-maker'
+    },
+    {
         id: 'web',
         title: 'Web & Identity',
         subtitle: 'Phase 1: Presence',
-        desc: 'Get your brand online in 24 hours. High-conversion websites and premium brand kits designed for growth.',
-        features: ['24h Website Delivery', 'Premium Logo & Brand Kit', 'AI-Optimized Copywriting'],
+        desc: 'Build websites, brand kits and live sales pages by speaking to Arkle. No coding, no designers, just fast launches.',
+        features: ['Voice-built Websites', 'Brand Kit Generation', 'AI-Optimized Launch Copy'],
         icon: Monitor,
-        color: 'blue'
+        color: 'blue',
+        link: '/onboarding'
     },
     {
         id: 'leads',
         title: 'The Lead Machine',
         subtitle: 'Phase 2: Traffic',
-        desc: 'Stop burning money on ads. We build automated lead funnels that find your customers where they live.',
-        features: ['Google & Meta Ad Mgmt', 'SEO & Authority Building', 'Automated Lead Funnels'],
+        desc: 'Arkle scans your business dashboards and recommends the exact campaigns, funnels and automations you need.',
+        features: ['Smart Funnel Recommendations', 'WhatsApp & Email Sequences', 'High-conversion Lead Paths'],
         icon: Target,
-        color: 'rose'
+        color: 'rose',
+        link: '/onboarding'
     },
     {
         id: 'scale',
         title: 'Global Scalability',
         subtitle: 'Phase 3: Reach',
-        desc: 'Expand your market globally. E-commerce setups and international marketing strategies made simple.',
-        features: ['E-commerce Infrastructure', 'Global Market Analysis', 'CRM & Sales Automation'],
+        desc: 'Deploy growth tools and AI agents for international expansion without writing a single line of code.',
+        features: ['International E-commerce Setup', 'Global Market Playbooks', 'Agent-based Growth Automation'],
         icon: TrendingUp,
-        color: 'indigo'
+        color: 'indigo',
+        link: '/onboarding'
     }
 ];
 
@@ -127,7 +140,7 @@ export default function LaunchpadPage() {
                             ))}
                         </div>
                         <div className="pt-6">
-                            <Link href="/onboarding" className="px-8 py-4 bg-rose-600 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-rose-500/20 hover:bg-rose-700 transition-colors inline-block">
+                            <Link href={slide.link || "/onboarding"} className="px-8 py-4 bg-rose-600 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-rose-500/20 hover:bg-rose-700 transition-colors inline-block">
                                 Explore Launchpad Module
                             </Link>
                         </div>

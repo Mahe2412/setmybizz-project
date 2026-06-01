@@ -11,7 +11,7 @@ export const Navbar = () => {
 
     // If user is logged in, show their name/profile
     // If guest, show Guest ID
-    const displayName = user?.displayName || dbUser?.displayName || "User";
+    const displayName = dbUser?.full_name || user?.user_metadata?.full_name || user?.email || "User";
     const displayId = dbUser?.registeredId || (user ? "SMB-USER" : guestId);
 
     return (

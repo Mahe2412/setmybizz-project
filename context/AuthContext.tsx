@@ -3,6 +3,12 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
+import {
+  DEV_MOCK_DB_BUSINESS,
+  DEV_MOCK_DB_USER,
+  DEV_MOCK_USER,
+  isDevAuthBypass,
+} from '@/lib/devAuth';
 
 interface AuthContextType {
     user: User | null;
@@ -35,6 +41,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        if (isDevAuthBypass()) {
+            console.warn('[SetMyBizz] DEV auth bypass active — localhost only');
+            setUser(DEV_MOCK_USER);
+            setDbUser(DEV_MOCK_DB_USER);
+            setDbBusiness(DEV_MOCK_DB_BUSINESS);
+            setLoading(false);
+            if (typeof window !== 'undefined') {
+                localStorage.setItem('setmybizz_session', 'true');
+            }
+        }
+
         // Safety timeout: guarantee loading finishes in 2.5s even if Supabase hangs
         const safetyTimeout = setTimeout(() => {
             setLoading(false);
@@ -52,6 +69,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         // Get initial session
         const initSession = async () => {
+            if (isDevAuthBypass()) {
+                clearTimeout(safetyTimeout);
+                return;
+            }
             try {
                 const { data: { session } } = await supabase.auth.getSession();
                 setSession(session);
@@ -72,6 +93,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         // Listen for auth changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+            if (isDevAuthBypass()) return;
             try {
                 setSession(session);
                 setUser(session?.user ?? null);

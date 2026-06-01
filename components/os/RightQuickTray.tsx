@@ -13,12 +13,17 @@ const RIGHT_TRAY_APPS = [
    { id: 'chat', icon: 'chat', label: 'WhatsApp', color: 'text-emerald-500' },
 ];
 
-export default function RightQuickTray() {
+interface RightQuickTrayProps {
+   onAppClick?: (appId: string) => void;
+}
+
+export default function RightQuickTray({ onAppClick }: RightQuickTrayProps) {
    return (
-      <div className="fixed right-6 top-[42%] -translate-y-1/2 z-[200] flex flex-col gap-5 items-center">
+      <div className="fixed right-6 top-[18%] z-[200] flex flex-col gap-5 items-center">
          {RIGHT_TRAY_APPS.map(app => (
             <button 
                key={app.id} 
+               onClick={() => onAppClick?.(app.id)}
                className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.06)] hover:shadow-xl hover:scale-110 transition-all group relative border border-slate-50"
             >
                <span className={`material-symbols-outlined text-[24px] ${app.color}`}>{app.icon}</span>

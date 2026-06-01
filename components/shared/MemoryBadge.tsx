@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { StartupBible, loadBible, saveBible } from '../lib/ArkleMemoryManager';
+import { StartupBible, loadBible, saveBible } from '../../lib/ArkleMemoryManager';
 
 /**
  * MemoryBadge Component
@@ -79,7 +79,7 @@ const MemoryBadge: React.FC = () => {
               <div>
                 <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Neural Rules</h4>
                 <div className="space-y-2">
-                  {bible?.businessLogic.map((rule, i) => (
+                  {bible?.businessLogic.map((rule: string, i: number) => (
                     <div key={i} className="flex gap-2 text-[11px] font-medium text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-100">
                       <span className="text-blue-500">●</span>
                       {rule}

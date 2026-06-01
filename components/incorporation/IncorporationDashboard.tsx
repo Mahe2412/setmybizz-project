@@ -1183,7 +1183,7 @@ function GetStartedModal({
             userPhone: phone,
             userEmail: email,
             guestId: guestId,
-            userId: user?.uid || null
+            userId: user?.id || null
         };
 
         // 1. Save to LocalStorage for immediate UI feedback (Workspace Dashboard)

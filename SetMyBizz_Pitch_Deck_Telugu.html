@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="te" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>సెట్‌మైబిజ్ (SetMyBizz) BizOS - పిచ్ డెక్</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Custom styling & Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Sans+Telugu:wght@400;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'Noto Sans Telugu', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            dark: '#050505',
+                            indigo: '#6366f1',
+                            purple: '#a855f7',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #050505;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+        .slide-snap {
+            scroll-snap-type: y mandatory;
+            height: 100vh;
+            overflow-y: scroll;
+        }
+        .slide-section {
+            scroll-snap-align: start;
+            height: 100vh;
+            position: relative;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #050505;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #222;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4433ff;
+        }
+        /* Animation fade-in classes */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="font-sans antialiased">
+
+    <!-- Fixed Header -->
+    <header class="fixed top-0 left-0 w-full p-6 flex justify-between items-center z-50 mix-blend-difference">
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center font-bold">SB</div>
+            <span class="text-xl font-bold tracking-tight">SetMyBizz <span class="font-light text-indigo-400">BizOS</span></span>
+        </div>
+        <div class="flex items-center gap-4">
+            <span class="text-xs tracking-widest uppercase text-gray-500 hidden sm:inline">Powered by Arkle AI</span>
+            <a href="#ask" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full text-sm font-semibold transition-all">
+                డెమో బుక్ చేయండి
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Presentation Container (Scroll Snap) -->
+    <main class="slide-snap">
+
+        <!-- Slide 1: Hero Cover -->
+        <section class="slide-section flex items-center justify-center px-6 overflow-hidden">
+            <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.15)_0%,transparent_60%)]"></div>
+            <div class="absolute inset-0 bg-cover bg-center opacity-30 mix-blend-luminosity" style="background-image: url('public/pitch-assets/pitch_hero_1780158995668.png');"></div>
+            
+            <div class="relative z-10 text-center max-w-4xl mx-auto">
+                <span class="inline-block px-4 py-1.5 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-full text-xs font-semibold tracking-wider uppercase mb-6">
+                    వ్యాపార నిర్వహణలో నూతన విప్లవం
+                </span>
+                <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight leading-none mb-6">
+                    వ్యాపారాన్ని కేవలం ప్రారంభించకండి.<br>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-indigo-500">
+                        ఒక OS లా బూట్ చేయండి.
+                    </span>
+                </h1>
+                
+                <!-- Core Clarity Statement -->
+                <div class="bg-white/5 border border-white/10 rounded-2xl p-6 mb-8 max-w-2xl mx-auto backdrop-blur-md">
+                    <p class="text-md md:text-lg text-indigo-300 font-semibold">
+                        SetMyBizz అనేది వర్క్‌ఫ్లోలు, ఆటోమేషన్ మరియు ఇంటిగ్రేటెడ్ టూల్స్ ద్వారా MSMEలు/స్టార్టప్‌లు తమ వ్యాపారాన్ని సులభంగా నిర్మించడానికి మరియు నడపడానికి సహాయపడే ఒక AI-ఫస్ట్ ప్లాట్‌ఫారమ్. (Powered by Arkle AI)
+                    </p>
+                </div>
+
+                <p class="text-md md:text-xl text-gray-400 font-light max-w-xl mx-auto mb-10">
+                    AI-సహాయక కార్యకలాపాలు మరియు ఆటోమేటెడ్ వర్క్‌ఫ్లోలతో మీ వ్యాపారాన్ని తదుపరి స్థాయికి తీసుకెళ్లండి.
+                </p>
+                <div class="flex justify-center gap-4">
+                    <a href="#problem" class="px-6 py-3 bg-white text-black font-semibold rounded-full hover:bg-gray-200 transition-all">
+                        ప్రెజెంటేషన్ ప్రారంభించండి
+                    </a>
+                    <a href="#ask" class="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-full hover:bg-indigo-700 transition-all">
+                        డెమో బుక్ చేయండి
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 2: The Core Problem -->
+        <section id="problem" class="slide-section flex items-center px-6 border-t border-zinc-900">
+            <div class="container mx-auto max-w-6xl">
+                <div class="grid md:grid-cols-2 gap-12 items-center">
+                    <div class="reveal">
+                        <span class="text-indigo-400 font-semibold tracking-wider uppercase text-xs">సమస్య (The Problem)</span>
+                        <h2 class="text-3xl md:text-5xl font-extrabold mt-2 mb-8 leading-tight">విడివిడి వ్యవస్థల వల్ల వ్యాపార ఆలోచనలు విఫలమవుతున్నాయి.</h2>
+                        
+                        <div class="space-y-6">
+                            <div class="flex gap-4">
+                                <div class="w-10 h-10 shrink-0 bg-red-500/10 rounded-lg flex items-center justify-center text-red-400 font-bold">1</div>
+                                <div>
+                                    <h4 class="text-lg font-bold text-white">నిబంధనల సంక్లిష్టత (The Compliance Trap)</h4>
+                                    <p class="text-gray-400 text-sm">కంపెనీ రిజిస్ట్రేషన్, GST మరియు లీగల్ పనుల కోసం నెలల తరబడి సమయం మరియు డబ్బు వృథా అవుతుంది.</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-4">
+                                <div class="w-10 h-10 shrink-0 bg-red-500/10 rounded-lg flex items-center justify-center text-red-400 font-bold">2</div>
+                                <div>
+                                    <h4 class="text-lg font-bold text-white">నైపుణ్యాల కొరత & ఖర్చులు</h4>
+                                    <p class="text-gray-400 text-sm">సాంకేతికత, మార్కెటింగ్, ఫైనాన్స్ మరియు లీగల్ విభాగాలకు వేర్వేరు వ్యక్తులను లేదా ఏజెన్సీలను నియమించుకోవడం చాలా ఖరీదైన వ్యవహారం.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="reveal h-96 rounded-2xl border border-zinc-800 bg-cover bg-center overflow-hidden shadow-2xl relative" style="background-image: url('public/pitch-assets/pitch_chaos_1780159011280.png');">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-6">
+                            <p class="text-xs text-gray-500">సాంప్రదాయ పద్ధతి: ఖరీదైనది, విచ్ఛిన్నమైనది మరియు గందరగోళం.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 3: Proven Traction -->
+        <section id="traction" class="slide-section flex items-center px-6 border-t border-zinc-900 bg-zinc-950/20">
+            <div class="container mx-auto max-w-6xl">
+                <div class="text-center max-w-3xl mx-auto mb-12 reveal">
+                    <span class="text-indigo-400 font-semibold tracking-wider uppercase text-xs">మా ప్రస్థానం (Traction)</span>
+                    <h2 class="text-3xl md:text-5xl font-extrabold mt-2 mb-4">లాభదాయకమైనది, నిరూపించబడినది</h2>
+                    <p class="text-gray-400">BizOS SaaS అభివృద్ధి పూర్తిగా మా SetMyBizz మరియు BizDesk ద్వారా వస్తున్న లాభదాయకమైన సర్వీస్ ఆదాయంతోనే సాగుతోంది.</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                    <div class="reveal p-8 bg-zinc-900/40 border border-zinc-800 rounded-2xl hover:border-indigo-500/50 transition-all">
+                        <div class="text-5xl md:text-6xl font-black text-white mb-2">600+</div>
+                        <h4 class="text-lg font-bold text-gray-200">సేవలు అందించిన కస్టమర్లు</h4>
+                        <p class="text-gray-500 text-sm mt-2">స్టార్టప్‌లు, MSMEలు మరియు వ్యక్తిగత వ్యాపారవేత్తలు.</p>
+                    </div>
+                    <div class="reveal p-8 bg-zinc-900/40 border border-zinc-800 rounded-2xl hover:border-indigo-500/50 transition-all" style="transition-delay: 0.1s;">
+                        <div class="text-5xl md:text-6xl font-black text-white mb-2">60+</div>
+                        <h4 class="text-lg font-bold text-gray-200">నిర్మించిన స్టార్టప్‌లు</h4>
+                        <p class="text-gray-500 text-sm mt-2">రిజిస్ట్రేషన్ మరియు టేలర్-మేడ్ బిజినెస్ సెటప్ పూర్తి చేసినవి.</p>
+                    </div>
+                    <div class="reveal p-8 bg-zinc-900/40 border border-zinc-800 rounded-2xl hover:border-indigo-500/50 transition-all" style="transition-delay: 0.2s;">
+                        <div class="text-5xl md:text-6xl font-black text-white mb-2">30</div>
+                        <h4 class="text-lg font-bold text-gray-200">మా పర్యవేక్షణలో ఉన్న స్టార్టప్‌లు</h4>
+                        <p class="text-gray-500 text-sm mt-2">మా ఉచిత వర్చువల్ CFO సలహాల ద్వారా మార్గదర్శకత్వం పొందుతున్నవి.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 4: Arkle AI Brain -->
+        <section id="brain" class="slide-section flex items-center px-6 border-t border-zinc-900 overflow-hidden">
+            <div class="absolute inset-0 bg-cover bg-center opacity-10 mix-blend-screen" style="background-image: url('public/pitch-assets/pitch_brain_1780159041154.png');"></div>
+            
+            <div class="container mx-auto max-w-6xl relative z-10">
+                <div class="grid md:grid-cols-2 gap-12 items-center">
+                    <div class="reveal">
+                        <span class="text-indigo-400 font-semibold tracking-wider uppercase text-xs">Arkle AI</span>
+                        <h2 class="text-3xl md:text-5xl font-extrabold mt-2 mb-6">స్వయంప్రతిపత్తి గల సహ-వ్యవస్థాపకుడు</h2>
+                        
+                        <!-- Killer outcome flow -->
+                        <div class="p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-xl mb-6 text-sm text-indigo-300">
+                            <strong>లక్ష్య సాధన ప్రక్రియ (Outcome Flow):</strong> ఒక వ్యవస్థాపకుడు కేవలం ఆలోచన దశ నుండి &rarr; GST రిజిస్ట్రేషన్ &rarr; వెబ్‌సైట్ సెటప్ &rarr; ఇన్వాయిస్ జనరేషన్ &rarr; CRM పనులను ఒకే ఫ్లోలో పూర్తి చేయవచ్చు.
+                        </div>
+
+                        <p class="text-gray-400 mb-8">Arkle AI మీ వ్యాపార పనితీరు, అమ్మకాలు మరియు లీగల్ అలర్ట్‌లను నిత్యం పర్యవేక్షిస్తూ, సమస్యలను గుర్తించి వాటిని త్వరగా పరిష్కరించడంలో సహాయపడుతుంది.</p>
+                        
+                        <div class="space-y-4">
+                            <div class="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800 flex gap-4 items-center">
+                                <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+                                <p class="text-sm font-semibold">డ్యాష్‌బోర్డ్ 1: పెర్ఫార్మెన్స్ & క్యాష్ ఫ్లో విశ్లేషణ</p>
+                            </div>
+                            <div class="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800 flex gap-4 items-center">
+                                <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+                                <p class="text-sm font-semibold">డ్యాష్‌బోర్డ్ 2: సమస్యల గుర్తింపు (Bottleneck Detector)</p>
+                            </div>
+                            <div class="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800 flex gap-4 items-center">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                <p class="text-sm font-semibold">డ్యాష్‌బోర్డ్ 3: AI-సహాయక ఆటోమేషన్ & టూల్ బిల్డర్</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="reveal hidden md:block">
+                        <div class="w-full h-80 rounded-2xl border border-indigo-500/20 bg-indigo-950/10 flex flex-col items-center justify-center relative overflow-hidden">
+                            <div class="absolute w-64 h-64 bg-indigo-500/10 rounded-full filter blur-3xl animate-pulse"></div>
+                            <svg class="w-24 h-24 text-indigo-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                            </svg>
+                            <span class="text-xs uppercase tracking-widest text-indigo-300">Arkle AI యాక్టివ్</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 5: LaunchPad Voice Setup -->
+        <section id="launchpad" class="slide-section flex items-center px-6 border-t border-zinc-900 bg-zinc-950/20">
+            <div class="container mx-auto max-w-6xl">
+                <div class="grid md:grid-cols-2 gap-12 items-center">
+                    <div class="reveal h-96 rounded-2xl border border-zinc-800 bg-cover bg-center overflow-hidden shadow-2xl" style="background-image: url('public/pitch-assets/pitch_launchpad_1780159027414.png');"></div>
+                    <div class="reveal">
+                        <span class="text-indigo-400 font-semibold tracking-wider uppercase text-xs">LaunchPad</span>
+                        <h2 class="text-3xl md:text-5xl font-extrabold mt-2 mb-6">LaunchPad: మాట్లాడి నిర్మించండి</h2>
+                        <p class="text-gray-400 mb-8">వ్యాపారస్థులు తమకు కావలసిన వెబ్‌సైట్లు, బ్రోచర్లు మరియు వర్క్‌ఫ్లో టూల్స్‌ను నిమిషాల్లో నిర్మించుకోవచ్చు. మీ సొంత మాతృభాషలో Arkle AIతో మాట్లాడితే చాలు, క్షణాల్లో మీ డిజిటల్ వ్యాపారం సిద్ధమవుతుంది.</p>
+                        
+                        <ul class="space-y-3 text-sm text-gray-300">
+                            <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> ఎలాంటి సాంకేతిక/కోడింగ్ నైపుణ్యాలు అవసరం లేదు</li>
+                            <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> వెబ్ డెవలపర్లు మరియు ఏజెన్సీలతో పనిలేదు</li>
+                            <li class="flex items-center gap-2"><span class="text-emerald-400">✓</span> భారతీయ ప్రాంతీయ భాషలలో మాట్లాడే సదుపాయం</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 6: Competitive Edge -->
+        <section id="competition" class="slide-section flex items-center px-6 border-t border-zinc-900">
+            <div class="container mx-auto max-w-6xl">
+                <div class="text-center max-w-2xl mx-auto mb-12 reveal">
+                    <span class="text-indigo-400 font-semibold tracking-wider uppercase text-xs">పోటీ మరియు ప్రత్యేకత (The Moat)</span>
+                    <h2 class="text-3xl md:text-5xl font-extrabold mt-2">చాలా సులభం. వేగవంతం. స్థానికం.</h2>
+                </div>
+                
+                <div class="grid md:grid-cols-4 gap-6">
+                    <div class="reveal p-6 bg-zinc-900/30 border border-zinc-800 rounded-xl">
+                        <h4 class="text-lg font-bold mb-2">Zoho One</h4>
+                        <p class="text-gray-400 text-xs">చాలా క్లిష్టమైనది; సెటప్ చేయడానికి మరియు సిబ్బందికి శిక్షణ ఇవ్వడానికి వారాల సమయం పడుతుంది.</p>
+                    </div>
+                    <div class="reveal p-6 bg-zinc-900/30 border border-zinc-800 rounded-xl" style="transition-delay: 0.05s;">
+                        <h4 class="text-lg font-bold mb-2">Monday.com</h4>
+                        <p class="text-gray-400 text-xs">కేవలం పనులను ట్రాక్ చేసే అప్లికేషన్; ఇందులో ఆటోమేషన్ లేదా లీగల్/ఫైనాన్స్ ఇంటిగ్రేషన్ లేదు.</p>
+                    </div>
+                    <div class="reveal p-6 bg-zinc-900/30 border border-zinc-800 rounded-xl" style="transition-delay: 0.1s;">
+                        <h4 class="text-lg font-bold mb-2">SuperAGI</h4>
+                        <p class="text-gray-400 text-xs">డెవలపర్-కేంద్రీకృత ఫ్రేమ్‌వర్క్. దీన్ని రన్ చేయడానికి కోడింగ్ మరియు సాంకేతిక పరిజ్ఞానం అవసరం.</p>
+                    </div>
+                    <div class="reveal p-6 bg-indigo-950/20 border border-indigo-500/50 rounded-xl shadow-[0_0_30px_rgba(99,102,241,0.15)]" style="transition-delay: 0.15s;">
+                        <h4 class="text-lg font-bold text-indigo-400 mb-2">SetMyBizz BizOS</h4>
+                        <p class="text-gray-200 text-xs">ఎలాంటి లెర్నింగ్ కర్వ్ లేదు. డైనమిక్ డ్యాష్‌బోర్డ్, లీగల్ సపోర్ట్ మరియు వాయిస్ కంట్రోల్డ్ ఫీచర్లు. <strong>సాంకేతిక నైపుణ్యాల అవసరం లేదు.</strong></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 7: Business Model -->
+        <section id="pricing" class="slide-section flex items-center px-6 border-t border-zinc-900 bg-zinc-950/20">
+            <div class="container mx-auto max-w-6xl">
+                <div class="grid md:grid-cols-2 gap-12 items-center">
+                    <div class="reveal">
+                        <span class="text-indigo-400 font-semibold tracking-wider uppercase text-xs">బిజినెస్ మోడల్</span>
+                        <h2 class="text-3xl md:text-5xl font-extrabold mt-2 mb-6">సర్వీస్-టు-SaaS ఆన్‌బోర్డింగ్</h2>
+                        <p class="text-gray-400 mb-8">వ్యాపార ప్రారంభ పనులతో ఆన్‌బోర్డ్ చేసుకుని, కస్టమర్లను క్రమంగా శాశ్వత నెలవారీ సబ్‌స్క్రైబర్లుగా మారుస్తాము.</p>
+                        
+                        <div class="space-y-4">
+                            <div class="p-4 bg-zinc-900/60 border border-zinc-800 rounded-xl">
+                                <h4 class="font-bold text-white text-sm">సులభమైన ప్రారంభం (Setup Hook)</h4>
+                                <p class="text-gray-400 text-xs mt-1">ఐడియా దశలో ఉన్న స్టార్టప్‌లకు రిజిస్ట్రేషన్, ఫైనాన్స్ మరియు మార్కెటింగ్ పనుల ద్వారా వ్యాపార సెటప్ చేసి BizOS పరిచయం చేస్తాము.</p>
+                            </div>
+                            <div class="p-4 bg-zinc-900/60 border border-zinc-800 rounded-xl">
+                                <h4 class="font-bold text-white text-sm">మాడ్యులర్ SaaS సబ్‌స్క్రిప్షన్</h4>
+                                <p class="text-gray-400 text-xs mt-1">నెలకు <strong>₹999</strong> నుండి సబ్‌స్క్రిప్షన్ ప్లాన్‌లు ప్రారంభమవుతాయి (ఇందులో లాంచ్‌పాడ్ మరియు వర్క్‌స్పేస్ ఉండవు, తర్వాత అదనంగా జోడించుకోవచ్చు).</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="reveal p-8 bg-indigo-950/20 border border-indigo-500/30 rounded-2xl">
+                        <h4 class="text-2xl font-bold text-indigo-400 mb-4">మా ₹10,000 కన్వర్షన్ ఆఫర్</h4>
+                        <div class="space-y-4 text-left text-sm text-gray-300">
+                            <div class="p-4 bg-zinc-900/80 rounded-xl border border-zinc-800">
+                                <p class="font-semibold text-white">కస్టమర్ ₹10,000 లేదా అంతకంటే ఎక్కువ విలువైన ఏదైనా సర్వీస్ కొనుగోలు చేస్తే &rarr; 4 నెలల పాటు BizDesk / BizOS ఉచితంగా అందించబడుతుంది.</p>
+                            </div>
+                            <p>&bull; <strong>దశ 1:</strong> ప్రాథమిక లీగల్ పనుల ద్వారా కస్టమర్ నమ్మకాన్ని పొందడం.</p>
+                            <p>&bull; <strong>దశ 2:</strong> 4 నెలల ఉచిత టూల్స్ ద్వారా వారిని ప్లాట్‌ఫారమ్‌కు అలవాటు చేయడం.</p>
+                            <p>&bull; <strong>దశ 3:</strong> తర్వాత ప్లాన్ అప్‌గ్రేడ్ల ద్వారా లాంచ్‌పాడ్, వర్క్‌స్పేస్ ఫీచర్లను అందించడం.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 8: The Ask -->
+        <section id="ask" class="slide-section flex items-center px-6 border-t border-zinc-900 bg-gradient-to-b from-transparent to-indigo-950/20">
+            <div class="container mx-auto max-w-4xl text-center">
+                <div class="reveal">
+                    <div class="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center mx-auto mb-8 font-bold text-xl shadow-[0_0_30px_rgba(99,102,241,0.4)]">🚀</div>
+                    <h2 class="text-4xl md:text-6xl font-extrabold mb-6 leading-tight">భారతీయ MSMEల కోసం అతిపెద్ద వ్యాపార OSను నిర్మిద్దాం.</h2>
+                    <p class="text-gray-400 text-lg md:text-xl font-light mb-12 max-w-2xl mx-auto">
+                        Arkle AI సాంకేతికతను విస్తరించడానికి మరియు గ్రామీణ ప్రాంతాల్లోని వ్యాపారాలకు ప్రాంతీయ భాషా మద్దతును అందించడానికి మాతో చేరండి.
+                    </p>
+                    
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <a href="mailto:founder@setmybizz.com" class="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 font-bold rounded-full transition-all text-white">
+                            15 నిమిషాల డెమో బుక్ చేయండి
+                        </a>
+                        <button onclick="window.print()" class="px-8 py-4 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 font-bold rounded-full transition-all text-white">
+                            పిచ్ డెక్ డౌన్‌లోడ్ (PDF శైలి)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Slide Activation & Animation Script -->
+    <script>
+        const reveals = document.querySelectorAll('.reveal');
+
+        function revealOnScroll() {
+            reveals.forEach(reveal => {
+                const windowHeight = window.innerHeight;
+                const elementTop = reveal.getBoundingClientRect().top;
+                const elementVisible = 100;
+
+                if (elementTop < windowHeight - elementVisible) {
+                    reveal.classList.add('active');
+                } else {
+                    reveal.classList.remove('active');
+                }
+            });
+        }
+
+        // Initialize scroll listener in the container
+        const scrollContainer = document.querySelector('.slide-snap');
+        scrollContainer.addEventListener('scroll', revealOnScroll);
+
+        // Initial trigger
+        setTimeout(revealOnScroll, 100);
+    </script>
+</body>
+</html>

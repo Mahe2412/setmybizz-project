@@ -43,7 +43,7 @@ export interface ToolContext {
   techStack: string[];
   capabilities: string[];
   outputFormat: 'html_css_js' | 'svg' | 'pdf_layout' | 'json_data' | 'markdown' | 'code_files';
-  modelPreference: 'gemini-1.5-pro' | 'gemini-1.5-flash';
+  modelPreference: 'gemini-1.5-pro' | 'gemini-2.5-flash';
   systemPromptCore: string;
 }
 
@@ -82,7 +82,7 @@ const TOOL_CONTEXTS: Record<ToolId, ToolContext> = {
     techStack: ['SVG', 'CSS Transforms', 'Vector Design'],
     capabilities: ['Logo creation', 'Brand identity', 'Color palettes', 'Typography'],
     outputFormat: 'svg',
-    modelPreference: 'gemini-1.5-flash',
+    modelPreference: 'gemini-2.5-flash',
     systemPromptCore: `You are a world-class Brand Identity Designer with 15+ years of experience at top agencies like Pentagram, Landor, and Base Design. 
 You specialize in:
 - Creating iconic SVG logos that are scalable and memorable
@@ -171,7 +171,7 @@ ALWAYS INCLUDE:
     techStack: ['HTML5', 'CSS3', 'GSAP-like animations', 'Intersection Observer API'],
     capabilities: ['Hero sections', 'CTA optimization', 'Feature grids', 'Testimonials', 'Pricing tables'],
     outputFormat: 'html_css_js',
-    modelPreference: 'gemini-1.5-flash',
+    modelPreference: 'gemini-2.5-flash',
     systemPromptCore: `You are a Growth Marketer and Landing Page Expert who has optimized pages for YC startups, reaching 40%+ conversion rates.
 
 YOUR CONVERSION PLAYBOOK:
@@ -192,12 +192,12 @@ DESIGN: Framer/Webflow aesthetic. Clean, focused, distraction-free. Bold typogra
     techStack: ['HTML Canvas', 'CSS Grid', 'Image export patterns'],
     capabilities: ['Post templates', 'Story formats', 'Carousel layouts', 'Brand-consistent visuals'],
     outputFormat: 'html_css_js',
-    modelPreference: 'gemini-1.5-flash',
+    modelPreference: 'gemini-2.5-flash',
     systemPromptCore: `You are a Social Media Creative Director specializing in viral content for Instagram, LinkedIn, and Twitter/X.
 Create visually stunning post templates with the brand's colors and typography. Output as HTML/CSS that renders as social media sized cards (1080x1080 for Instagram, 1200x628 for LinkedIn).`
   },
 
-  brand_kit: {
+  'brand-kit': {
     toolId: 'brand-kit',
     persona: 'brand_strategist',
     personaLabel: '🏷️ Brand Strategist',
@@ -216,7 +216,7 @@ Build a complete brand guidelines document as an HTML page including: logo usage
     techStack: ['Structured Data / JSON-LD', 'Meta tags', 'Semantic HTML5', 'Schema.org'],
     capabilities: ['SEO audit', 'Meta generation', 'Schema markup', 'Content optimization'],
     outputFormat: 'json_data',
-    modelPreference: 'gemini-1.5-flash',
+    modelPreference: 'gemini-2.5-flash',
     systemPromptCore: `You are a Senior SEO Strategist who has grown organic traffic by 10x for B2B SaaS companies.
 Analyze the business context and generate: complete meta tags, JSON-LD schema markup, sitemap structure, keyword strategy, and content brief.`
   },
@@ -253,7 +253,7 @@ Generate professional legal documents customized to the business context. Use pl
     techStack: ['HTML5', 'CSS3', 'JavaScript', 'Tailwind CSS'],
     capabilities: ['Individual web pages', 'Components', 'Sections'],
     outputFormat: 'html_css_js',
-    modelPreference: 'gemini-1.5-flash',
+    modelPreference: 'gemini-2.5-flash',
     systemPromptCore: `You are a skilled web developer. Build the requested web page with modern design, smooth animations, and real content.`
   },
 
@@ -264,7 +264,7 @@ Generate professional legal documents customized to the business context. Use pl
     techStack: ['HTML', 'CSS Print Media', 'PDF-ready'],
     capabilities: ['Tri-fold brochures', 'Product sheets', 'Company profiles'],
     outputFormat: 'html_css_js',
-    modelPreference: 'gemini-1.5-flash',
+    modelPreference: 'gemini-2.5-flash',
     systemPromptCore: `You are a print and digital design expert. Create professional brochure layouts with premium typography and visual hierarchy.`
   },
 
@@ -286,7 +286,7 @@ Generate professional legal documents customized to the business context. Use pl
     techStack: ['HTML Canvas', 'CSS Animations'],
     capabilities: ['Banner ads', 'Social ads', 'Display advertising'],
     outputFormat: 'html_css_js',
-    modelPreference: 'gemini-1.5-flash',
+    modelPreference: 'gemini-2.5-flash',
     systemPromptCore: `You are a Digital Advertising Creative who builds high-CTR ad creatives. Focus on strong headline, compelling visual hierarchy, and single clear CTA.`
   },
 
@@ -308,7 +308,7 @@ Generate professional legal documents customized to the business context. Use pl
     techStack: ['SVG', 'CSS Art', 'HTML Canvas'],
     capabilities: ['Custom illustrations', 'Icons', 'Graphic design'],
     outputFormat: 'svg',
-    modelPreference: 'gemini-1.5-flash',
+    modelPreference: 'gemini-2.5-flash',
     systemPromptCore: `You are a visual designer who creates stunning SVG illustrations and graphic design assets.`
   },
 
@@ -319,7 +319,7 @@ Generate professional legal documents customized to the business context. Use pl
     techStack: ['HTML', 'CSS', 'vCard format'],
     capabilities: ['Digital business cards', 'NFC-ready profiles', 'QR code cards'],
     outputFormat: 'html_css_js',
-    modelPreference: 'gemini-1.5-flash',
+    modelPreference: 'gemini-2.5-flash',
     systemPromptCore: `You are a digital business card designer. Create a stunning, mobile-optimized digital business card with contact info, social links, and QR code placeholder.`
   },
 
@@ -330,7 +330,7 @@ Generate professional legal documents customized to the business context. Use pl
     techStack: ['HTML', 'CSS Print', 'PDF layout'],
     capabilities: ['Letterhead', 'Invoice templates', 'Official documents'],
     outputFormat: 'html_css_js',
-    modelPreference: 'gemini-1.5-flash',
+    modelPreference: 'gemini-2.5-flash',
     systemPromptCore: `You are a professional document designer. Create elegant letterhead and document templates with the brand's visual identity.`
   },
 
@@ -422,7 +422,7 @@ export const selectModel = (toolId: string, promptLength: number): string => {
   const alwaysPro = ['website', 'ecom', 'deck', 'automation', 'legal'];
   if (alwaysPro.includes(toolId)) return 'gemini-1.5-pro';
   // Use flash for short prompts on simpler tools
-  if (promptLength < 100) return 'gemini-1.5-flash';
+  if (promptLength < 100) return 'gemini-2.5-flash';
   return ctx.modelPreference;
 };
 

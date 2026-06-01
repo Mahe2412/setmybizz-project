@@ -25,6 +25,10 @@ interface BizState {
     setConversationMode: (mode: boolean) => void;
     sidebarOpen: boolean;
     setSidebarOpen: (open: boolean) => void;
+    toggleSidebar: () => void;
+    sidebarCollapsed: boolean;
+    setSidebarCollapsed: (collapsed: boolean) => void;
+    toggleSidebarCollapsed: () => void;
     isVoiceActive: boolean;
     setIsVoiceActive: (active: boolean) => void;
     isMuted: boolean;
@@ -76,6 +80,11 @@ export const useBizStore = create<BizState>()(
             setConversationMode: (mode) => set({ conversationMode: mode }),
             sidebarOpen: true,
             setSidebarOpen: (open) => set({ sidebarOpen: open }),
+            toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
+            sidebarCollapsed: false,
+            setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
+            toggleSidebarCollapsed: () =>
+                set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
             isVoiceActive: false,
             setIsVoiceActive: (active) => set({ isVoiceActive: active }),
             isMuted: false,
@@ -91,6 +100,11 @@ export const useBizStore = create<BizState>()(
         }),
         {
             name: 'bizos-operational-store',
+            partialize: (state) => ({
+                tasks: state.tasks,
+                sidebarOpen: state.sidebarOpen,
+                sidebarCollapsed: state.sidebarCollapsed,
+            }),
         }
     )
 );

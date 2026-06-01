@@ -64,6 +64,7 @@ export interface BusinessData {
     funding?: string;
     location?: string;
     goal?: string;
+    mission?: string;
 }
 
 export type LeadStatus = 'new' | 'viewed' | 'engaged' | 'warm' | 'hot' | 'ordered' | 'fulfilled' | 'lost';

@@ -16,7 +16,7 @@ import LegalTab from '../os/LegalTab';
 import BankingTab from '../os/BankingTab';
 
 interface WorkspaceProps {
-    onNavigate: (tab: 'A' | 'B' | 'LearnerStudio' | 'Workspace') => void;
+    onNavigate: (tab: string) => void;
 }
 const colorVariants: Record<string, { bg: string, bg100: string, text: string, hoverBg: string, hoverText: string, border: string, from: string }> = {
     blue: { bg: 'bg-blue-50', bg100: 'bg-blue-100', text: 'text-blue-600', hoverBg: 'group-hover:bg-blue-600', hoverText: 'group-hover:text-white', border: 'hover:border-blue-200', from: 'from-blue-50' },

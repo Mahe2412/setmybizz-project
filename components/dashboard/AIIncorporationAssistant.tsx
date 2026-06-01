@@ -10,7 +10,7 @@ interface AIIncorporationAssistantProps {
 }
 
 export default function AIIncorporationAssistant({ onComplete }: AIIncorporationAssistantProps) {
-    const { user, leadId } = useAuth();
+    const { user, guestId } = useAuth();
     const isGuest = !user;
 
     const [showChatbot, setShowChatbot] = useState(false);
@@ -41,7 +41,7 @@ export default function AIIncorporationAssistant({ onComplete }: AIIncorporation
 
     const mainFlowSteps = [
         {
-            id: 'businessName',
+            id: 'name',
             question: 'What is your business name?',
             placeholder: 'Enter your business name',
             type: 'text'
@@ -135,9 +135,10 @@ export default function AIIncorporationAssistant({ onComplete }: AIIncorporation
         }, 800);
 
         // Tracker: Log Chat Action
-        if (leadId) {
+        const trackerId = user?.id || guestId;
+        if (trackerId) {
             import('@/lib/leadSystem').then(({ logUserAction }) => {
-                logUserAction(leadId, 'ai_chat', { message: userInput });
+                logUserAction(trackerId, 'ai_chat', { message: userInput });
             });
         }
 
@@ -181,8 +182,7 @@ export default function AIIncorporationAssistant({ onComplete }: AIIncorporation
             } else {
                 // Complete flow for logged-in users
                 const completeData: BusinessData = {
-                    name: businessData.businessName || '',
-                    businessName: businessData.businessName || '',
+                    name: businessData.name || '',
                     stage: businessData.stage || 'idea',
                     industry: businessData.industry || '',
                     focus: businessData.focus || '',
@@ -477,8 +477,7 @@ export default function AIIncorporationAssistant({ onComplete }: AIIncorporation
                     // Complete flow if coming from questionnaire
                     if (Object.keys(businessData).length > 0) {
                         const completeData: BusinessData = {
-                            name: businessData.businessName || '',
-                            businessName: businessData.businessName || '',
+                            name: businessData.name || '',
                             stage: businessData.stage || 'idea',
                             industry: businessData.industry || '',
                             focus: businessData.focus || '',
@@ -505,7 +504,7 @@ export default function AIIncorporationAssistant({ onComplete }: AIIncorporation
                     setGuestPhone('');
                 }}
                 prefilledData={{
-                    businessName: businessData.businessName || '',
+                    businessName: businessData.name || '',
                     email: guestEmail,
                     phone: guestPhone
                 }}

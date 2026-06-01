@@ -8,7 +8,7 @@ import { BIZZY_SYSTEM_PROMPT } from '../../lib/prompts/bizzy';
 import { useAuth } from '@/context/AuthContext';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp, updateDoc, doc } from 'firebase/firestore';
-import Toast from '../ToastNotification';
+import Toast from '../shared/ToastNotification';
 
 interface AIProjectReportToolProps {
     businessData: any;
@@ -16,7 +16,7 @@ interface AIProjectReportToolProps {
 }
 
 export default function AIProjectReportTool({ businessData, onClose }: AIProjectReportToolProps) {
-    const { user, guestId } = useAuth();
+    const { user, guestId, dbUser } = useAuth();
     const [step, setStep] = useState(0); // 0: Scheme, 1: Promoters, 2: Financials, 3: AI Generation, 4: Review & Polish
     const [mode, setMode] = useState<'TEMPLATE' | 'AI'>('TEMPLATE');
     const [loading, setLoading] = useState(false);
@@ -24,7 +24,7 @@ export default function AIProjectReportTool({ businessData, onClose }: AIProject
     const [selectedLang, setSelectedLang] = useState('en');
     const [isListening, setIsListening] = useState(false);
     const [toast, setToast] = useState({ visible: false, message: '', sub: '' });
-
+ 
     // State for the Report
     const [report, setReport] = useState<Partial<ProjectReport>>({
         scheme: 'PMEGP',
@@ -32,7 +32,7 @@ export default function AIProjectReportTool({ businessData, onClose }: AIProject
         industry: businessData?.industry || '',
         location: { city: '', state: '', areaType: 'URBAN' },
         promoter: { 
-            name: user?.displayName || '', 
+            name: dbUser?.full_name || user?.user_metadata?.full_name || user?.email || '', 
             qualification: '', 
             experience: '', 
             category: 'GENERAL', 
@@ -147,7 +147,7 @@ export default function AIProjectReportTool({ businessData, onClose }: AIProject
         try {
             const reportData = {
                 ...finalReport,
-                userId: user?.uid || guestId,
+                userId: user?.id || guestId,
                 timestamp: serverTimestamp(),
                 platform: 'web-asap'
             };

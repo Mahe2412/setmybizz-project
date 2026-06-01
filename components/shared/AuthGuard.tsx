@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { isDevAuthBypass } from '@/lib/devAuth';
 import { BusinessData } from '@/types';
 
 interface AuthGuardProps {
@@ -19,7 +20,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
         if (!authLoading) {
             const hasLocalSession = typeof window !== 'undefined' && localStorage.getItem('setmybizz_session') === 'true';
 
-            if (!user && !hasLocalSession) {
+            if (!user && !hasLocalSession && !isDevAuthBypass()) {
                 router.push('/?view=login');
             } else {
                 // User is authorized

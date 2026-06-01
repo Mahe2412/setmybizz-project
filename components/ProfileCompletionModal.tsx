@@ -74,12 +74,15 @@ const ProfileCompletionModal: React.FC<ProfileCompletionModalProps> = ({ isOpen,
             useBizStore.getState().setPerformanceGaps(generatedGaps);
 
             // Perform Supabase synchronization asynchronously in the background so slow queries/RLS never block entry
-            if (user?.id) {
+            if (user) {
+                const isPhoneVerified = !!user.phone; // Auth phone means OTP was used
                 const updateData = {
                     id: user.id,
                     full_name: formData.displayName,
                     email: user.email,
                     phone: formData.phone,
+                    phone_verified: isPhoneVerified,
+                    lead_status: isPhoneVerified ? 'Verified User' : 'Unverified Lead', // This will help the Admin panel identify leads
                     updated_at: new Date().toISOString(),
                 };
 
@@ -96,7 +99,7 @@ const ProfileCompletionModal: React.FC<ProfileCompletionModalProps> = ({ isOpen,
                     if (error) console.warn("Background business sync info:", error);
                 });
             }
-
+            
             // Immediately invoke callback to enter OS dashboard view seamlessly
             onComplete({ ...formData, registeredId: uniqueId });
         } catch (error: any) {

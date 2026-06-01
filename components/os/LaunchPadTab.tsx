@@ -16,6 +16,9 @@ import { ArkleBrainStatus } from './ArkleBrainStatus';
 import ArkleStrategyMode from './ArkleStrategyMode';
 import { QAOverlay } from '@/components/shared/QAOverlay';
 import { useRouter } from 'next/navigation';
+import GoogleIntegrationModal from '../dashboard/GoogleIntegrationModal';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas-pro';
 
 import {
     SERVICES,
@@ -38,7 +41,7 @@ interface LaunchPadTabProps {
 
 /* ── Types ─────────────────────────────────────────────── */
 type TopTab = 'arkle' | 'launcher' | 'tool-lab' | 'agents';
-type AppState = 'home' | 'discuss' | 'building' | 'ready' | 'forge' | 'agent-workspace';
+type AppState = 'home' | 'discuss' | 'building' | 'ready' | 'forge' | 'agent-workspace' | 'solutions-chat';
 
 interface ChatMsg { role: 'ai' | 'user'; text: string; ts: number; }
 interface BuiltAsset { id: string; label: string; icon: string; status: 'pending' | 'building' | 'done' | 'failed'; color: string; result?: string; }
@@ -198,9 +201,320 @@ const SOLUTIONS_FLOW = [
 
 const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangChange }) => {
     const { user } = useAuth();
-    const { tasks, setIsVoiceActive, liveTranscript } = useBizStore();
+    const { tasks, setIsVoiceActive, liveTranscript, setLiveTranscript } = useBizStore();
     const router = useRouter();
-    const firstName = user?.displayName?.split(' ')[0] || data?.name?.split(' ')[0] || 'Founder';
+    const firstName = user?.user_metadata?.full_name?.split(' ')[0] || data?.name?.split(' ')[0] || 'Founder';
+
+    const DEFAULT_SLIDES = [
+      {
+        id: 'hero',
+        title: 'Cover Slide',
+        subtitle: 'Slide 1',
+        layout: 'hero',
+        content: {
+          heading: "Don't Just Start. Boot Up an OS.",
+          body: 'Building the next-generation operating system for modern business execution.',
+        }
+      },
+      {
+        id: 'problem',
+        title: 'The Problem',
+        subtitle: 'Slide 2',
+        layout: 'two-column',
+        content: {
+          heading: 'Fragmented execution breaks modern business ideas.',
+          bullets: [
+            'Navigating legal setup and GST compliance takes months of slow manual effort.',
+            'Hiring developer agencies, CAs, and designers drains starting capital.',
+            'Founders waste 70% of their time juggling 10+ disjointed software interfaces.'
+          ]
+        }
+      },
+      {
+        id: 'traction',
+        title: 'Traction',
+        subtitle: 'Slide 3',
+        layout: 'traction',
+        content: {
+          heading: 'Profitable & Service-Led Traction',
+          metrics: [
+            { val: '600+', label: 'Clients Served', desc: 'MSMEs and startups onboarded.' },
+            { val: '60+', label: 'Startups Built', desc: 'Incorporated and fully operational.' },
+            { val: '30', label: 'Under Advisement', desc: 'Active virtual CFO support.' }
+          ]
+        }
+      },
+      {
+        id: 'competitors',
+        title: 'Competition',
+        subtitle: 'Slide 4',
+        layout: 'matrix',
+        content: {
+          heading: 'Built to Execute. Easier Than the Rest.',
+          competitors: [
+            { name: 'Zoho One', easy: '❌ Complex Config', tech: '⚠️ Requires Training', price: '💰 Enterprise Cost' },
+            { name: 'Monday.com', easy: '⚠️ Simple List Only', tech: '❌ No Legal/CA integration', price: '💸 High Subscription' },
+            { name: 'SetMyBizz BizOS', easy: '✅ Instant Setup', tech: '✅ Native AI-Assisted', price: '💎 ₹999/mo Base' }
+          ]
+        }
+      }
+    ];
+
+    const [deckSlides, setDeckSlides] = useState<any[]>(DEFAULT_SLIDES);
+    const [activeDeckIdx, setActiveDeckIdx] = useState(0);
+    const [deckTheme, setDeckTheme] = useState<'neon' | 'notion' | 'ocean'>('neon');
+    const [isDeckGenerating, setIsDeckGenerating] = useState(false);
+    const [showGoogleAuth, setShowGoogleAuth] = useState(false);
+    const [isGoogleConnected, setIsGoogleConnected] = useState(false);
+    const [pitchDeckAsideWidth, setPitchDeckAsideWidth] = useState(350);
+    const [isResizingPitchDeck, setIsResizingPitchDeck] = useState(false);
+    const [showSlideTray, setShowSlideTray] = useState(false);
+    const [showRightHistoryTray, setShowRightHistoryTray] = useState(false);
+    const [pitchDeckType, setPitchDeckType] = useState<'investor' | 'sales' | 'partnership'>('investor');
+    const [wizardLang, setWizardLang] = useState(externalLang || 'en-IN');
+    const [isWizardActive, setIsWizardActive] = useState(true);
+    const [wizardStep, setWizardStep] = useState<number>(1);
+    const [wizardMode, setWizardMode] = useState<'form' | 'chat'>('form');
+    const [pitchChat, setPitchChat] = useState<{ role: 'user' | 'assistant', text: string }[]>([
+        { role: 'assistant', text: "Hi! I'm Arkle, your co-founder. Let's build your pitch deck together. Tell me about your business name and what you're building!" }
+    ]);
+    const [isChatResponding, setIsChatResponding] = useState(false);
+    const [wizardInputs, setWizardInputs] = useState({
+        businessName: '',
+        idea: '',
+        targetAudience: '',
+        problem: '',
+        solution: '',
+        revenueModel: '',
+        growthPlan: ''
+    });
+
+    const handlePrintDeck = async () => {
+        if (!deckSlides || !deckSlides.length) return;
+
+        setIsDeckGenerating(true);
+
+        try {
+            // Ensure all fonts are fully loaded before rendering
+            await document.fonts.ready;
+
+            const pdf = new jsPDF({
+                orientation: 'landscape',
+                unit: 'in',
+                format: 'letter'
+            });
+
+            // Set up theme colors
+            let bg = '#0A0A0A';
+            let textColor = '#FFFFFF';
+            let borderColor = 'rgba(255,255,255,0.1)';
+            let accentColor = '#818cf8';
+            let cardBg = 'rgba(255,255,255,0.03)';
+            let cardBorder = 'rgba(255,255,255,0.08)';
+            let bulletColor = '#818cf8';
+
+            if (deckTheme === 'notion') {
+                bg = '#FFFFFF';
+                textColor = '#18181B';
+                borderColor = 'rgba(24,24,27,0.1)';
+                accentColor = '#4F46E5';
+                cardBg = '#F4F4F5';
+                cardBorder = 'rgba(24,24,27,0.08)';
+                bulletColor = '#4F46E5';
+            } else if (deckTheme === 'ocean') {
+                bg = '#022c22';
+                textColor = '#ECFDF5';
+                borderColor = 'rgba(236,253,245,0.1)';
+                accentColor = '#2dd4bf';
+                cardBg = 'rgba(236,253,245,0.03)';
+                cardBorder = 'rgba(236,253,245,0.08)';
+                bulletColor = '#2dd4bf';
+            }
+
+            // Create temporary container directly in document.body to avoid inheritance issues
+            const tempDiv = document.createElement('div');
+            tempDiv.style.position = 'fixed';
+            tempDiv.style.left = '-9999px';
+            tempDiv.style.top = '-9999px';
+            tempDiv.style.width = '1000px';
+            tempDiv.style.height = '562.5px';
+            document.body.appendChild(tempDiv);
+
+            for (let i = 0; i < deckSlides.length; i++) {
+                const slide = deckSlides[i];
+                const pageNo = i + 1;
+
+                let layoutHtml = '';
+
+                if (slide.layout === 'hero') {
+                    layoutHtml = `
+                        <div style="width:1000px; height:562.5px; padding:50px; background:${bg}; color:${textColor}; font-family:system-ui, -apple-system, sans-serif; position:relative; box-sizing:border-box; letter-spacing:0.1px;">
+                            <!-- Header -->
+                            <div style="position:absolute; top:40px; left:50px; right:50px; border-bottom:1px solid ${borderColor}; padding-bottom:10px;">
+                                <span style="font-size:14px; font-weight:bold; float:left; text-transform:uppercase;">${slide.title}</span>
+                                <span style="font-size:14px; float:right;">${slide.subtitle}</span>
+                                <div style="clear:both;"></div>
+                            </div>
+                            <!-- Content -->
+                            <div style="position:absolute; top:110px; bottom:100px; left:50px; right:50px; text-align:center; padding-top:60px;">
+                                <h1 style="font-size:38px; font-weight:900; line-height:1.3; margin:0 0 20px 0; color:${accentColor};">${slide.content.heading}</h1>
+                                <p style="font-size:16px; opacity:0.8; line-height:1.6; max-width:800px; margin:0 auto;">${slide.content.body || ''}</p>
+                            </div>
+                            <!-- Footer -->
+                            <div style="position:absolute; bottom:40px; left:50px; right:50px; border-top:1px solid ${borderColor}; padding-top:10px;">
+                                <span style="font-size:12px; opacity:0.6; float:left;">SETMYBIZZ BIZOS CREATOR</span>
+                                <span style="font-size:12px; opacity:0.6; float:right;">Page ${pageNo} of ${deckSlides.length}</span>
+                                <div style="clear:both;"></div>
+                            </div>
+                        </div>
+                    `;
+                } else if (slide.layout === 'two-column') {
+                    const bulletsHtml = (slide.content.bullets || []).map((bullet: string) => `
+                        <div style="margin-bottom:15px; padding:15px 20px; background:${cardBg}; border:1px solid ${cardBorder}; border-radius:12px; font-size:13px; line-height:1.5; text-align:left; box-sizing:border-box;">
+                            <span style="color:${bulletColor}; font-weight:bold; margin-right:8px;">•</span>
+                            <span style="opacity:0.9;">${bullet}</span>
+                        </div>
+                    `).join('');
+
+                    layoutHtml = `
+                        <div style="width:1000px; height:562.5px; padding:50px; background:${bg}; color:${textColor}; font-family:system-ui, -apple-system, sans-serif; position:relative; box-sizing:border-box; letter-spacing:0.1px;">
+                            <!-- Header -->
+                            <div style="position:absolute; top:40px; left:50px; right:50px; border-bottom:1px solid ${borderColor}; padding-bottom:10px;">
+                                <span style="font-size:14px; font-weight:bold; float:left; text-transform:uppercase;">${slide.title}</span>
+                                <span style="font-size:14px; float:right;">${slide.subtitle}</span>
+                                <div style="clear:both;"></div>
+                            </div>
+                            <!-- Columns -->
+                            <div style="position:absolute; top:110px; bottom:100px; left:50px; right:50px;">
+                                <div style="width:500px; float:left; padding-top:40px; padding-right:30px; box-sizing:border-box; text-align:left;">
+                                    <h2 style="font-size:28px; font-weight:800; line-height:1.3; margin:0 0 20px 0; color:${accentColor};">${slide.content.heading}</h2>
+                                    <p style="font-size:14px; opacity:0.8; line-height:1.6; margin:0;">${slide.content.body || ''}</p>
+                                </div>
+                                <div style="width:400px; float:right; padding-top:10px; box-sizing:border-box;">
+                                    ${bulletsHtml}
+                                </div>
+                                <div style="clear:both;"></div>
+                            </div>
+                            <!-- Footer -->
+                            <div style="position:absolute; bottom:40px; left:50px; right:50px; border-top:1px solid ${borderColor}; padding-top:10px;">
+                                <span style="font-size:12px; opacity:0.6; float:left;">SETMYBIZZ BIZOS CREATOR</span>
+                                <span style="font-size:12px; opacity:0.6; float:right;">Page ${pageNo} of ${deckSlides.length}</span>
+                                <div style="clear:both;"></div>
+                            </div>
+                        </div>
+                    `;
+                } else if (slide.layout === 'traction') {
+                    const stats = slide.content.stats || slide.content.metrics || [];
+                    const statsHtml = stats.map((s: any, idx: number) => `
+                        <div style="width:280px; float:left; margin-right:${idx === 2 ? '0px' : '30px'}; padding:25px; background:${cardBg}; border:1px solid ${cardBorder}; border-radius:16px; box-sizing:border-box;">
+                            <div style="font-size:32px; font-weight:950; color:${accentColor}; margin-bottom:8px; line-height:1;">${s.value || s.val}</div>
+                            <div style="font-size:11px; font-weight:bold; opacity:0.7; text-transform:uppercase; margin-bottom:5px;">${s.label}</div>
+                            <div style="font-size:10px; opacity:0.5; line-height:1.4;">${s.desc || ''}</div>
+                        </div>
+                    `).join('');
+
+                    layoutHtml = `
+                        <div style="width:1000px; height:562.5px; padding:50px; background:${bg}; color:${textColor}; font-family:system-ui, -apple-system, sans-serif; position:relative; box-sizing:border-box; letter-spacing:0.1px;">
+                            <!-- Header -->
+                            <div style="position:absolute; top:40px; left:50px; right:50px; border-bottom:1px solid ${borderColor}; padding-bottom:10px;">
+                                <span style="font-size:14px; font-weight:bold; float:left; text-transform:uppercase;">${slide.title}</span>
+                                <span style="font-size:14px; float:right;">${slide.subtitle}</span>
+                                <div style="clear:both;"></div>
+                            </div>
+                            <!-- Content -->
+                            <div style="position:absolute; top:110px; bottom:100px; left:50px; right:50px; text-align:center;">
+                                <h2 style="font-size:26px; font-weight:800; margin:0 0 35px 0; color:${accentColor};">${slide.content.heading}</h2>
+                                <div style="width:900px; margin:0 auto;">
+                                    ${statsHtml}
+                                    <div style="clear:both;"></div>
+                                </div>
+                            </div>
+                            <!-- Footer -->
+                            <div style="position:absolute; bottom:40px; left:50px; right:50px; border-top:1px solid ${borderColor}; padding-top:10px;">
+                                <span style="font-size:12px; opacity:0.6; float:left;">SETMYBIZZ BIZOS CREATOR</span>
+                                <span style="font-size:12px; opacity:0.6; float:right;">Page ${pageNo} of ${deckSlides.length}</span>
+                                <div style="clear:both;"></div>
+                            </div>
+                        </div>
+                    `;
+                } else if (slide.layout === 'matrix') {
+                    const competitors = slide.content.competitors || slide.content.matrix || [];
+                    const rowsHtml = competitors.map((c: any) => `
+                        <tr style="border-bottom:1px solid ${cardBorder};">
+                            <td style="text-align:left; padding:12px 10px; font-weight:bold; color:${textColor};">${c.name || c.competitor}</td>
+                            <td style="padding:12px 10px; opacity:0.8;">${c.easy || ''}</td>
+                            <td style="padding:12px 10px; opacity:0.8;">${c.tech || ''}</td>
+                            <td style="padding:12px 10px; font-weight:bold; color:${accentColor};">${c.price || ''}</td>
+                        </tr>
+                    `).join('');
+
+                    layoutHtml = `
+                        <div style="width:1000px; height:562.5px; padding:50px; background:${bg}; color:${textColor}; font-family:system-ui, -apple-system, sans-serif; position:relative; box-sizing:border-box; letter-spacing:0.1px;">
+                            <!-- Header -->
+                            <div style="position:absolute; top:40px; left:50px; right:50px; border-bottom:1px solid ${borderColor}; padding-bottom:10px;">
+                                <span style="font-size:14px; font-weight:bold; float:left; text-transform:uppercase;">${slide.title}</span>
+                                <span style="font-size:14px; float:right;">${slide.subtitle}</span>
+                                <div style="clear:both;"></div>
+                            </div>
+                            <!-- Content -->
+                            <div style="position:absolute; top:110px; bottom:100px; left:50px; right:50px;">
+                                <h2 style="font-size:24px; font-weight:800; text-align:center; margin:0 0 25px 0; color:${accentColor};">${slide.content.heading}</h2>
+                                <table style="width:100%; border-collapse:collapse; text-align:center; font-size:12px; color:${textColor};">
+                                    <thead>
+                                        <tr style="border-bottom:1px solid ${borderColor};">
+                                            <th style="text-align:left; padding:10px; opacity:0.6;">Competitor</th>
+                                            <th style="padding:10px; opacity:0.6;">Simplicity</th>
+                                            <th style="padding:10px; opacity:0.6;">AI Integration</th>
+                                            <th style="padding:10px; opacity:0.6;">Pricing</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${rowsHtml}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- Footer -->
+                            <div style="position:absolute; bottom:40px; left:50px; right:50px; border-top:1px solid ${borderColor}; padding-top:10px;">
+                                <span style="font-size:12px; opacity:0.6; float:left;">SETMYBIZZ BIZOS CREATOR</span>
+                                <span style="font-size:12px; opacity:0.6; float:right;">Page ${pageNo} of ${deckSlides.length}</span>
+                                <div style="clear:both;"></div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                tempDiv.innerHTML = layoutHtml;
+
+                const canvas = await html2canvas(tempDiv.firstElementChild as HTMLElement, {
+                    scale: 2.0, // High definition capture!
+                    useCORS: true,
+                    backgroundColor: bg,
+                    logging: false,
+                    letterRendering: true
+                });
+
+                const imgData = canvas.toDataURL('image/jpeg', 0.98);
+
+                if (i > 0) {
+                    pdf.addPage();
+                }
+
+                pdf.addImage(imgData, 'JPEG', 0, 0, 11, 8.5);
+            }
+
+            // Cleanup
+            document.body.removeChild(tempDiv);
+
+            const name = (wizardInputs.businessName || 'SetMyBizz').replace(/\s+/g, '_');
+            pdf.save(`${name}_Pitch_Deck.pdf`);
+
+        } catch (err) {
+            console.error("Local multi-page PDF render failed:", err);
+            alert("Failed to generate PDF. Please try again.");
+        } finally {
+            setIsDeckGenerating(false);
+        }
+    };
 
     /* ── State ─────────────────────────────────────────── */
     const [selectedLauncherTool, setSelectedLauncherTool] = useState<any>(null);
@@ -255,7 +569,11 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
     const theme = themes[topTab] || themes.arkle;
 
     const [isMounted, setIsMounted] = useState(false);
-    useEffect(() => { setIsMounted(true); }, []);
+    useEffect(() => { 
+        setIsMounted(true); 
+        setLiveTranscript('');
+        setPromptInput('');
+    }, []);
 
     const [appState, setAppState] = useState<AppState>('home');
     const [promptInput, setPromptInput] = useState('');
@@ -326,7 +644,7 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
 
     /* ── RE-SIZE LOGIC FOR FORGE IDE ── */
     useEffect(() => {
-        const handleForgeResize = (e: MouseEvent) => {
+        const handleResize = (e: MouseEvent) => {
             if (isResizingForge) {
                 const newPercent = (e.clientX - forgeChatWidth) / (window.innerWidth - forgeChatWidth) * 100;
                 if (newPercent > 10 && newPercent < 90) setForgeSplitPercent(newPercent);
@@ -335,23 +653,28 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
                 const newWidth = e.clientX;
                 if (newWidth > 200 && newWidth < 800) setForgeChatWidth(newWidth);
             }
+            if (isResizingPitchDeck) {
+                const newWidth = e.clientX;
+                if (newWidth > 250 && newWidth < 600) setPitchDeckAsideWidth(newWidth);
+            }
         };
 
-        const stopForgeResize = () => {
+        const stopResize = () => {
             setIsResizingForge(false);
             setIsResizingChat(false);
+            setIsResizingPitchDeck(false);
         };
 
-        if (isResizingForge || isResizingChat) {
-            window.addEventListener('mousemove', handleForgeResize);
-            window.addEventListener('mouseup', stopForgeResize);
+        if (isResizingForge || isResizingChat || isResizingPitchDeck) {
+            window.addEventListener('mousemove', handleResize);
+            window.addEventListener('mouseup', stopResize);
         }
 
         return () => {
-            window.removeEventListener('mousemove', handleForgeResize);
-            window.removeEventListener('mouseup', stopForgeResize);
+            window.removeEventListener('mousemove', handleResize);
+            window.removeEventListener('mouseup', stopResize);
         };
-    }, [isResizingForge, isResizingChat, forgeChatWidth]);
+    }, [isResizingForge, isResizingChat, isResizingPitchDeck, forgeChatWidth]);
 
     // Sticker Animations
     const [toolIndex, setToolIndex] = useState(0);
@@ -410,15 +733,15 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
 
     // Fetch Existing Profile
     useEffect(() => {
-        if (user?.uid) {
-            fetch(`/api/business-profile?userId=${user.uid}`)
+        if (user?.id) {
+            fetch(`/api/business-profile?userId=${user.id}`)
                 .then(r => r.json())
                 .then(data => {
                     if (data.profile) {
                         setBizCtx(data.profile);
                         setShowWelcome(false);
                     } else {
-                        setShowWelcome(true);
+                        setShowWelcome(false);
                     }
                 });
         }
@@ -426,10 +749,10 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
 
     // Force Onboarding Logic
     useEffect(() => {
-        if (!bizCtx.businessName && appState === 'home' && user?.uid) {
+        if (!bizCtx.businessName && appState === 'home' && user?.id) {
             // Check again after fetch
             const timer = setTimeout(() => {
-                if (!bizCtx.businessName) setShowWelcome(true);
+                if (!bizCtx.businessName) setShowWelcome(false);
             }, 1000);
             return () => clearTimeout(timer);
         }
@@ -901,6 +1224,12 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
         const input = (cmdOverride || promptInput).trim();
         if (!input) return;
 
+        if (selectedLauncherTool?.id === 'deck') {
+            startPitchDeckGeneration(input);
+            if (!cmdOverride) setPromptInput('');
+            return;
+        }
+
         if (topTab === 'launcher' || topTab === 'tool-lab') {
             startForging(input);
         } else {
@@ -1046,7 +1375,7 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
                                 <button type="button" onClick={toggleVoice} title="Voice Typing (Dictation)" className={`w-10 h-10 flex items-center justify-center transition-colors ${isRecording ? 'text-red-500 animate-pulse' : 'text-slate-500 hover:text-slate-700'}`}>
                                     <span className="material-symbols-outlined text-[24px]">mic</span>
                                 </button>
-                                <button type="button" onClick={() => setShowVoiceStudio(true)} title="Live Voice Mode" className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors mx-1">
+                                <button type="button" onClick={() => setIsVoiceActive(true)} title="Live Voice Mode" className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors mx-1">
                                     <span className="material-symbols-outlined text-[20px]">graphic_eq</span>
                                 </button>
                                 <button type="button" onClick={(e) => { e.preventDefault(); onSubmit(); }} title="Send (Enter)" className="w-10 h-10 flex items-center justify-center text-slate-500 hover:text-blue-600 transition-colors">
@@ -1149,11 +1478,76 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
         );
     };
 
+    const startPitchDeckGeneration = async (inputPrompt: string) => {
+        setSelectedLauncherTool({ id: 'deck', label: 'Pitch Deck Maker' });
+        setForgeMode('pure-creation');
+        setForgeStatus('generating');
+        setIsDeckGenerating(true);
+        setDeckSlides(DEFAULT_SLIDES);
+        
+        try {
+            const res = await fetch('/api/launchpad/generate-pitch', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt: inputPrompt })
+            });
+            const data = await res.json();
+            if (data.slides) {
+                setDeckSlides(data.slides);
+                setActiveDeckIdx(0);
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setIsDeckGenerating(false);
+            setForgeStatus('previewing');
+        }
+    };
+
+    const handlePitchChatSubmit = async (userMsgText: string) => {
+        if (!userMsgText.trim()) return;
+        
+        const nextChatHistory = [...pitchChat, { role: 'user' as const, text: userMsgText }];
+        setPitchChat(nextChatHistory);
+        setPromptInput('');
+        setIsChatResponding(true);
+        setIsDeckGenerating(true);
+
+        try {
+            const res = await fetch('/api/launchpad/chat-pitch', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    prompt: userMsgText,
+                    messages: nextChatHistory.map(m => ({ role: m.role, text: m.text })),
+                    currentSlides: deckSlides,
+                    wizardInputs: wizardInputs,
+                    pitchDeckType: pitchDeckType
+                })
+            });
+            const data = await res.json();
+            if (data.text) {
+                setPitchChat(prev => [...prev, { role: 'assistant', text: data.text }]);
+            }
+            if (data.slides) {
+                setDeckSlides(data.slides);
+            }
+            if (data.wizardInputs) {
+                setWizardInputs(data.wizardInputs);
+            }
+        } catch (err) {
+            console.error(err);
+            setPitchChat(prev => [...prev, { role: 'assistant', text: "I'm having a bit of trouble connecting to my neural core right now. Let's try again!" }]);
+        } finally {
+            setIsChatResponding(false);
+            setIsDeckGenerating(false);
+        }
+    };
 
     /* ── Forge Engine: Start Building from Idea ──────── */
     const startForging = async (idea?: string) => {
         const userIdea = idea || promptInput.trim();
-        if (!userIdea && !interviewAnswers) return;
+        if (!userIdea) return;
 
         setForgeMode('pure-creation');
         setForgeStatus('generating');
@@ -1451,8 +1845,881 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
         }
     };
 
+    const renderPitchDeckForge = () => {
+        const activeSlide = deckSlides[activeDeckIdx] || DEFAULT_SLIDES[0];
+        
+        // Styles based on theme
+        const getThemeStyles = () => {
+            switch (deckTheme) {
+                case 'notion':
+                    return {
+                        bg: 'bg-white text-zinc-900 border-zinc-200',
+                        card: 'bg-zinc-50 border border-zinc-200 text-zinc-800',
+                        accent: 'text-indigo-600',
+                        gradientText: 'text-zinc-900',
+                    };
+                case 'ocean':
+                    return {
+                        bg: 'bg-gradient-to-br from-cyan-950 to-emerald-950 text-emerald-50 border-emerald-900',
+                        card: 'bg-emerald-900/20 border border-emerald-800/40 text-emerald-200',
+                        accent: 'text-cyan-400',
+                        gradientText: 'text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400',
+                    };
+                default: // neon
+                    return {
+                        bg: 'bg-[#0A0A0A] text-white border-zinc-900',
+                        card: 'bg-zinc-900/60 border border-zinc-800 text-zinc-300',
+                        accent: 'text-indigo-400',
+                        gradientText: 'text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-indigo-500',
+                    };
+            }
+        };
+
+        const styles = getThemeStyles();
+
+        return (
+            <div className="fixed inset-0 z-[999] bg-zinc-950 flex animate-in fade-in duration-500 overflow-hidden font-sans text-white">
+                
+                {/* VERTICAL SLIDE TRAY (Open/Close on Hover) */}
+                <div 
+                    onMouseEnter={() => setShowSlideTray(true)}
+                    onMouseLeave={() => setShowSlideTray(false)}
+                    className={`absolute left-0 top-0 bottom-0 bg-zinc-950/95 border-r border-zinc-800/80 z-[1000] flex flex-col items-center py-8 gap-6 transition-all duration-350 shadow-2xl backdrop-blur-md ${
+                        showSlideTray ? 'w-[85px] translate-x-0' : 'w-0 -translate-x-full overflow-hidden'
+                    }`}
+                >
+                    <span className="text-[9px] font-black tracking-widest text-indigo-400 uppercase rotate-90 my-6 shrink-0 font-outfit">SLIDES</span>
+                    <div className="flex-1 w-full flex flex-col items-center gap-4 overflow-y-auto px-2 custom-scrollbar">
+                        {(deckSlides.length > 0 ? deckSlides : DEFAULT_SLIDES).map((s: any, idx: number) => {
+                            let icon = "slideshow";
+                            if (s.layout === 'hero') icon = "co_present";
+                            if (s.layout === 'competitors') icon = "compare_arrows";
+                            if (s.layout === 'grid' || s.layout === 'features') icon = "grid_view";
+                            if (s.layout === 'split') icon = "vertical_split";
+
+                            return (
+                                <button
+                                    key={s.id || idx}
+                                    onClick={() => setActiveDeckIdx(idx)}
+                                    className={`group relative w-13 h-13 rounded-2xl flex flex-col items-center justify-center border transition-all duration-300 hover:scale-110 ${
+                                        activeDeckIdx === idx 
+                                            ? 'bg-gradient-to-br from-indigo-500 to-purple-600 border-indigo-400 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)] scale-105' 
+                                            : 'bg-zinc-900/80 border-zinc-800/80 text-zinc-400 hover:border-indigo-500/50 hover:text-white hover:bg-zinc-850'
+                                    }`}
+                                >
+                                    <span className="material-symbols-outlined text-[18px]">{icon}</span>
+                                    <span className="text-[9px] font-extrabold mt-0.5">{idx + 1}</span>
+
+                                    {/* Premium Tooltip */}
+                                    <div className="absolute left-full ml-3 px-3 py-1.5 bg-zinc-950 text-white border border-zinc-800 text-[10px] font-bold rounded-xl whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-all z-[1010] shadow-xl">
+                                        <div className="font-extrabold text-indigo-400">Slide {idx + 1}: {s.title}</div>
+                                        <div className="text-[8px] text-zinc-400">{s.subtitle}</div>
+                                    </div>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* HOVER ZONE TRIGGER (LEFT) */}
+                <div 
+                    onMouseEnter={() => setShowSlideTray(true)}
+                    className="absolute left-0 top-0 bottom-0 w-3 z-[999] cursor-pointer"
+                />
+
+                {/* RIGHT SLIDING TRAY (Open/Close on Hover) */}
+                <div 
+                    onMouseEnter={() => setShowRightHistoryTray(true)}
+                    onMouseLeave={() => setShowRightHistoryTray(false)}
+                    className={`absolute right-0 top-0 bottom-0 bg-zinc-950/95 border-l border-zinc-800/80 z-[1000] flex flex-col p-6 gap-6 transition-all duration-350 shadow-2xl backdrop-blur-md ${
+                        showRightHistoryTray ? 'w-[280px] translate-x-0' : 'w-0 translate-x-full overflow-hidden'
+                    }`}
+                >
+                    <div className="flex items-center gap-2 border-b border-zinc-800 pb-3 shrink-0">
+                        <span className="material-symbols-outlined text-indigo-400">history</span>
+                        <h3 className="text-sm font-black tracking-tight text-white uppercase font-outfit">Deck Workspace Hub</h3>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto space-y-6 custom-scrollbar pr-1">
+                        {/* Old Pitch Decks Section */}
+                        <div className="space-y-3">
+                            <span className="text-[10px] font-black uppercase tracking-wider text-indigo-400/80 flex items-center gap-1.5 font-outfit">
+                                <span className="material-symbols-outlined text-[14px]">collections_bookmark</span> Old Pitch Decks
+                            </span>
+                            <div className="space-y-2">
+                                {[
+                                    { name: "SetMyBizz Seed Pitch", date: "2 mins ago", score: "98%" },
+                                    { name: "FinTech OS Pitch V2", date: "Yesterday", score: "88%" },
+                                    { name: "SaaS Launch Presentation", date: "4 days ago", score: "95%" }
+                                ].map((deck, idx) => (
+                                    <div key={idx} className="p-3 bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-800/60 rounded-xl transition-all cursor-pointer hover:border-zinc-700">
+                                        <div className="text-[11px] font-bold text-white leading-tight">{deck.name}</div>
+                                        <div className="flex justify-between items-center mt-2">
+                                            <span className="text-[9px] text-zinc-500">{deck.date}</span>
+                                            <span className="text-[9px] font-bold text-indigo-400">{deck.score} score</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* History Chats Section */}
+                        <div className="space-y-3">
+                            <span className="text-[10px] font-black uppercase tracking-wider text-indigo-400/80 flex items-center gap-1.5 font-outfit">
+                                <span className="material-symbols-outlined text-[14px]">forum</span> Chat History
+                            </span>
+                            <div className="space-y-2">
+                                {[
+                                    "Refine product USP & target segment details",
+                                    "Change theme styling to Ocean Green gradient",
+                                    "Add slide for competitor analysis metrics"
+                                ].map((chat, idx) => (
+                                    <div key={idx} className="p-3 bg-zinc-900/40 hover:bg-zinc-900/60 border border-zinc-900 rounded-xl transition-all cursor-pointer text-zinc-400 hover:text-white flex gap-2">
+                                        <span className="material-symbols-outlined text-[14px] mt-0.5 text-zinc-600">chat_bubble_outline</span>
+                                        <p className="text-[10px] leading-snug font-medium line-clamp-2">{chat}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Recommended Features Section */}
+                        <div className="space-y-3">
+                            <span className="text-[10px] font-black uppercase tracking-wider text-indigo-400/80 flex items-center gap-1.5 font-outfit">
+                                <span className="material-symbols-outlined text-[14px]">auto_awesome</span> Suggested Actions
+                            </span>
+                            <div className="space-y-2">
+                                {[
+                                    { title: "Generate Market Size Slide", desc: "Arkle can calculate SAM/SOM using database" },
+                                    { title: "Add Financial Projection", desc: "Includes growth models & unit economics" }
+                                ].map((feat, idx) => (
+                                    <div key={idx} className="p-3 bg-gradient-to-br from-indigo-950/20 to-purple-950/20 border border-indigo-500/10 rounded-xl text-left cursor-pointer hover:border-indigo-500/30 transition-all">
+                                        <h5 className="text-[10px] font-bold text-indigo-300">{feat.title}</h5>
+                                        <p className="text-[8px] text-zinc-500 mt-1 leading-normal">{feat.desc}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* HOVER ZONE TRIGGER (RIGHT) */}
+                <div 
+                    onMouseEnter={() => setShowRightHistoryTray(true)}
+                    className="absolute right-0 top-0 bottom-0 w-3 z-[999] cursor-pointer"
+                />
+
+                {/* LEFT COLUMN: Controls & Slide Editor */}
+                <aside 
+                    style={{ width: `${pitchDeckAsideWidth}px` }}
+                    className="h-full bg-zinc-900 border-r border-zinc-800 flex flex-col justify-between shrink-0 z-10"
+                >
+                    <div className="p-6 overflow-y-auto flex-1 space-y-6 custom-scrollbar">
+                        <div className="flex items-center justify-between">
+                            <button 
+                                onClick={() => { setForgeStatus('idle'); setSelectedLauncherTool(null); }} 
+                                className="flex items-center gap-2 text-xs font-bold text-zinc-400 hover:text-white transition-colors"
+                            >
+                                <span className="material-symbols-outlined text-[16px] mr-1 align-middle">arrow_back</span>
+                                Back to Launcher
+                            </button>
+                        </div>
+
+                        <div>
+                            {/* Pitch Style / Type Dropdown */}
+                            <div className="mt-2">
+                                <label className="text-[9px] font-black uppercase tracking-widest text-zinc-500 block mb-1.5 font-outfit">Pitch Deck Style</label>
+                                <div className="relative">
+                                    <select
+                                        value={pitchDeckType}
+                                        onChange={(e) => setPitchDeckType(e.target.value as any)}
+                                        className="w-full bg-zinc-950/85 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white outline-none cursor-pointer hover:border-zinc-700 transition-all appearance-none font-outfit"
+                                    >
+                                        <option value="investor">💼 Investor Seed Pitch</option>
+                                        <option value="sales">🚀 Product & Sales Pitch</option>
+                                        <option value="partnership">🤝 Partnership / B2B Pitch</option>
+                                    </select>
+                                    <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none text-[16px]">expand_more</span>
+                                </div>
+                            </div>
+
+                            {/* Visual Themes Selector Grid */}
+                            <div className="space-y-2 mt-4">
+                                <label className="text-[9px] font-black uppercase tracking-widest text-zinc-500 block mb-1 font-outfit">Visual Theme Style</label>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {[
+                                        { id: 'neon', name: 'Neon Cyber', previewBg: 'from-purple-900 to-indigo-900' },
+                                        { id: 'notion', name: 'Minimalist', previewBg: 'from-zinc-800 to-zinc-950' },
+                                        { id: 'ocean', name: 'Emerald Ocean', previewBg: 'from-emerald-900 to-cyan-950' }
+                                    ].map((t) => (
+                                        <button
+                                            key={t.id}
+                                            onClick={() => setDeckTheme(t.id as any)}
+                                            className={`p-2 rounded-xl border text-left transition-all duration-300 ${
+                                                deckTheme === t.id 
+                                                    ? 'bg-zinc-850 border-indigo-500/80 shadow-md shadow-indigo-500/10 scale-105' 
+                                                    : 'bg-zinc-950/60 border-zinc-800/80 hover:bg-zinc-900'
+                                            }`}
+                                        >
+                                            <div className={`h-2.5 rounded bg-gradient-to-br ${t.previewBg} mb-1.5`} />
+                                            <span className="text-[8px] font-extrabold text-zinc-300 block leading-tight font-outfit uppercase tracking-wider">{t.name}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* WIZARD CONTAINER inside Sidebar */}
+                        {isWizardActive && (
+                            <div className="space-y-4 border-t border-zinc-800/80 pt-4 flex flex-col">
+                                
+                                {/* Form / Checklist Mode Layout */}
+                                {wizardMode === 'form' ? (
+                                    <div className="space-y-4">
+                                        {/* Language and Step Header */}
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400 font-outfit">Step {wizardStep} of 4</span>
+                                            {/* Language Selector Dropdown */}
+                                            <div className="relative">
+                                                <select
+                                                    value={wizardLang}
+                                                    onChange={(e) => {
+                                                        const selectedL = e.target.value;
+                                                        setWizardLang(selectedL);
+                                                        onLangChange?.(selectedL);
+                                                    }}
+                                                    className="bg-zinc-950 border border-zinc-800 rounded-lg pl-2 pr-6 py-1 text-zinc-400 hover:text-white text-[10px] font-bold outline-none cursor-pointer appearance-none transition-colors font-outfit"
+                                                    title="Select Wizard Language"
+                                                >
+                                                    <option value="en-IN">🇬🇧 English</option>
+                                                    <option value="te-IN">🇮🇳 తెలుగు (Telugu)</option>
+                                                    <option value="hi-IN">🇮🇳 हिन्दी (Hindi)</option>
+                                                </select>
+                                                <span className="material-symbols-outlined absolute right-1.5 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none text-[12px]">expand_more</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Step Progress Circles */}
+                                        <div className="flex items-center gap-1.5 py-1 justify-center bg-zinc-950/20 py-2 rounded-xl border border-zinc-800/40">
+                                            {[1, 2, 3, 4].map((step) => (
+                                                <button 
+                                                    key={step} 
+                                                    onClick={() => setWizardStep(step)}
+                                                    className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all duration-300 ${
+                                                        wizardStep === step 
+                                                            ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 scale-110 font-black' 
+                                                            : wizardStep > step 
+                                                                ? 'bg-indigo-900/40 text-indigo-300 border border-indigo-500/20' 
+                                                                : 'bg-zinc-950 border border-zinc-800 text-zinc-600'
+                                                    }`}
+                                                >
+                                                    {step}
+                                                </button>
+                                            ))}
+                                        </div>
+
+                                        {/* Arkle Onboarding Welcome Banner */}
+                                        {wizardStep === 1 && (
+                                            <div className="p-3 bg-indigo-950/20 border border-indigo-500/10 rounded-2xl flex items-start gap-2.5 animate-in fade-in slide-in-from-top-4 duration-300">
+                                                <span className="material-symbols-outlined text-indigo-400 text-[18px] shrink-0 mt-0.5 animate-pulse">forum</span>
+                                                <div>
+                                                    <h4 className="text-[10px] font-bold text-white leading-tight">
+                                                        Hi, I'm Arkle! Ready to build your pitch deck and script.
+                                                    </h4>
+                                                    <p className="text-[9px] text-zinc-400 leading-normal mt-0.5">
+                                                        You can chat or speak in any language.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Missing Setup Questions Checklist */}
+                                        {(!wizardInputs.businessName || !wizardInputs.idea || !wizardInputs.problem) && (
+                                            <div className="space-y-2 p-3.5 bg-zinc-950/40 border border-zinc-800/80 rounded-2xl animate-in fade-in slide-in-from-top-2 duration-300">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-[9px] font-black uppercase tracking-wider text-indigo-400 font-outfit">Arkle's Info Discovery Checklist</span>
+                                                    <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-ping" />
+                                                </div>
+                                                <p className="text-[9px] text-zinc-500 leading-normal font-sans font-medium">
+                                                    Please answer the missing questions below, click them to talk to Arkle, or update the checklist directly:
+                                                </p>
+                                                <div className="flex flex-col gap-1.5 pt-1.5">
+                                                    {[
+                                                        { check: !!wizardInputs.businessName, label: "🏢 Launch Date & Company Logo Name", query: "Help me define my company's official name, launch date, and logo concept." },
+                                                        { check: !!wizardInputs.idea, label: "🛠️ What Technology & Core Vibe?", query: "Let's discuss the tech stack and the visual vibe for the presentation." },
+                                                        { check: !!wizardInputs.problem, label: "📈 Stage, Target Audience & Team Size", query: "What funding stage, target audience, and founding team size are we pitching?" },
+                                                        { check: !!wizardInputs.solution, label: "🎯 Solution & Direct Call-to-Action (CTA)", query: "What direct call-to-action (CTA) should we ask investors for at the end?" },
+                                                    ].map((q, idx) => (
+                                                        <button
+                                                            key={idx}
+                                                            onClick={() => {
+                                                                setPromptInput(q.query);
+                                                                setWizardMode('chat');
+                                                                setIsVoiceActive(true);
+                                                            }}
+                                                            className="flex items-center justify-between p-2 rounded-xl bg-zinc-950/80 hover:bg-zinc-850 border border-zinc-800/60 text-left transition-all"
+                                                        >
+                                                            <span className={`text-[9px] font-bold ${q.check ? 'text-zinc-500 line-through' : 'text-zinc-300'}`}>{q.label}</span>
+                                                            <span className="material-symbols-outlined text-[13px] text-zinc-505">{q.check ? 'check_circle' : 'help_outline'}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Step Form Inputs */}
+                                        <div className="space-y-4 bg-zinc-950/30 p-3 rounded-2xl border border-zinc-800/60">
+                                            {wizardStep === 1 && (
+                                                <div className="space-y-3">
+                                                    <div>
+                                                        <label className="text-[9px] font-black uppercase tracking-wider text-zinc-500 block mb-1 font-outfit">Business Name</label>
+                                                        <input 
+                                                            type="text" 
+                                                            value={wizardInputs.businessName} 
+                                                            onChange={(e) => setWizardInputs({ ...wizardInputs, businessName: e.target.value })}
+                                                            placeholder="e.g., Organic Oasis" 
+                                                            className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-650 outline-none focus:border-indigo-500/80 transition-all font-sans font-bold"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[9px] font-black uppercase tracking-wider text-zinc-500 block mb-1 font-outfit">One-Line Business Idea</label>
+                                                        <textarea 
+                                                            value={wizardInputs.idea} 
+                                                            onChange={(e) => setWizardInputs({ ...wizardInputs, idea: e.target.value })}
+                                                            placeholder="e.g., A farm-to-table organic delivery app connects local farmers directly with urban households." 
+                                                            className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-655 outline-none focus:border-indigo-500/80 transition-all h-20 resize-none font-sans font-bold"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {wizardStep === 2 && (
+                                                <div className="space-y-3">
+                                                    <div>
+                                                        <label className="text-[9px] font-black uppercase tracking-wider text-zinc-500 block mb-1 font-outfit">Core Problem / Bottleneck</label>
+                                                        <textarea 
+                                                            value={wizardInputs.problem} 
+                                                            onChange={(e) => setWizardInputs({ ...wizardInputs, problem: e.target.value })}
+                                                            placeholder="e.g., MSMEs lack technical resources and pay exorbitant agency fee." 
+                                                            className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-655 outline-none focus:border-indigo-500/80 transition-all h-20 resize-none font-sans font-bold"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[9px] font-black uppercase tracking-wider text-zinc-500 block mb-1 font-outfit">Your Solution</label>
+                                                        <textarea 
+                                                            value={wizardInputs.solution} 
+                                                            onChange={(e) => setWizardInputs({ ...wizardInputs, solution: e.target.value })}
+                                                            placeholder="e.g., AI co-founder builds fully functional pages, code and documents." 
+                                                            className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-655 outline-none focus:border-indigo-500/80 transition-all h-20 resize-none font-sans font-bold"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {wizardStep === 3 && (
+                                                <div className="space-y-3">
+                                                    <div>
+                                                        <label className="text-[9px] font-black uppercase tracking-wider text-zinc-500 block mb-1 font-outfit">Target Audience</label>
+                                                        <input 
+                                                            type="text" 
+                                                            value={wizardInputs.targetAudience} 
+                                                            onChange={(e) => setWizardInputs({ ...wizardInputs, targetAudience: e.target.value })}
+                                                            placeholder="e.g., Small business owners, MSMEs" 
+                                                            className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-600 outline-none focus:border-indigo-500/80 transition-all font-sans font-bold"
+                                                        />
+                                                        <div className="flex gap-1.5 mt-1.5">
+                                                            {["B2B Founders", "D2C Brands", "Local MSMEs"].map((pill) => (
+                                                                <button 
+                                                                    key={pill} 
+                                                                    onClick={() => setWizardInputs({ ...wizardInputs, targetAudience: pill })}
+                                                                    className="px-2 py-0.5 bg-zinc-900 border border-zinc-850 text-zinc-500 hover:text-white rounded text-[8px] font-bold uppercase font-outfit"
+                                                                >
+                                                                    {pill}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-[9px] font-black uppercase tracking-wider text-zinc-500 block mb-1 font-outfit">Revenue Model</label>
+                                                        <input 
+                                                            type="text" 
+                                                            value={wizardInputs.revenueModel} 
+                                                            onChange={(e) => setWizardInputs({ ...wizardInputs, revenueModel: e.target.value })}
+                                                            placeholder="e.g., Transaction commissions" 
+                                                            className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-600 outline-none focus:border-indigo-500/80 transition-all font-sans font-bold"
+                                                        />
+                                                        <div className="flex gap-1.5 mt-1.5">
+                                                            {["Transaction Fee", "Subscription"].map((pill) => (
+                                                                <button 
+                                                                    key={pill} 
+                                                                    onClick={() => setWizardInputs({ ...wizardInputs, revenueModel: pill })}
+                                                                    className="px-2 py-0.5 bg-zinc-900 border border-zinc-850 text-zinc-500 hover:text-white rounded text-[8px] font-bold uppercase font-outfit"
+                                                                >
+                                                                    {pill}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {wizardStep === 4 && (
+                                                <div className="space-y-3">
+                                                    <div>
+                                                        <label className="text-[9px] font-black uppercase tracking-wider text-zinc-500 block mb-1 font-outfit">Growth & Launch Plan</label>
+                                                        <textarea 
+                                                            value={wizardInputs.growthPlan} 
+                                                            onChange={(e) => setWizardInputs({ ...wizardInputs, growthPlan: e.target.value })}
+                                                            placeholder="e.g., Phase 1 local launch, then scale digital ads." 
+                                                            className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-600 outline-none focus:border-indigo-500/80 transition-all h-20 resize-none font-sans font-bold"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    /* Conversation / Chat Mode Layout */
+                                    <div className="flex-1 flex flex-col gap-3.5 h-[340px] overflow-y-auto pr-1.5 custom-scrollbar pb-4">
+                                        {pitchChat.map((msg, idx) => (
+                                            <div
+                                                key={idx}
+                                                className={`flex gap-2.5 items-start ${
+                                                    msg.role === 'user' ? 'justify-end' : 'justify-start'
+                                                }`}
+                                            >
+                                                {msg.role !== 'user' && (
+                                                    <div className="w-6.5 h-6.5 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shrink-0 mt-0.5 shadow-md shadow-indigo-500/10">
+                                                        <span className="material-symbols-outlined text-[14px] animate-pulse">smart_toy</span>
+                                                    </div>
+                                                )}
+                                                <div
+                                                    className={`p-3 rounded-2xl text-[10.5px] leading-relaxed max-w-[85%] font-sans font-bold ${
+                                                        msg.role === 'user'
+                                                            ? 'bg-indigo-600 text-white rounded-tr-none'
+                                                            : 'bg-zinc-950/80 border border-zinc-800 text-zinc-200 rounded-tl-none'
+                                                    }`}
+                                                >
+                                                    {msg.text}
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {isChatResponding && (
+                                            <div className="flex gap-2.5 items-start justify-start">
+                                                <div className="w-6.5 h-6.5 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shrink-0 mt-0.5 animate-bounce">
+                                                    <span className="material-symbols-outlined text-[14px]">smart_toy</span>
+                                                </div>
+                                                <div className="p-3 rounded-2xl bg-zinc-950/80 border border-zinc-800 text-zinc-550 text-[10.5px] rounded-tl-none flex items-center gap-1.5 font-sans font-bold">
+                                                    Arkle is building slides... <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-ping" />
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Back / Next / Mode Toggle wizard navigation buttons inside sidebar */}
+                                <div className="flex justify-between items-center gap-2 pt-2 border-t border-zinc-800/60">
+                                    <div className="flex gap-1.5">
+                                        <button
+                                            onClick={() => setWizardMode('chat')}
+                                            className={`px-2.5 py-1.5 text-[9px] font-black uppercase rounded-lg transition-all flex items-center gap-1 font-outfit ${
+                                                wizardMode === 'chat' 
+                                                    ? 'bg-indigo-600 text-white shadow-[0_0_10px_rgba(99,102,241,0.3)]' 
+                                                    : 'bg-transparent text-zinc-500 hover:text-white border border-transparent hover:border-zinc-800'
+                                            }`}
+                                            title="Start co-founder agent chat discussion"
+                                        >
+                                            <span className="material-symbols-outlined text-[12px]">forum</span> Chat
+                                        </button>
+                                        <button
+                                            onClick={() => setWizardMode('form')}
+                                            className={`px-2.5 py-1.5 text-[9px] font-black uppercase rounded-lg transition-all font-outfit ${
+                                                wizardMode === 'form' 
+                                                    ? 'bg-indigo-650 text-white shadow-[0_0_10px_rgba(99,102,241,0.3)]' 
+                                                    : 'bg-transparent text-zinc-500 hover:text-white border border-transparent hover:border-zinc-800'
+                                            }`}
+                                        >
+                                            Checklist
+                                        </button>
+                                    </div>
+                                    
+                                    {wizardMode === 'form' && (
+                                        <div className="flex gap-1.5">
+                                            {wizardStep > 1 && (
+                                                <button 
+                                                    onClick={() => setWizardStep(wizardStep - 1)}
+                                                    className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[10px] font-bold rounded-lg transition-all font-outfit"
+                                                >
+                                                    Back
+                                                </button>
+                                            )}
+                                            {wizardStep < 4 ? (
+                                                <button 
+                                                    onClick={() => setWizardStep(wizardStep + 1)}
+                                                    className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold rounded-lg transition-all font-outfit"
+                                                >
+                                                    Next
+                                                </button>
+                                            ) : (
+                                                <button 
+                                                    onClick={() => {
+                                                        setIsWizardActive(false);
+                                                        const formattedPrompt = `Generate a premium visual pitch deck for my business: ${wizardInputs.businessName}. Focus: ${wizardInputs.idea}. Problem: ${wizardInputs.problem}. Solution: ${wizardInputs.solution}. Audience: ${wizardInputs.targetAudience}. Revenue: ${wizardInputs.revenueModel}. Growth: ${wizardInputs.growthPlan}. Deck type is ${pitchDeckType}.`;
+                                                        startPitchDeckGeneration(formattedPrompt);
+                                                    }}
+                                                    className="px-3 py-1.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-750 text-white text-[10px] font-black uppercase tracking-wider rounded-lg transition-all shadow-md font-outfit"
+                                                >
+                                                    Generate ✨
+                                                </button>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {!isWizardActive && (
+                            <div className="mt-4 border-t border-zinc-800/80 pt-4">
+                                <button
+                                    onClick={() => setIsWizardActive(true)}
+                                    className="w-full py-2.5 bg-zinc-950 hover:bg-zinc-850 border border-zinc-800 text-zinc-400 hover:text-white text-[10px] font-black uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-1.5 font-outfit"
+                                >
+                                    <span className="material-symbols-outlined text-[14px]">edit_note</span> Open Setup Wizard
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* BOTTOM PANEL: Arkle Prompt Box */}
+                    <div className="p-4 border-t border-zinc-800 bg-zinc-950/40 space-y-3 shrink-0">
+                        {/* Prompt Input Area */}
+                        <div className="relative group">
+                            <textarea
+                                value={promptInput}
+                                onChange={(e) => setPromptInput(e.target.value)}
+                                placeholder="Ask Arkle to edit, refine, or build your slides..."
+                                className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-4 pt-4 pb-12 text-[12px] text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 resize-none h-36 custom-scrollbar"
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                        e.preventDefault();
+                                        if (wizardMode === 'chat') {
+                                            handlePitchChatSubmit(promptInput);
+                                        } else {
+                                            startPitchDeckGeneration(promptInput);
+                                        }
+                                    }
+                                }}
+                            />
+                            {/* Taskbar inside prompt box */}
+                            <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between px-2">
+                                <div className="flex items-center gap-2">
+                                    <button title="Upload / Add File" className="w-6 h-6 flex items-center justify-center text-zinc-500 hover:text-zinc-300 transition-colors">
+                                        <span className="material-symbols-outlined text-[18px]">add_circle</span>
+                                    </button>
+                                    <select
+                                        value={selectedAIModel}
+                                        onChange={(e) => setSelectedAIModel(e.target.value as any)}
+                                        className="bg-zinc-900 border border-zinc-800 rounded-lg px-2 py-0.5 text-zinc-400 hover:text-white text-[9px] font-semibold outline-none cursor-pointer transition-colors"
+                                        title="Select AI Model"
+                                    >
+                                        <option value="dummy">Dummy Model</option>
+                                        <option value="gemini">Gemini 1.5 Pro</option>
+                                        <option value="gemini-flash">Gemini 1.5 Flash</option>
+                                        <option value="gpt4o">GPT-4o</option>
+                                        <option value="gpt4-turbo">GPT-4 Turbo</option>
+                                    </select>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                    <button 
+                                        onClick={() => setIsVoiceActive(true)} 
+                                        title="Live Voice Mode" 
+                                        className="w-6 h-6 flex items-center justify-center text-zinc-500 hover:text-zinc-300 transition-colors"
+                                    >
+                                        <span className="material-symbols-outlined text-[18px]">graphic_eq</span>
+                                    </button>
+                                    <button 
+                                        onClick={() => {
+                                            if (wizardMode === 'chat') {
+                                                handlePitchChatSubmit(promptInput);
+                                            } else {
+                                                startPitchDeckGeneration(promptInput);
+                                            }
+                                        }} 
+                                        disabled={isDeckGenerating || !promptInput} 
+                                        title="Send / Enter" 
+                                        className="w-6 h-6 flex items-center justify-center text-zinc-500 hover:text-indigo-400 transition-colors disabled:opacity-40"
+                                    >
+                                        {isDeckGenerating ? (
+                                            <span className="material-symbols-outlined animate-spin text-[16px]">refresh</span>
+                                        ) : (
+                                            <span className="material-symbols-outlined text-[18px]">send</span>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+
+                {/* PITCH DECK RESIZE HANDLE */}
+                <div
+                    onMouseDown={() => setIsResizingPitchDeck(true)}
+                    className={`w-1 h-full cursor-col-resize z-[60] hover:bg-indigo-500/50 transition-colors ${
+                        isResizingPitchDeck ? 'bg-indigo-500' : 'bg-zinc-800'
+                    }`}
+                />
+
+                {/* RIGHT COLUMN: Active Slide Live Preview */}
+                <main className="flex-1 h-full bg-[#050505] flex items-center justify-center p-6 md:p-12 overflow-y-auto relative z-10">
+                    <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.05)_0%,transparent_60%)] pointer-events-none" />
+                    
+                    {/* Top Right Action Symbols */}
+                    <div className="absolute top-6 right-6 flex items-center gap-3 z-20">
+                        <button
+                            onClick={handlePrintDeck}
+                            title="Download PDF"
+                            className="w-10 h-10 rounded-full bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-white flex items-center justify-center transition-all hover:scale-105"
+                        >
+                            <span className="material-symbols-outlined text-[20px]">download</span>
+                        </button>
+                        <button
+                            onClick={() => {
+                                if (isGoogleConnected) {
+                                    alert("Exporting to Google Docs... Slide exported successfully!");
+                                } else {
+                                    setShowGoogleAuth(true);
+                                }
+                            }}
+                            title="Export to Google Doc"
+                            className="w-10 h-10 rounded-full bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-white flex items-center justify-center transition-all hover:scale-105"
+                        >
+                            <span className="material-symbols-outlined text-[20px]">description</span>
+                        </button>
+                    </div>
+
+                    {/* Hidden Offscreen Container for multi-page PDF generation */}
+                    <div 
+                        id="hidden-pdf-capture-container" 
+                        className="absolute -left-[9999px] -top-[9999px] w-[1000px] flex flex-col gap-10"
+                        style={{ fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif", letterSpacing: 'normal', wordSpacing: 'normal' }}
+                    >
+                        {deckSlides.map((slide, sIdx) => (
+                            <div 
+                                key={slide.id} 
+                                data-slide-page="true"
+                                className={`w-[1000px] h-[562.5px] p-16 flex flex-col justify-between relative overflow-hidden ${styles.bg}`}
+                                style={{ fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif", letterSpacing: 'normal', wordSpacing: 'normal', padding: '64px' }}
+                            >
+                                {/* Decorative Slide Light Glow */}
+                                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
+
+                                {/* Slide Header */}
+                                <div className="flex justify-between items-center opacity-80 border-b pb-4 border-current/10" style={{ letterSpacing: '0.05em' }}>
+                                    <span className="text-xs font-bold uppercase">{slide.title}</span>
+                                    <span className="text-xs font-light">{slide.subtitle}</span>
+                                </div>
+
+                                {/* Slide Layout Switcher */}
+                                <div className="flex-1 flex flex-col justify-center my-6">
+                                    {/* HERO LAYOUT */}
+                                    {slide.layout === 'hero' && (
+                                        <div className="text-center max-w-2xl mx-auto space-y-6">
+                                            <h2 
+                                                className="text-3xl font-black leading-tight" 
+                                                style={{ color: deckTheme === 'neon' ? '#818cf8' : deckTheme === 'ocean' ? '#2dd4bf' : '#18181b' }}
+                                            >
+                                                {slide.content.heading}
+                                            </h2>
+                                            {slide.content.body && (
+                                                <p className="text-sm opacity-75 font-light" style={{ lineHeight: '1.6' }}>{slide.content.body}</p>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* TWO-COLUMN LAYOUT */}
+                                    {slide.layout === 'two-column' && (
+                                        <div className="grid grid-cols-5 gap-10 items-center">
+                                            <div className="col-span-3 space-y-4">
+                                                <h2 className="text-2xl font-extrabold leading-tight">
+                                                    {slide.content.heading}
+                                                </h2>
+                                                {slide.content.body && (
+                                                    <p className="text-xs opacity-70 leading-relaxed" style={{ lineHeight: '1.6' }}>{slide.content.body}</p>
+                                                )}
+                                            </div>
+                                            <div className="col-span-2 space-y-3.5">
+                                                {slide.content.bullets?.map((b: string, i: number) => (
+                                                    <div key={i} className={`p-4 rounded-2xl ${styles.card} text-xs flex gap-3 items-start`} style={{ padding: '16px' }}>
+                                                        <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full mt-1.5 shrink-0" />
+                                                        <span className="font-medium opacity-90">{b}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* TRACTION LAYOUT */}
+                                    {slide.layout === 'traction' && (
+                                        <div className="space-y-6 text-center">
+                                            <h2 className="text-2xl font-extrabold">{slide.content.heading}</h2>
+                                            <div className="grid grid-cols-3 gap-6">
+                                                {slide.content.stats?.map((s: any, i: number) => (
+                                                    <div key={i} className={`p-6 rounded-2xl ${styles.card} space-y-2`} style={{ padding: '24px' }}>
+                                                        <span 
+                                                            className="text-3xl font-black" 
+                                                            style={{ color: deckTheme === 'neon' ? '#818cf8' : deckTheme === 'ocean' ? '#2dd4bf' : '#18181b' }}
+                                                        >
+                                                            {s.value}
+                                                        </span>
+                                                        <span className="text-[10px] uppercase font-black tracking-widest text-zinc-500 block">{s.label}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* COMPETITION / MATRIX LAYOUT */}
+                                    {slide.layout === 'matrix' && (
+                                        <div className="space-y-4">
+                                            <h2 className="text-xl font-extrabold text-center">{slide.content.heading}</h2>
+                                            <div className="grid grid-cols-4 gap-4 pt-2">
+                                                {slide.content.matrix?.map((m: any, i: number) => (
+                                                    <div key={i} className={`p-4 rounded-2xl ${styles.card} text-center space-y-2`} style={{ padding: '16px' }}>
+                                                        <span className="text-xs font-extrabold text-white block">{m.competitor}</span>
+                                                        <div className="flex justify-center gap-1">
+                                                            {Array.from({ length: 5 }).map((_, idx) => (
+                                                                <span 
+                                                                    key={idx} 
+                                                                    className={`w-2 h-2 rounded-full ${
+                                                                        idx < m.score ? 'bg-indigo-500' : 'bg-zinc-800'
+                                                                    }`} 
+                                                                />
+                                                            ))}
+                                                        </div>
+                                                        <span className="text-[8px] text-zinc-500 block uppercase font-bold">{m.advantage}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Slide Footer */}
+                                <div className="flex justify-between items-center text-[10px] opacity-60 pt-4 border-t border-t-current/10">
+                                    <span className="font-extrabold tracking-wider uppercase">SetMyBizz BizOS Creator</span>
+                                    <span>Page {sIdx + 1} of {deckSlides.length}</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Rendered Slide Area */}
+                    <div id="slide-presentation-area" className={`w-full max-w-4xl aspect-[16/9] rounded-3xl p-8 md:p-16 shadow-2xl flex flex-col justify-between transition-all duration-500 relative overflow-hidden ${styles.bg}`}>
+                        
+                        {/* Decorative Slide Light Glow */}
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
+
+                        {/* Slide Header */}
+                        <div className="flex justify-between items-center opacity-80 border-b pb-4 border-current/10">
+                            <span className="text-xs font-bold uppercase tracking-widest">{activeSlide.title}</span>
+                            <span className="text-xs font-light">{activeSlide.subtitle}</span>
+                        </div>
+
+                        {/* Slide Layout Switcher */}
+                        <div className="flex-1 flex flex-col justify-center my-6">
+                            
+                            {/* HERO LAYOUT */}
+                            {activeSlide.layout === 'hero' && (
+                                <div className="text-center max-w-2xl mx-auto space-y-6">
+                                    <h2 className={`text-3xl md:text-5xl font-black tracking-tight leading-tight ${styles.gradientText}`}>
+                                        {activeSlide.content.heading}
+                                    </h2>
+                                    {activeSlide.content.body && (
+                                        <p className="text-sm md:text-lg opacity-75 font-light">{activeSlide.content.body}</p>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* TWO-COLUMN LAYOUT */}
+                            {activeSlide.layout === 'two-column' && (
+                                <div className="grid md:grid-cols-5 gap-6 md:gap-10 items-center">
+                                    <div className="md:col-span-3 space-y-4">
+                                        <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight leading-tight">
+                                            {activeSlide.content.heading}
+                                        </h2>
+                                        {activeSlide.content.body && (
+                                            <p className="text-xs md:text-sm opacity-70 leading-relaxed">{activeSlide.content.body}</p>
+                                        )}
+                                    </div>
+                                    <div className="md:col-span-2 space-y-3.5">
+                                        {activeSlide.content.bullets?.map((b: string, i: number) => (
+                                            <div key={i} className={`p-4 rounded-2xl ${styles.card} text-xs flex gap-3 items-start`}>
+                                                <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full mt-1.5 shrink-0" />
+                                                <span>{b}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* TRACTION LAYOUT */}
+                            {activeSlide.layout === 'traction' && (
+                                <div className="space-y-6 md:space-y-8">
+                                    <h2 className="text-2xl md:text-3xl font-extrabold text-center tracking-tight mb-4">{activeSlide.content.heading}</h2>
+                                    <div className="grid grid-cols-3 gap-4 md:grid-cols-3 md:gap-6 text-center">
+                                        {activeSlide.content.metrics?.map((m: any, i: number) => (
+                                            <div key={i} className={`p-4 md:p-6 rounded-2xl ${styles.card} hover:scale-105 transition-all`}>
+                                                <div className="text-2xl md:text-4xl font-black text-current mb-1.5">{m.val}</div>
+                                                <h4 className="text-xs md:text-sm font-bold opacity-80 mb-1">{m.label}</h4>
+                                                {m.desc && <p className="text-[9px] md:text-[10px] opacity-50">{m.desc}</p>}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* MATRIX LAYOUT */}
+                            {activeSlide.layout === 'matrix' && (
+                                <div className="space-y-6">
+                                    <h2 className="text-xl md:text-2xl font-extrabold tracking-tight leading-tight mb-2 text-center">
+                                        {activeSlide.content.heading}
+                                    </h2>
+                                    <div className="grid grid-cols-4 gap-4 text-[10px] md:text-xs font-semibold text-center border-t border-current/10 pt-4">
+                                        <span className="text-left font-bold opacity-60">Competitor</span>
+                                        <span className="opacity-60">Simplicity</span>
+                                        <span className="opacity-60">AI Integration</span>
+                                        <span className="opacity-60">Pricing</span>
+
+                                        {activeSlide.content.competitors?.map((c: any, i: number) => (
+                                            <React.Fragment key={i}>
+                                                <span className="text-left font-bold text-current border-t border-current/5 py-3">{c.name}</span>
+                                                <span className="border-t border-current/5 py-3 opacity-70">{c.easy}</span>
+                                                <span className="border-t border-current/5 py-3 opacity-70">{c.tech}</span>
+                                                <span className="border-t border-current/5 py-3 opacity-90 font-bold">{c.price}</span>
+                                            </React.Fragment>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                        </div>
+
+                        {/* Slide Footer */}
+                        <div className="flex justify-between items-center opacity-65 text-[10px] uppercase tracking-widest pt-4 border-t border-current/10">
+                            <span>SetMyBizz BizOS Creator</span>
+                            <span>Powered by Arkle AI</span>
+                        </div>
+
+                    </div>
+                </main>
+            </div>
+        );
+    };
+
     /* ── Render: Mode 1 - Pure Creation Forge (Advanced Builder) ── */
     const renderPureCreationForge = () => {
+        if (selectedLauncherTool?.id === 'deck') {
+            return renderPitchDeckForge();
+        }
         const currentFile = forgeFiles.find(f => f.path === activeForgeFile) || forgeFiles[0];
         const showCode = forgeViewMode === 'code' || forgeViewMode === 'split';
         const showPreview = forgeViewMode === 'preview' || forgeViewMode === 'split';
@@ -1806,7 +3073,33 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
                                         return;
                                     }
                                     setSelectedLauncherTool(cat);
-                                    setPromptInput(`Build a ${cat.label} for my business`);
+                                    if (cat.id === 'deck') {
+                                        let name = data?.name || "My Business";
+                                        const idea = (data as any)?.idea || "a custom service/product platform";
+                                        let industry = data?.industry || "Retail/Tech";
+                                        let audience = (data as any)?.audience || "local MSMEs/startups";
+                                        const model = (data as any)?.model || "Subscription";
+
+                                        try {
+                                            const localData = localStorage.getItem('setmybizz_data');
+                                            if (localData) {
+                                                const parsed = JSON.parse(localData);
+                                                if (parsed.name) name = parsed.name;
+                                                if (parsed.sector) industry = parsed.sector;
+                                                if (parsed.size) audience = `Team size ${parsed.size}`;
+                                            }
+                                        } catch (e) {}
+
+                                        const formattedPrompt = `Generate a premium visual pitch deck for my business:
+Name: ${name}
+Core Idea: ${idea}
+Industry: ${industry}
+Target Audience: ${audience}
+Revenue Model: ${model}`;
+                                        setPromptInput(formattedPrompt);
+                                    } else {
+                                        setPromptInput(`Build a ${cat.label} for my business`);
+                                    }
                                 }}
                                 className={`flex flex-col items-center gap-4 group shrink-0 transition-all relative ${selectedLauncherTool?.id === cat.id ? 'z-10' : 'z-0'}`}
                             >
@@ -1921,8 +3214,8 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
                                         <button
                                             key={template.id}
                                             onClick={() => {
-                                                if (template.path) {
-                                                    router.push(template.path);
+                                                if ((template as any).path) {
+                                                    router.push((template as any).path);
                                                 } else {
                                                     startForging(`Clone Template ${template.id}: ${template.title}.`);
                                                 }
@@ -2154,54 +3447,6 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
                             </div>
                         </div>
 
-                        {/* 3. Arkle Voice Trigger - Animated & Draggable Bubble (Screenshot Match) */}
-                        <motion.div
-                            drag
-                            dragMomentum={false}
-                            className="absolute -top-24 left-1/2 -translate-x-1/2 z-40 cursor-grab active:cursor-grabbing"
-                        >
-                            <motion.div
-                                whileHover={{ scale: 1.1, y: -5 }}
-                                whileTap={{ scale: 0.9 }}
-                                onClick={() => useBizStore.getState().setIsVoiceActive(true)}
-                                className="relative flex flex-col items-center group cursor-pointer"
-                            >
-                                <div className="w-28 h-28 rounded-full flex items-center justify-center shadow-[0_20px_60px_rgba(59,130,246,0.35)] relative overflow-hidden">
-                                    <ArkleVoiceIcon 
-                                        size="lg" 
-                                        isListening={isVoiceActive} 
-                                    />
-                                </div>
-
-                                {/* Quick Command Sticker Popup (LaunchPad Match) */}
-                                <div className="absolute -top-20 left-1/2 -translate-x-1/2 flex items-center gap-3 p-2 bg-slate-900/95 backdrop-blur-xl rounded-2xl border border-white/20 shadow-[0_30px_60px_rgba(0,0,0,0.4)] opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:-translate-y-0 z-50">
-                                    <button 
-                                        onClick={(e) => { e.stopPropagation(); useBizStore.getState().setIsMuted(!useBizStore.getState().isMuted); }}
-                                        className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${useBizStore.getState().isMuted ? 'text-orange-400 bg-orange-400/10' : 'text-white hover:bg-white/10'}`}
-                                    >
-                                        <span className="material-symbols-rounded text-[20px]">{useBizStore.getState().isMuted ? 'mic_off' : 'mic'}</span>
-                                    </button>
-                                    <button 
-                                        onClick={(e) => { e.stopPropagation(); useBizStore.getState().setIsVoiceActive(false); }}
-                                        className="w-10 h-10 rounded-xl flex items-center justify-center text-red-400 border border-red-400/20 hover:bg-red-500/20 transition-all"
-                                    >
-                                        <span className="material-symbols-rounded text-[20px]">close</span>
-                                    </button>
-                                    <button 
-                                        onClick={(e) => { e.stopPropagation(); useBizStore.getState().setIsPaused(!useBizStore.getState().isPaused); }}
-                                        className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${useBizStore.getState().isPaused ? 'text-blue-400 bg-blue-400/10' : 'text-white hover:bg-white/10'}`}
-                                    >
-                                        <span className="material-symbols-rounded text-[20px]">{useBizStore.getState().isPaused ? 'play_arrow' : 'pause'}</span>
-                                    </button>
-                                    {/* Arrow */}
-                                    <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-slate-900/95 border-r border-b border-white/20 rotate-45"></div>
-                                </div>
-
-                                <div className="mt-4 px-6 py-2.5 bg-white shadow-2xl rounded-full border border-slate-100 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 flex items-center justify-center">
-                                    <span className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] whitespace-nowrap">Voice Mode Active</span>
-                                </div>
-                            </motion.div>
-                        </motion.div>
                         {/* --- END TOP EMBEDDED COMPONENTS --- */}
 
                         <textarea
@@ -2252,10 +3497,10 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
                                 <button onClick={toggleVoice} className={`w-10 h-10 flex items-center justify-center transition-colors ${isRecording ? 'text-red-500 animate-pulse' : 'text-slate-500 hover:text-slate-700'}`} title="Voice Typing (Dictation)">
                                     <span className="material-symbols-outlined text-[24px]">mic</span>
                                 </button>
-                                <button onClick={() => setShowVoiceStudio(true)} className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors mx-1" title="Live Voice Mode">
+                                <button onClick={() => setIsVoiceActive(true)} className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors mx-1" title="Live Voice Mode">
                                     <span className="material-symbols-outlined text-[20px]">graphic_eq</span>
                                 </button>
-                                <button onClick={handleDirectSubmit} className="w-10 h-10 flex items-center justify-center text-slate-500 hover:text-blue-600 transition-colors" title="Send (Enter)">
+                                <button onClick={() => handleDirectSubmit()} className="w-10 h-10 flex items-center justify-center text-slate-500 hover:text-blue-600 transition-colors" title="Send (Enter)">
                                     <span className="material-symbols-outlined text-[24px]">send</span>
                                 </button>
                             </div>
@@ -2665,7 +3910,7 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
     };
 
     return (
-        <div className="flex h-full overflow-hidden bg-white relative">
+        <div className="flex h-full overflow-hidden bg-white relative" style={{ zoom: 0.85 }}>
 
             {/* Main Content */}
             {/* Main Content Area with Atmospheric Mood Surface (Vibrant Mode for Launcher) */}
@@ -2693,7 +3938,7 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
 
 
                 {/* QA Overlay */}
-                <QAOverlay isScanning={forgeStatus === 'building'} />
+                <QAOverlay isScanning={forgeStatus === 'generating' || appState === 'building'} />
 
 
 
@@ -2989,8 +4234,18 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
                 <ProjectLibraryModal
                     show={showProjectLibrary}
                     onClose={() => setShowProjectLibrary(false)}
-                    userId={user?.id || user?.uid}
+                    userId={user?.id || undefined}
                     onSelectProject={handleSelectProject}
+                />
+            )}
+
+            {showGoogleAuth && (
+                <GoogleIntegrationModal 
+                    onClose={() => setShowGoogleAuth(false)}
+                    onConnect={() => {
+                        setIsGoogleConnected(true);
+                        setShowGoogleAuth(false);
+                    }}
                 />
             )}
 

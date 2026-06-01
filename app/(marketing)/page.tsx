@@ -246,7 +246,7 @@ const fadeUp = {
     initial: { opacity: 0, y: 20 },
     whileInView: { opacity: 1, y: 0 },
     viewport: { once: true, margin: "-100px" },
-    transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] }
+    transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] as const }
 };
 
 export default function HomePage() {
@@ -254,8 +254,6 @@ export default function HomePage() {
     const [homepageBizType, setHomepageBizType] = useState<'new' | 'existing'>('new');
     const [bizSlide, setBizSlide] = useState(0);
     const [bizAutoplayPaused, setBizAutoplayPaused] = useState(false);
-    const [zohoApp, setZohoApp] = useState<'crm' | 'books' | 'desk' | 'creator' | 'people'>('crm');
-    const [customZohoPrompt, setCustomZohoPrompt] = useState('');
     const [arkleSlide, setArkleSlide] = useState(0);
     const [launchSlide, setLaunchSlide] = useState(0);
     const [launchAutoplayPaused, setLaunchAutoplayPaused] = useState(false);
@@ -375,7 +373,7 @@ export default function HomePage() {
                             </h1>
 
                             <p className="text-xl text-slate-500 font-medium leading-relaxed mb-12 max-w-xl">
-                                Navigate your business growth with an autonomous AI platform built for every phase — from idea validation to global scale.
+                                Run your entire business from one AI brain — legal, finance, sales, compliance and growth — with zero setup skills.
                             </p>
 
                             {/* Premium Integrated Input & CTA Bar - IMPROVED PADDING */}
@@ -395,7 +393,7 @@ export default function HomePage() {
                                         href={`/onboarding?name=${encodeURIComponent(bizName)}`}
                                         className="w-full sm:w-auto px-8 py-3.5 bg-blue-600 text-white rounded-[1.5rem] font-black text-sm hover:bg-slate-900 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 whitespace-nowrap shrink-0 group shadow-lg shadow-blue-500/25"
                                     >
-                                        <span>Start Journey</span>
+                                        <span>Build My BizOS</span>
                                         <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                     </Link>
                                 </div>
@@ -766,11 +764,11 @@ export default function HomePage() {
                                                             Setup Cell & Legal Desk
                                                         </div>
                                                         <h3 className="text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight max-w-xl mx-auto">
-                                                            Build your startup idea. <br />
-                                                            <span className="bg-gradient-to-r from-blue-600 to-violet-650 bg-clip-text text-transparent">Or install BizOS on yours.</span>
+                                                            Run your business with an AI brain. <br />
+                                                            <span className="bg-gradient-to-r from-blue-600 to-violet-650 bg-clip-text text-transparent">Identify gaps, fix leaks, and automate every step.</span>
                                                         </h3>
                                                         <p className="text-sm text-slate-500 font-normal max-w-xl mx-auto leading-relaxed">
-                                                            Your Complete Business Administration Room — Manage legal, tax, compliance, and corporate finance in one place.
+                                                            Your Business Command Center: legal, tax, finance, invoices, and operations coordinated by the AI brain.
                                                         </p>
                                                     </div>
 
@@ -825,6 +823,54 @@ export default function HomePage() {
                                                                 <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" /> Personal Business Advisor</span>
                                                             </>
                                                         )}
+                                                    </div>
+                                                </motion.div>
+                                            );
+                                        }
+
+                                        if (slide.id === 'bizbook') {
+                                            return (
+                                                <motion.div 
+                                                    key="bizbook-marketing-hook" 
+                                                    initial={{ opacity: 0, y: 15 }} 
+                                                    animate={{ opacity: 1, y: 0 }} 
+                                                    exit={{ opacity: 0, y: -15 }} 
+                                                    transition={{ duration: 0.3 }} 
+                                                    className="w-full space-y-6 py-4"
+                                                >
+                                                    <div className="space-y-3 text-center mx-auto max-w-2xl">
+                                                        <div className="inline-flex px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-[10px] font-bold uppercase tracking-wider">
+                                                            Mobile billing shell
+                                                        </div>
+                                                        <h3 className="text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
+                                                            Launch BizBook — a clean, local billing app for MSMEs.
+                                                        </h3>
+                                                        <p className="text-sm text-slate-500 font-normal leading-relaxed">
+                                                            One tool for GST invoices, customer ledger, product master, expense tracking, and payment follow-up.
+                                                        </p>
+                                                    </div>
+
+                                                    <div className="grid gap-4 sm:grid-cols-2">
+                                                        <div className="rounded-[2rem] border border-slate-200 bg-slate-50 p-6">
+                                                            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-3">Core features</div>
+                                                            <ul className="space-y-3 text-sm text-slate-600">
+                                                                <li>GST-ready invoices with partial payment</li>
+                                                                <li>Product master + HSN + stock</li>
+                                                                <li>Customer ledger with GSTIN & state</li>
+                                                                <li>Expense tracker and receivables</li>
+                                                            </ul>
+                                                        </div>
+                                                        <div className="rounded-[2rem] border border-slate-200 bg-white p-6 flex flex-col justify-between">
+                                                            <div>
+                                                                <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-3">Ready to use</div>
+                                                                <p className="text-sm text-slate-500 leading-relaxed">
+                                                                    Open the working BizBook app directly and start billing from localhost. This is our fast, mobile-friendly GST billing flow built for Indian MSMEs.
+                                                                </p>
+                                                            </div>
+                                                            <Link href="/bizbook" className="mt-6 inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 text-sm font-black text-white uppercase tracking-[0.16em] shadow-lg shadow-indigo-600/20 transition hover:bg-indigo-700">
+                                                                Open BizBook App
+                                                            </Link>
+                                                        </div>
                                                     </div>
                                                 </motion.div>
                                             );

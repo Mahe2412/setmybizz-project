@@ -359,4 +359,34 @@ p {
 
 .animate-pulse-glow {
   animation: pulse-glow 4s ease-in-out infinite;
+}
+
+/* --- Pitch Deck High Fidelity PDF Export Styles --- */
+@media print {
+  body.printing-pitch-deck {
+    background: #000000 !important;
+    color: #ffffff !important;
+  }
+  body.printing-pitch-deck * {
+    visibility: hidden;
+  }
+  body.printing-pitch-deck #slide-presentation-area,
+  body.printing-pitch-deck #slide-presentation-area * {
+    visibility: visible;
+  }
+  body.printing-pitch-deck #slide-presentation-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 56.25vw; /* 16:9 Aspect Ratio */
+    margin: 0;
+    padding: 3vw !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    z-index: 99999;
+  }
 }

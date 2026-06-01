@@ -118,23 +118,23 @@ export default function ArkleFloatingVoice() {
                         className="absolute bottom-40 w-48 flex flex-col items-center pointer-events-auto"
                     >
                             {/* THE NEURAL NODE (Liquid Orb Button) */}
-                            <div className="relative w-40 h-40">
+                            <div className="relative w-24 h-24">
                                 {/* Persistent Close Button */}
                                 <motion.button
                                     initial={{ opacity: 0, scale: 0.5 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     onClick={(e) => { e.stopPropagation(); setIsVoiceActive(false); }}
-                                    className="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-slate-900/90 backdrop-blur-xl border border-white/20 flex items-center justify-center text-white/60 hover:text-white hover:bg-red-500 transition-all z-[110] pointer-events-auto shadow-xl"
+                                    className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-slate-900/90 backdrop-blur-xl border border-white/20 flex items-center justify-center text-white/60 hover:text-white hover:bg-red-500 transition-all z-[110] pointer-events-auto shadow-xl"
                                     title="Close Arkle Voice"
                                 >
-                                    <span className="material-symbols-rounded text-[16px]">close</span>
+                                    <span className="material-symbols-rounded text-[14px]">close</span>
                                 </motion.button>
 
                                 <div
                                     className="relative pointer-events-auto"
                                 >
                                     <ArkleVoiceIcon 
-                                        size="xl" 
+                                        size="lg" 
                                         isListening={isVoiceActive && !isPaused && !isMuted}
                                         isThinking={isSpeaking}
                                         volume={volume}

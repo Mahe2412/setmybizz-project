@@ -48,17 +48,24 @@ const LoginStep: React.FC<LoginStepProps> = ({ onLogin, businessName }) => {
         setError('');
         try {
             if (isLogin) {
-                const { error } = await supabase.auth.signInWithPassword({
-                    email,
-                    password,
-                });
-                if (error) throw error;
+                const { error } = await supabase.auth.signInWithPassword({ email, password });
+                if (error) {
+                    if (error.message.includes('Invalid login credentials')) {
+                        throw new Error("Invalid password or account doesn't exist. If you are new, please Sign Up.");
+                    }
+                    throw error;
+                }
             } else {
-                const { error } = await supabase.auth.signUp({
-                    email,
-                    password,
-                });
-                if (error) throw error;
+                const { error } = await supabase.auth.signUp({ email, password });
+                if (error) {
+                    if (error.message.toLowerCase().includes('already registered') || error.message.toLowerCase().includes('already exists')) {
+                        // Auto sign-in if account exists
+                        const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
+                        if (signInErr) throw new Error("Account already exists, but incorrect password. Please Log In.");
+                    } else {
+                        throw error;
+                    }
+                }
             }
             onLogin();
         } catch (err: any) {
@@ -70,30 +77,55 @@ const LoginStep: React.FC<LoginStepProps> = ({ onLogin, businessName }) => {
     };
 
 
-    const handleSendOtp = () => {
+    const handleSendOtp = async () => {
         if (phone.length < 10) {
-            setError("Please enter a valid mobile number");
+            setError("Please enter a valid 10-digit mobile number");
             return;
         }
         setLoading(true);
-        setTimeout(() => {
-            setLoading(false);
+        setError('');
+        try {
+            // Real OTP sending via Supabase + Twilio
+            const { error } = await supabase.auth.signInWithOtp({
+                phone: `+91${phone}`,
+            });
+            
+            if (error) throw error;
+            
             setOtpSent(true);
             setError('');
-            // Simulate OTP sent
-        }, 1500);
+        } catch (err: any) {
+            console.error("OTP Send Error:", err);
+            setError(err.message || 'Failed to send OTP. Please verify your number.');
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const handleVerifyOtp = () => {
-        if (otp.length !== 4 && otp.length !== 6) {
-            setError("Invalid OTP");
+    const handleVerifyOtp = async () => {
+        if (otp.length < 4) {
+            setError("Please enter a valid OTP code.");
             return;
         }
         setLoading(true);
-        setTimeout(() => {
-            setLoading(false);
+        setError('');
+        try {
+            // Verify real OTP via Supabase
+            const { data, error } = await supabase.auth.verifyOtp({
+                phone: `+91${phone}`,
+                token: otp,
+                type: 'sms',
+            });
+            
+            if (error) throw error;
+            
             onLogin(); // Success
-        }, 1500);
+        } catch (err: any) {
+            console.error("Real Phone Auth Error:", err);
+            setError(err.message || 'Incorrect or expired OTP code.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (

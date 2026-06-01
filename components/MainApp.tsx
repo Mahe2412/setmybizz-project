@@ -139,14 +139,14 @@ const AppContent: React.FC = () => {
         <MarketHookStep key="hook" data={data} onBack={prevStep} onDashboard={() => setView('dashboard')} />
     ];
 
-    if (loading) return <div>Initializing...</div>;
-
     // Redirect to /os when onboarding completes
     useEffect(() => {
         if (view === 'dashboard') {
             router.push('/os');
         }
     }, [view, router]);
+
+    if (loading) return <div>Initializing...</div>;
 
     if (view === 'dashboard') {
         return (

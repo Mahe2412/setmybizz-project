@@ -22,6 +22,9 @@ const HUB_APPS = [
 ];
 
 const QUICK_TILES = [
+   { title: 'BILL BOOK', desc: 'BizBook · Supabase', icon: 'menu_book', tab: 'billbook' as const },
+   { title: 'BILLEASE', desc: 'Full GST app', icon: 'receipt_long', tab: 'billease' as const },
+   { title: 'ORDER DESK', desc: 'WA / IG orders', icon: 'chat', tab: 'orderdesk' as const },
    { title: 'CREATE TASK', desc: 'Add new task', icon: 'auto_awesome_motion' },
    { title: 'BRAINSTORM IDEAS', desc: 'Neural ideation engine', icon: 'psychology' },
    { title: 'GST EXPERT', desc: 'Tax & Compliance audit', icon: 'account_balance' },
@@ -38,7 +41,19 @@ const NEURAL_NOTIFICATIONS = [
    { id: 3, text: "Business health score increased to 84%.", type: "info" }
 ];
 
-export default function HomeTab({ data }: { data: any }) {
+export default function HomeTab({
+   data,
+   onOpenBillBook,
+   onOpenBillEase,
+   onOpenOrderDesk,
+   onGmailClick,
+}: {
+   data: any;
+   onOpenBillBook?: () => void;
+   onOpenBillEase?: () => void;
+   onOpenOrderDesk?: () => void;
+   onGmailClick?: () => void;
+}) {
    const { dbUser, dbBusiness } = useAuth();
    const { whiteboardOpen: isWhiteboardOpen, setWhiteboardOpen: setIsWhiteboardOpen, conversationMode, setConversationMode, setSidebarOpen, performanceGaps } = useBizStore();
    const [activeChatTab, setActiveChatTab] = useState<'ask' | 'agents'>('ask');
@@ -206,9 +221,9 @@ export default function HomeTab({ data }: { data: any }) {
                )}
             </div>
 
-            <div className={`px-4 md:px-20 ${conversationMode ? 'py-4' : 'py-12 md:py-16'} flex flex-col items-center flex-1 relative`}>
+            <div className={`px-4 md:px-20 ${conversationMode ? 'py-4' : 'pt-4 pb-12 md:pt-6 md:pb-16'} flex flex-col items-center flex-1 relative`}>
                {!conversationMode && (
-                  <div className="flex flex-col items-center mb-10 text-center">
+                  <div className="flex flex-col items-center mb-6 text-center">
                      <h3 className="text-[54px] md:text-[68px] font-black text-slate-900 tracking-tighter leading-none mb-4">
                         Arkle <span className="text-blue-600">Brain</span>
                      </h3>
@@ -231,7 +246,7 @@ export default function HomeTab({ data }: { data: any }) {
                   </div>
                )}
 
-               <div className={`w-full transition-all duration-500 z-50 ${conversationMode ? 'fixed bottom-6 left-1/2 -translate-x-1/2 max-w-[950px] px-4' : 'max-w-[850px] mx-auto'}`}>
+                <div className={`w-full transition-all duration-500 z-50 ${conversationMode ? 'fixed bottom-6 left-1/2 -translate-x-1/2 max-w-[788px] px-4' : 'max-w-[705px] mx-auto relative -translate-y-8'}`}>
 
                   {/* Suggestions Menu */}
                   <AnimatePresence>
@@ -262,113 +277,21 @@ export default function HomeTab({ data }: { data: any }) {
                      <button onClick={() => setActiveChatTab('agents')} className={`w-[105px] h-[33px] flex items-center justify-center transition-all duration-300 font-black relative z-30 ${activeChatTab === 'agents' ? 'rounded-tl-[20px] rounded-tr-none rounded-b-none bg-gradient-to-r from-violet-600 to-blue-600 text-white shadow-[0_-5px_15px_rgba(124,58,237,0.25)]' : 'rounded-none bg-transparent text-slate-400 hover:text-slate-600'}`}><span className="relative z-10 uppercase tracking-[0.2em] text-[10px]">Agent</span></button>
                   </div>
                   <div className="relative p-[4px] rounded-tr-[42px] rounded-br-[42px] rounded-bl-[42px] rounded-tl-none bg-gradient-to-r from-purple-600 via-rose-500 to-indigo-600 shadow-[0_30px_70px_-20px_rgba(79,70,229,0.25)] z-10">
-                     {/* Arkle Voice Trigger - Animated & Draggable Bubble */}
-                     <motion.div
-                        drag
-                        dragMomentum={false}
-                        className="absolute -top-16 left-1/2 -translate-x-1/2 z-40 cursor-grab active:cursor-grabbing"
-                     >
-                        <motion.div
-                           whileHover={{ scale: 1.1, y: -3 }}
-                           whileTap={{ scale: 0.9 }}
-                           onClick={() => useBizStore.getState().setIsVoiceActive(true)}
-                           className="relative flex flex-col items-center group cursor-pointer"
-                        >
-                           <div className="w-24 h-24 rounded-full bg-slate-900 flex items-center justify-center shadow-2xl border-2 border-white/20 relative overflow-hidden">
-                              {/* Hyper-Realistic Liquid Background (Screenshot Match) */}
-                              <div className="absolute inset-0 overflow-hidden opacity-90">
-                                 <div className="absolute inset-[-20%] bg-blue-600/30 animate-liquid [animation-duration:5s] mix-blend-screen blur-[45px] scale-150"></div>
-                                 <div className="absolute inset-[-30%] bg-indigo-600/30 animate-liquid [animation-duration:8s] [animation-delay:-1s] mix-blend-screen blur-[55px] scale-125"></div>
-                                 <div className="absolute inset-[-25%] bg-violet-600/30 animate-liquid [animation-duration:11s] [animation-delay:-3s] mix-blend-screen blur-[65px] scale-150"></div>
-                                 <div className="absolute inset-[-40%] bg-cyan-400/20 animate-liquid [animation-duration:14s] [animation-delay:-5s] mix-blend-screen blur-[75px] scale-175"></div>
-                              </div>
-
-                              {/* The Central Liquid Morphing Blob */}
-                              <svg viewBox="0 0 200 200" className="absolute inset-0 w-full h-full scale-[1.3] z-10 opacity-70 mix-blend-overlay">
-                                 <defs>
-                                    <linearGradient id="homeOrbGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                       <stop offset="0%" style={{ stopColor: '#60a5fa', stopOpacity: 0.8 }} />
-                                       <stop offset="100%" style={{ stopColor: '#4f46e5', stopOpacity: 0.8 }} />
-                                    </linearGradient>
-                                 </defs>
-                                 <motion.path
-                                    animate={{
-                                       d: [
-                                          "M100,10 Q160,10 180,80 T160,160 T100,190 T40,160 T20,80 T100,10",
-                                          "M100,20 Q170,10 190,90 T170,170 T100,180 T30,170 T10,90 T100,20",
-                                          "M100,10 Q160,10 180,80 T160,160 T100,190 T40,160 T20,80 T100,10"
-                                       ]
-                                    }}
-                                    transition={{
-                                       duration: 3,
-                                       repeat: Infinity,
-                                       ease: "easeInOut"
-                                    }}
-                                    fill="url(#homeOrbGrad)"
-                                 />
-                              </svg>
-                              
-                              {/* Heart Pulse (Screenshot Match: 4-bar Equalizer) */}
-                              <div className="relative z-20 w-full h-full flex items-center justify-center">
-                                 <div className="absolute inset-0 bg-blue-400/30 rounded-full blur-md animate-ping"></div>
-                                 
-                                 <div className="flex items-center gap-1 h-6 relative z-10">
-                                     {[1, 2, 3, 4].map((i) => (
-                                         <div 
-                                             key={i} 
-                                             className="w-1 bg-white rounded-full animate-voice-wave shadow-[0_0_8px_rgba(255,255,255,0.6)]" 
-                                             style={{ 
-                                                 height: i === 1 || i === 4 ? '60%' : '100%',
-                                                 animationDelay: `${i * 0.15}s` 
-                                             }}
-                                         ></div>
-                                     ))}
-                                 </div>
-                              </div>
-                           </div>
-
-                           {/* Quick Command Sticker Popup (Home Match) */}
-                           <div className="absolute -top-16 left-1/2 -translate-x-1/2 flex items-center gap-2 p-1.5 bg-slate-900/95 backdrop-blur-xl rounded-2xl border border-white/20 shadow-[0_30px_60px_rgba(0,0,0,0.4)] opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:-translate-y-0 z-50">
-                               <button 
-                                   onClick={(e) => { e.stopPropagation(); useBizStore.getState().setIsMuted(!useBizStore.getState().isMuted); }}
-                                   className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${useBizStore.getState().isMuted ? 'text-orange-400 bg-orange-400/10' : 'text-white hover:bg-white/10'}`}
-                               >
-                                   <span className="material-symbols-rounded text-[18px]">{useBizStore.getState().isMuted ? 'mic_off' : 'mic'}</span>
-                               </button>
-                               <button 
-                                   onClick={(e) => { e.stopPropagation(); useBizStore.getState().setIsVoiceActive(false); }}
-                                   className="w-9 h-9 rounded-xl flex items-center justify-center text-red-400 border border-red-400/20 hover:bg-red-500/20 transition-all"
-                               >
-                                   <span className="material-symbols-rounded text-[18px]">close</span>
-                               </button>
-                               <button 
-                                   onClick={(e) => { e.stopPropagation(); useBizStore.getState().setIsPaused(!useBizStore.getState().isPaused); }}
-                                   className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${useBizStore.getState().isPaused ? 'text-blue-400 bg-blue-400/10' : 'text-white hover:bg-white/10'}`}
-                               >
-                                   <span className="material-symbols-rounded text-[18px]">{useBizStore.getState().isPaused ? 'play_arrow' : 'pause'}</span>
-                               </button>
-                               {/* Arrow */}
-                               <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-slate-900/95 border-r border-b border-white/20 rotate-45"></div>
-                           </div>
-
-                           <div className="mt-4 px-5 py-2 bg-white shadow-xl rounded-full border border-slate-100 opacity-0 group-hover:opacity-100 transition-all text-[10px] font-black uppercase tracking-[0.2em] text-slate-900 whitespace-nowrap">Voice Mode Active</div>
-
-                        </motion.div>
-                     </motion.div>
-
                      <div className="bg-white rounded-tr-[39px] rounded-br-[39px] rounded-bl-[39px] rounded-tl-none flex flex-col overflow-visible">
-                        <textarea ref={textareaRef} value={input} onChange={handleInput} rows={1} className="w-full bg-white border-none outline-none focus:outline-none focus:ring-0 text-slate-400 text-[18px] md:text-[21px] font-normal px-12 pt-10 pb-2 resize-none no-scrollbar placeholder:text-slate-300 placeholder:font-light rounded-[39px] min-h-[60px]" placeholder="Ask Arkle or type @topic for deep research..." />
-                        <div className="flex items-center justify-between px-10 pb-6 pt-4 bg-white border-none rounded-b-[39px]">
-                           <div className="flex items-center gap-2 mt-2">
-                              <button className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 hover:bg-slate-100"><span className="material-symbols-rounded text-[20px]">add</span></button>
-                              <div className="flex items-center gap-2 bg-slate-50/50 p-1 rounded-full border border-slate-100 mt-1">
-                                 <div className="relative">
-                                    <button onClick={() => setIsBrainMenuOpen(!isBrainMenuOpen)} className="px-4 h-8 rounded-full bg-white border border-slate-100 flex items-center gap-2 text-[10px] font-black text-slate-800 hover:border-blue-400 transition-all shadow-xs relative z-30"><div className="w-1.5 h-1.5 rounded-full bg-blue-500" />{selectedContext} <span className={`material-symbols-rounded text-[16px] text-slate-300 transition-transform ${isBrainMenuOpen ? 'rotate-180' : ''}`}>expand_more</span></button>
-                                    <AnimatePresence>{isBrainMenuOpen && <motion.div initial={{ opacity: 0, y: conversationMode ? 10 : -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: conversationMode ? 10 : -10 }} className={`absolute ${conversationMode ? 'bottom-full mb-3' : 'top-full mt-3'} left-0 w-64 bg-white rounded-[24px] border border-slate-100 shadow-2xl p-2 z-[999]`}>{['Arkle Brain', 'Biz Book', 'Workspace', 'Launch Pad', 'Agent Mode', 'Global Market'].map(opt => (<button key={opt} onClick={() => { setSelectedContext(opt); setIsBrainMenuOpen(false); }} className="w-full text-left p-3 rounded-xl hover:bg-slate-50 text-[10px] font-black uppercase text-slate-800 transition-all flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-blue-500" />{opt}</button>))}</motion.div>}</AnimatePresence>
-                                 </div>
-                                 <div className="relative">
-                                    <button onClick={() => setIsModelMenuOpen(!isModelMenuOpen)} className="px-4 h-8 rounded-full bg-white border border-slate-100 flex items-center gap-2 text-[10px] font-black text-slate-800 hover:border-blue-400 transition-all shadow-xs relative z-30">{selectedModel} <span className={`material-symbols-rounded text-[16px] text-slate-300 transition-transform ${isModelMenuOpen ? 'rotate-180' : ''}`}>expand_more</span></button>
-                                    <AnimatePresence>{isModelMenuOpen && <motion.div initial={{ opacity: 0, y: conversationMode ? 10 : -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: conversationMode ? 10 : -10 }} className={`absolute ${conversationMode ? 'bottom-full mb-3' : 'top-full mt-3'} left-0 w-64 bg-white rounded-[24px] border border-slate-100 shadow-2xl p-2 z-[999]`}>{['Gemini 1.5 Pro', 'GPT-4o (Premium)', 'Claude 3.5 Sonnet', 'Arkle Test Model'].map(m => (<button key={m} onClick={() => { setSelectedModel(m); setIsModelMenuOpen(false); }} className="w-full text-left p-3 rounded-xl hover:bg-slate-50 text-[10px] font-black uppercase text-slate-800 transition-all">{m}</button>))}</motion.div>}</AnimatePresence>
+                        <textarea ref={textareaRef} value={input} onChange={handleInput} rows={1} className="w-full bg-white border-none outline-none focus:outline-none focus:ring-0 text-slate-400 text-[15px] md:text-[21px] font-normal px-6 md:px-12 pt-6 pb-2 resize-none no-scrollbar placeholder:text-slate-300 placeholder:font-light rounded-[39px] min-h-[60px]" placeholder="Ask Arkle or type @topic for deep research..." />
+                        <div className="flex items-center justify-between px-4 md:px-10 pb-4 md:pb-6 pt-4 bg-white border-none rounded-b-[39px]">
+                           <div className="flex items-center gap-1.5 md:flex-row flex-col items-start gap-y-2 mt-2 w-full md:w-auto">
+                              <div className="flex items-center gap-2">
+                                 <button className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 hover:bg-slate-100"><span className="material-symbols-rounded text-[20px]">add</span></button>
+                                 <div className="flex items-center gap-1.5 bg-slate-50/50 p-1 rounded-full border border-slate-100">
+                                    <div className="relative">
+                                       <button onClick={() => setIsBrainMenuOpen(!isBrainMenuOpen)} className="px-2 md:px-4 h-8 rounded-full bg-white border border-slate-100 flex items-center gap-1.5 text-[8.5px] md:text-[10px] font-black text-slate-800 hover:border-blue-400 transition-all shadow-xs relative z-30"><div className="w-1.5 h-1.5 rounded-full bg-blue-500" />{selectedContext} <span className={`material-symbols-rounded text-[16px] text-slate-300 transition-transform ${isBrainMenuOpen ? 'rotate-180' : ''}`}>expand_more</span></button>
+                                       <AnimatePresence>{isBrainMenuOpen && <motion.div initial={{ opacity: 0, y: conversationMode ? 10 : -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: conversationMode ? 10 : -10 }} className={`absolute ${conversationMode ? 'bottom-full mb-3' : 'top-full mt-3'} left-0 w-64 bg-white rounded-[24px] border border-slate-100 shadow-2xl p-2 z-[999]`}>{['Arkle Brain', 'Biz Book', 'Workspace', 'Launch Pad', 'Agent Mode', 'Global Market'].map(opt => (<button key={opt} onClick={() => { setSelectedContext(opt); setIsBrainMenuOpen(false); }} className="w-full text-left p-3 rounded-xl hover:bg-slate-50 text-[10px] font-black uppercase text-slate-800 transition-all flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-blue-500" />{opt}</button>))}</motion.div>}</AnimatePresence>
+                                    </div>
+                                    <div className="relative">
+                                       <button onClick={() => setIsModelMenuOpen(!isModelMenuOpen)} className="px-2 md:px-4 h-8 rounded-full bg-white border border-slate-100 flex items-center gap-1.5 text-[8.5px] md:text-[10px] font-black text-slate-800 hover:border-blue-400 transition-all shadow-xs relative z-30">{selectedModel} <span className={`material-symbols-rounded text-[16px] text-slate-300 transition-transform ${isModelMenuOpen ? 'rotate-180' : ''}`}>expand_more</span></button>
+                                       <AnimatePresence>{isModelMenuOpen && <motion.div initial={{ opacity: 0, y: conversationMode ? 10 : -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: conversationMode ? 10 : -10 }} className={`absolute ${conversationMode ? 'bottom-full mb-3' : 'top-full mt-3'} left-0 w-64 bg-white rounded-[24px] border border-slate-100 shadow-2xl p-2 z-[999]`}>{['Gemini 1.5 Pro', 'GPT-4o (Premium)', 'Claude 3.5 Sonnet', 'Arkle Test Model'].map(m => (<button key={m} onClick={() => { setSelectedModel(m); setIsModelMenuOpen(false); }} className="w-full text-left p-3 rounded-xl hover:bg-slate-50 text-[10px] font-black uppercase text-slate-800 transition-all">{m}</button>))}</motion.div>}</AnimatePresence>
+                                    </div>
                                  </div>
                               </div>
                            </div>
@@ -381,30 +304,42 @@ export default function HomeTab({ data }: { data: any }) {
                {/* ELEMENTS TO HIDE IN CONVERSATION MODE */}
                {!conversationMode && (
                   <>
-                     <div className="mt-20 w-full max-w-5xl mx-auto flex items-center gap-4 group">
-                        <button onClick={prevTiles} disabled={tileIndex === 0} className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${tileIndex === 0 ? 'opacity-0' : 'bg-white shadow-lg text-slate-400 hover:text-blue-600 hover:scale-110'}`}><span className="material-symbols-rounded">chevron_left</span></button>
-                        <div className="flex-1 grid grid-cols-4 gap-6 overflow-hidden">
+                     <div className="mt-14 w-full max-w-4xl mx-auto flex items-center gap-3 group">
+                        <button onClick={prevTiles} disabled={tileIndex === 0} className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${tileIndex === 0 ? 'opacity-0' : 'bg-white shadow-md text-slate-400 hover:text-blue-600 hover:scale-105'}`}><span className="material-symbols-rounded text-[18px]">chevron_left</span></button>
+                        <div className="flex-1 grid grid-cols-4 gap-4 overflow-hidden">
                            <AnimatePresence mode="popLayout">
                               {QUICK_TILES.slice(tileIndex, tileIndex + 4).map((tile) => (
                                  <motion.button
                                     key={tile.title}
-                                    initial={{ opacity: 0, x: 20 }}
+                                    type="button"
+                                    onClick={() => {
+                                       if ('tab' in tile && tile.tab === 'billbook') {
+                                          onOpenBillBook?.();
+                                       }
+                                       if ('tab' in tile && tile.tab === 'billease') {
+                                          onOpenBillEase?.();
+                                       }
+                                       if ('tab' in tile && tile.tab === 'orderdesk') {
+                                          onOpenOrderDesk?.();
+                                       }
+                                    }}
+                                    initial={{ opacity: 0, x: 15 }}
                                     animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: -20 }}
-                                    className="bg-white p-5 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-1.5 transition-all text-left group min-h-[144px] flex flex-col justify-between"
+                                    exit={{ opacity: 0, x: -15 }}
+                                    className="bg-white p-3.5 rounded-[22px] border border-slate-100/80 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all text-left group min-h-[108px] flex flex-col justify-between"
                                  >
-                                    <div className="mb-3 text-slate-300 group-hover:text-blue-500 transition-colors">
-                                       <span className="material-symbols-rounded text-[28px]">{tile.icon}</span>
+                                    <div className="mb-2 text-slate-300 group-hover:text-blue-500 transition-colors">
+                                       <span className="material-symbols-rounded text-[21px]">{tile.icon}</span>
                                     </div>
                                     <div>
-                                       <h4 className="text-[12px] font-extrabold text-slate-900 mb-1 leading-tight uppercase tracking-tight">{tile.title}</h4>
-                                       <p className="text-[10px] font-semibold text-slate-400 leading-tight uppercase tracking-wide opacity-70">{tile.desc}</p>
+                                       <h4 className="text-[10px] font-extrabold text-slate-900 mb-0.5 leading-tight uppercase tracking-tight">{tile.title}</h4>
+                                       <p className="text-[8px] font-semibold text-slate-400 leading-tight uppercase tracking-wide opacity-70">{tile.desc}</p>
                                     </div>
                                  </motion.button>
                               ))}
                            </AnimatePresence>
                         </div>
-                        <button onClick={nextTiles} disabled={tileIndex + 4 >= QUICK_TILES.length} className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${tileIndex + 4 >= QUICK_TILES.length ? 'opacity-0' : 'bg-white shadow-lg text-slate-400 hover:text-blue-600 hover:scale-110'}`}><span className="material-symbols-rounded">chevron_right</span></button>
+                        <button onClick={nextTiles} disabled={tileIndex + 4 >= QUICK_TILES.length} className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${tileIndex + 4 >= QUICK_TILES.length ? 'opacity-0' : 'bg-white shadow-md text-slate-400 hover:text-blue-600 hover:scale-105'}`}><span className="material-symbols-rounded text-[18px]">chevron_right</span></button>
                      </div>
 
                      <div className="w-full max-w-[850px] mx-auto mt-16 px-4 md:px-0">
@@ -414,18 +349,29 @@ export default function HomeTab({ data }: { data: any }) {
                         </div>
                         <div className="grid grid-cols-6 gap-2 md:gap-4">
                            {[
-                              { label: 'BIZ BOOK', icon: 'menu_book', color: 'text-violet-600', bg: 'bg-violet-50' },
-                              { label: 'INVOICE', icon: 'receipt_long', color: 'text-blue-600', bg: 'bg-blue-50' },
-                              { label: 'GLOBAL', icon: 'public', color: 'text-sky-600', bg: 'bg-sky-50' },
-                              { label: 'EXCEL', icon: 'table_chart', color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                              { label: 'DOCS', icon: 'description', color: 'text-indigo-600', bg: 'bg-indigo-50' },
+                              { label: 'Bill Book', icon: 'menu_book', color: 'text-violet-600', bg: 'bg-violet-50', action: 'billbook' as const },
+                              { label: 'BillEase', icon: 'receipt_long', color: 'text-emerald-600', bg: 'bg-emerald-50', action: 'billease' as const },
+                              { label: 'Order Desk', icon: 'chat', color: 'text-pink-600', bg: 'bg-pink-50', action: 'orderdesk' as const },
+                              { label: 'INVOICE', icon: 'description', color: 'text-blue-600', bg: 'bg-blue-50', action: 'billbook' as const },
+                              { label: 'GLOBAL', icon: 'public', color: 'text-sky-600', bg: 'bg-sky-50', action: undefined },
+                              { label: 'EXCEL', icon: 'table_chart', color: 'text-emerald-600', bg: 'bg-emerald-50', action: undefined },
+                              { label: 'DOCS', icon: 'description', color: 'text-indigo-600', bg: 'bg-indigo-50', action: undefined },
                            ].map((item) => (
-                              <div key={item.label} className="flex flex-col items-center gap-4 group cursor-pointer">
+                              <button
+                                 key={item.label}
+                                 type="button"
+                                 onClick={() => {
+                                    if (item.action === 'billbook') onOpenBillBook?.();
+                                    else if (item.action === 'billease') onOpenBillEase?.();
+                                    else if (item.action === 'orderdesk') onOpenOrderDesk?.();
+                                 }}
+                                 className="flex flex-col items-center gap-4 group cursor-pointer border-0 bg-transparent p-0"
+                              >
                                  <div className={`w-16 h-16 rounded-full ${item.bg} flex items-center justify-center border-2 border-white shadow-sm group-hover:shadow-xl group-hover:-translate-y-1 transition-all duration-300`}>
                                     <span className={`material-symbols-rounded text-[28px] ${item.color}`}>{item.icon}</span>
                                  </div>
-                                 <span className="text-[9px] font-black text-blue-600 uppercase tracking-widest text-center">{item.label}</span>
-                              </div>
+                                <span className="text-[9px] font-black text-blue-600 uppercase tracking-widest text-center">{item.label}</span>
+                              </button>
                            ))}
                            <div className="flex flex-col items-center gap-4 group cursor-pointer">
                               <div className="w-16 h-16 rounded-full border-2 border-dashed border-slate-200 flex items-center justify-center bg-slate-50/30 group-hover:border-blue-400 group-hover:bg-blue-50/30 transition-all duration-300">
@@ -502,7 +448,11 @@ export default function HomeTab({ data }: { data: any }) {
          </div>
 
          {/* RIGHT QUICK TRAY - ALWAYS VISIBLE */}
-         <RightQuickTray />
+         <RightQuickTray onAppClick={(appId) => {
+            if (appId === 'mail') {
+               onGmailClick?.();
+            }
+         }} />
 
          {/* BOTTOM HUB - HIDE IN CONVERSATION MODE */}
          {!conversationMode && (

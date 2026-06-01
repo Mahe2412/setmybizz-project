@@ -16,6 +16,8 @@
 
 // ── Types ──────────────────────────────────────────────────────────
 
+import { supabase } from './supabase';
+
 export type VoiceMode = 'idle' | 'listening' | 'processing' | 'speaking' | 'error';
 
 export type VoiceCommandType =
@@ -245,12 +247,14 @@ export class ArkleVoiceRecognizer {
         // Log to Supabase for Neural Memory
         const userId = getActiveUserId();
         if (userId) {
-            logVoiceCommand({
+            supabase.from('voice_commands').insert({
                 user_id: userId,
                 transcript: transcript,
                 command_type: 'voice_input',
                 was_processed: true,
                 confidence: confidence
+            }).then(({ error }) => {
+                if (error) console.error("Error logging voice command:", error);
             });
         }
       }
@@ -305,7 +309,7 @@ export class ArkleVolumeMeter {
 
     const tick = () => {
       if (!this.analyser || !this.dataArray) return;
-      this.analyser.getByteFrequencyData(this.dataArray);
+      this.analyser.getByteFrequencyData(this.dataArray as any);
       const avg = this.dataArray.reduce((a, b) => a + b, 0) / this.dataArray.length;
       onVolume(Math.round(avg));
       this.animFrame = requestAnimationFrame(tick);

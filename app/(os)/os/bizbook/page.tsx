@@ -1,10 +1,10 @@
 'use client';
-import BizBookDashboard from '@/components/bizbook/BizBookDashboard';
+import BizBookDashboardEnhanced from '@/components/bizbook/BizBookDashboardEnhanced';
 
 export default function BizBookOSPage() {
     return (
         <main className="min-h-screen">
-            <BizBookDashboard />
+            <BizBookDashboardEnhanced productName="Bill Book" />
         </main>
     );
 }

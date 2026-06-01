@@ -2,38 +2,38 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { 
-    Building2, ShieldCheck, Zap, ArrowLeft, ChevronRight, CheckCircle2,
+    Building2, ShieldCheck, Zap, TrendingUp, ArrowLeft, ChevronRight, CheckCircle2,
     Briefcase, FileText, Landmark, Clock, Users, ShieldAlert, Check,
-    HelpCircle, ChevronDown, Calendar, MessageSquare, ArrowUpRight
+    Sparkles, HelpCircle, ChevronDown, Calendar, MessageSquare, ArrowUpRight
 } from 'lucide-react';
 
 const BIZ_SLIDES = [
     {
-        id: 'setup',
-        title: 'The Startup Engine',
-        subtitle: 'Phase 1: Foundation',
-        desc: 'Turning ideas into registered entities. We handle the complex legal work while you build your product.',
-        features: ['Pvt Ltd / LLP Incorporation', 'Professional Trademark Search', 'GST & MSME Instant Filing'],
-        icon: Building2,
+        id: 'brain',
+        title: 'Business Brain',
+        subtitle: 'Command Intelligence',
+        desc: 'Arkle tracks your legal, finance, sales and growth data in one place, identifying exactly where your business is stuck.',
+        features: ['Gap detection', 'Proactive advisory', 'Autonomous action plans'],
+        icon: Sparkles,
         color: 'blue'
     },
     {
-        id: 'compliance',
-        title: 'Neural Compliance',
-        subtitle: 'Phase 2: Operations',
-        desc: 'Stop worrying about tax dates and filings. BizDesk AI tracks everything and notifies our experts to execute.',
-        features: ['Automated GST Tracking', 'Annual Compliance Vault', 'TDS & Tax Advisory'],
-        icon: ShieldCheck,
-        color: 'purple'
+        id: 'pulse',
+        title: 'Performance Pulse',
+        subtitle: 'Health & Growth',
+        desc: 'A real-time health score for your business, showing profit leaks, overdue filings, and growth opportunities.',
+        features: ['Cashflow radar', 'Compliance score', 'Sales velocity'],
+        icon: TrendingUp,
+        color: 'emerald'
     },
     {
-        id: 'growth',
-        title: 'Scale & Intelligence',
-        subtitle: 'Phase 2: Expansion',
-        desc: 'Real-time analytics for your business growth. From market insights to funding readiness reports.',
-        features: ['Neural Growth Analytics', 'Funding Readiness Audits', 'Market Access Strategy'],
+        id: 'fix',
+        title: 'Solution Engine',
+        subtitle: 'AutoFix & Automate',
+        desc: 'Recommend tools, workflows and AI agents to solve the exact business issue you are facing right now.',
+        features: ['Agent blueprints', 'Workflow automation', 'Tool suggestions'],
         icon: Zap,
-        color: 'emerald'
+        color: 'rose'
     }
 ];
 
@@ -42,37 +42,64 @@ const DETAILED_SERVICES = [
         title: 'Pvt Ltd Incorporation',
         desc: 'Complete digital setup including DIN, DSC, PAN, TAN, and SPICe+ filing within 7-10 days.',
         price: '₹5,999 + Govt Fees',
-        time: '7-10 Days'
+        time: '7-10 Days',
+        icon: Building2
     },
     {
         title: 'GST Registration',
         desc: 'End-to-end application including ARN tracking, document verification, and immediate certificate delivery.',
         price: '₹1,499',
-        time: '3-5 Days'
+        time: '3-5 Days',
+        icon: FileText
     },
     {
         title: 'Trademark Search & Reg',
         desc: 'Protect your brand name. Includes class classification, comprehensive search, and TM-A application filing.',
         price: '₹1,999 + Govt Fees',
-        time: '24 Hours'
+        time: '24 Hours',
+        icon: Landmark
     },
     {
         title: 'LLP Setup',
         desc: 'Perfect for professional practices and partnerships. Drafting of partnership agreements included.',
         price: '₹4,999 + Govt Fees',
-        time: '10-12 Days'
+        time: '10-12 Days',
+        icon: Briefcase
     },
     {
         title: 'Annual Compliance Pack',
         desc: 'Dedicated CA for all periodic filings, MCA compliance, AOC-4, MGT-7, and balance sheet prep.',
         price: '₹1,999 / month',
-        time: 'Annual Support'
+        time: 'Annual Support',
+        icon: ShieldCheck
     },
     {
         title: 'Corporate Bank Account',
         desc: 'Zero balance corporate current account setup with RazorpayX or ICICI partner integration.',
         price: 'Free Integration',
-        time: '48 Hours'
+        time: '48 Hours',
+        icon: Calendar
+    }
+];
+
+const BIZ_BRAIN_FEATURES = [
+    {
+        title: 'Gap Radar',
+        desc: 'Detect revenue leaks, compliance risks, and operational bottlenecks before they become business problems.',
+        icon: ShieldAlert,
+        accent: 'bg-blue-50 text-blue-700'
+    },
+    {
+        title: 'Fix Blueprint',
+        desc: 'Get ready-to-run tool, workflow and AI agent recommendations for every blocked business process.',
+        icon: Sparkles,
+        accent: 'bg-emerald-50 text-emerald-700'
+    },
+    {
+        title: 'Performance Pulse',
+        desc: 'Your business health score with daily alerts, performance coaching, and next-best actions.',
+        icon: Clock,
+        accent: 'bg-rose-50 text-rose-700'
     }
 ];
 
@@ -104,6 +131,7 @@ export default function BizDeskPage() {
 
     const [bizType, setBizType] = useState<'new' | 'existing'>('new');
     const [bizName, setBizName] = useState('');
+    const [navQuery, setNavQuery] = useState('');
 
     const slide = BIZ_SLIDES[activeSlide];
     const SlideIcon = slide.icon;
@@ -115,8 +143,14 @@ export default function BizDeskPage() {
         }
     };
 
+    const filteredSlides = BIZ_SLIDES.filter(s => {
+        const q = navQuery.trim().toLowerCase();
+        if (!q) return true;
+        return s.title.toLowerCase().includes(q) || s.subtitle.toLowerCase().includes(q) || s.desc.toLowerCase().includes(q);
+    });
+
     return (
-        <div className="flex h-screen w-screen overflow-hidden bg-slate-50 font-sans text-slate-900">
+        <div className="transform scale-[0.85] origin-top-left flex h-screen overflow-hidden bg-slate-50 font-sans text-slate-900" style={{ width: '117.65%' }}>
             {/* Left Column (40% width) - Sky Blue Gradient */}
             <aside className="w-[40%] h-full bg-gradient-to-b from-sky-50 to-sky-100/70 border-r border-sky-200/85 p-8 lg:p-10 flex flex-col justify-between shrink-0 relative">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-sky-200/20 rounded-full blur-2xl pointer-events-none" />
@@ -137,8 +171,21 @@ export default function BizDeskPage() {
                         </div>
                     </div>
 
+                    <div className="mb-4">
+                        <label className="sr-only">Search BizDesk</label>
+                        <div className="flex items-center gap-2 bg-white border border-slate-100 rounded-xl p-2">
+                            <input
+                                value={navQuery}
+                                onChange={(e) => setNavQuery(e.target.value)}
+                                placeholder="Search apps, features or tools..."
+                                className="w-full text-sm font-semibold px-2 py-2 bg-transparent outline-none"
+                            />
+                        </div>
+                        <div className="text-[11px] font-black text-slate-400 mt-2">Apps & Features</div>
+                    </div>
+
                     <nav className="space-y-3.5">
-                        {BIZ_SLIDES.map((item, idx) => {
+                        {filteredSlides.map((item, idx) => {
                             const Icon = item.icon;
                             const isActive = activeSlide === idx;
                             return (
@@ -179,7 +226,7 @@ export default function BizDeskPage() {
             </aside>
 
             {/* Right Column (60% width) - White Background & Scrollable Workspace */}
-            <main className="w-[60%] h-full bg-white overflow-y-auto no-scrollbar relative p-8 lg:p-16 space-y-16">
+            <main className="w-[60%] h-full bg-white overflow-y-auto no-scrollbar relative py-8 pl-8 pr-0 lg:py-16 lg:pl-16 lg:pr-0 space-y-16">
                 <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-b from-blue-50/20 to-transparent rounded-full blur-3xl pointer-events-none" />
                 
                 {/* 1. Hero Content Pane */}
@@ -265,6 +312,18 @@ export default function BizDeskPage() {
                             <SlideIcon className="w-28 h-28 text-blue-500 group-hover:scale-110 transition-transform duration-500" />
                         </div>
                     </div>
+                </section>
+
+                <section className="w-full max-w-[90%] mx-auto grid md:grid-cols-3 gap-6 py-12">
+                    {BIZ_BRAIN_FEATURES.map((feature) => (
+                        <div key={feature.title} className="bg-white rounded-[2rem] border border-slate-200 p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
+                            <div className={`inline-flex h-12 w-12 rounded-3xl items-center justify-center ${feature.accent} mb-4`}>
+                                <feature.icon className="w-5 h-5" />
+                            </div>
+                            <h3 className="text-lg font-black text-slate-950 mb-2">{feature.title}</h3>
+                            <p className="text-sm text-slate-500 leading-relaxed">{feature.desc}</p>
+                        </div>
+                    ))}
                 </section>
 
                 <div className="w-full max-w-[90%] mx-auto h-px bg-slate-100" />
