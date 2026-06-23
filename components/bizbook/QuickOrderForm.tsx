@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Phone, User, MapPin, Trash2, Copy, QrCode, AlertCircle } from 'lucide-react';
+import { Plus, Phone, User, MapPin, Trash2, Copy, QrCode, AlertCircle, MessageSquare } from 'lucide-react';
 
 type OrderItem = {
   id: string;

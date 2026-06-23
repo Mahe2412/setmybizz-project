@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SetMyBizz - The world's first AI-powered Business Operating System. Launch, manage, and scale your business with ease.">
+    <title>SetMyBizz | AI Business Operating System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://kit.fontawesome.com/your-code.js" crossorigin="anonymous"></script> <!-- Placeholder for icons -->
+    <style>
+        /* Inline font-awesome like icons using SVG for reliability */
+        .icon-svg { width: 24px; height: 24px; fill: currentColor; }
+    </style>
+</head>
+<body>
+    <div class="mesh-bg"></div>
+    
+    <nav>
+        <div class="container">
+            <a href="#" class="logo" id="nav-logo">SetMyBizz</a>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#about">About</a>
+                <a href="#contact" class="btn btn-primary">Get Started</a>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <section class="hero animate">
+            <div class="container">
+                <h1>
+                    <span>The Future of</span>
+                    <span class="gradient-text">Business is Here.</span>
+                </h1>
+                <p class="fade-in delay-1">Launch, manage, and scale your business with the world's first AI-powered Operating System. From registration to automation, we've got you covered.</p>
+                
+                <form class="lead-capture-hero fade-in delay-2" id="hero-form">
+                    <input type="email" placeholder="Enter your business email" required id="hero-email">
+                    <button type="submit" class="btn btn-primary">Join the Waitlist</button>
+                </form>
+                
+                <div class="hero-stats fade-in delay-2">
+                    <div class="stat">
+                        <span class="stat-value">500+</span>
+                        <span class="stat-label">Businesses Launched</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">24/7</span>
+                        <span class="stat-label">AI Support</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">10x</span>
+                        <span class="stat-label">Faster Growth</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="features">
+            <div class="container">
+                <div class="section-header text-center">
+                    <h2 class="gradient-text">Engineered for Success</h2>
+                    <p>Everything you need to run a modern business, automated by AI.</p>
+                </div>
+                
+                <div class="grid">
+                    <div class="card">
+                        <div class="icon">
+                            <svg class="icon-svg" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                        </div>
+                        <h3>BizOS AI Core</h3>
+                        <p>A neural engine that manages your operations, predicts market trends, and automates mundane tasks.</p>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="icon">
+                            <svg class="icon-svg" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        </div>
+                        <h3>Secure Registration</h3>
+                        <p>Get your business registered and compliant in minutes with our automated legal filing system.</p>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="icon">
+                            <svg class="icon-svg" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                        </div>
+                        <h3>Growth Engine</h3>
+                        <p>Launch targeted campaigns and capture high-intent leads with our AI-driven marketing suite.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="contact" class="contact-section">
+            <div class="container">
+                <div class="contact-container">
+                    <div class="contact-header">
+                        <h2>Ready to Build?</h2>
+                        <p>Fill out the form below and our team will get in touch with your personalized business roadmap.</p>
+                    </div>
+                    <form id="lead-form" class="lead-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="full-name">Full Name</label>
+                                <input type="text" id="full-name" placeholder="John Doe" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email Address</label>
+                                <input type="email" id="email" placeholder="john@company.com" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Phone Number</label>
+                            <input type="tel" id="phone" placeholder="+1 (555) 000-0000">
+                        </div>
+                        <div class="form-group">
+                            <label for="biz-type">Business Type</label>
+                            <select id="biz-type">
+                                <option value="tech">Technology / SaaS</option>
+                                <option value="ecommerce">E-commerce</option>
+                                <option value="service">Service Based</option>
+                                <option value="agency">Agency / Consulting</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="message">Your Vision</label>
+                            <textarea id="message" rows="4" placeholder="Tell us about your business goals..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary submit-btn" id="submit-lead">Get My Roadmap</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 SetMyBizz AI. All rights reserved.</p>
+            <div class="footer-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+            </div>
+        </div>
+    </footer>
+
+    <div id="toast" class="toast">Thank you! We'll be in touch soon.</div>
+
+    <script src="script.js"></script>
+</body>
+</html>

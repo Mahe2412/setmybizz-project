@@ -489,8 +489,7 @@ const LaunchPadTab: React.FC<LaunchPadTabProps> = ({ data, externalLang, onLangC
                     scale: 2.0, // High definition capture!
                     useCORS: true,
                     backgroundColor: bg,
-                    logging: false,
-                    letterRendering: true
+                    logging: false
                 });
 
                 const imgData = canvas.toDataURL('image/jpeg', 0.98);

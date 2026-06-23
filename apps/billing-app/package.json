@@ -1,0 +1,16 @@
+{
+  "name": "billease",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @billease/web",
+    "build": "npm run build -w @billease/web",
+    "db:generate": "npm run generate -w @billease/db",
+    "db:push": "npm run push -w @billease/db",
+    "db:seed": "npm run seed -w @billease/db",
+    "test": "npm run test -w @billease/shared"
+  }
+}

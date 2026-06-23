@@ -1,0 +1,211 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String       @id @default(cuid())
+  email        String       @unique
+  name         String?
+  passwordHash String
+  createdAt    DateTime     @default(now())
+  memberships  Membership[]
+}
+
+model Business {
+  id              String         @id @default(cuid())
+  name            String
+  legalName       String?
+  gstin           String?
+  stateCode       String         @default("27")
+  address         String?
+  city            String?
+  pincode         String?
+  phone           String?
+  email           String?
+  logoUrl         String?
+  invoicePrefix   String         @default("INV")
+  invoiceNextNum  Int            @default(1)
+  quotationPrefix String         @default("QT")
+  quotationNextNum Int           @default(1)
+  purchasePrefix  String         @default("PUR")
+  purchaseNextNum Int            @default(1)
+  bankName        String?
+  bankAccount     String?
+  bankIfsc        String?
+  bankBranch      String?
+  upiId           String?
+  signatory       String?
+  termsAndConditions String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  memberships     Membership[]
+  parties         Party[]
+  items           Item[]
+  documents       Document[]
+  payments        Payment[]
+  stockMovements  StockMovement[]
+  expenses        Expense[]
+}
+
+model Membership {
+  id         String   @id @default(cuid())
+  role       String   @default("owner")
+  userId     String
+  businessId String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, businessId])
+}
+
+model Party {
+  id              String     @id @default(cuid())
+  businessId      String
+  type            String
+  name            String
+  gstin           String?
+  phone           String?
+  email           String?
+  billingAddress  String?
+  shippingAddress String?
+  stateCode       String     @default("27")
+  openingBalance  Float      @default(0)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  business        Business   @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  documents       Document[]
+  payments        Payment[]
+
+  @@index([businessId])
+}
+
+model Item {
+  id            String          @id @default(cuid())
+  businessId    String
+  name          String
+  description   String?
+  unit          String          @default("pcs")
+  hsnSac        String?
+  gstRate       Float           @default(18)
+  salePrice     Float           @default(0)
+  purchasePrice Float           @default(0)
+  trackStock    Boolean         @default(false)
+  stockQty      Float           @default(0)
+  lowStockAlert Float?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  business      Business        @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  documentLines DocumentLine[]
+  stockMovements StockMovement[]
+
+  @@index([businessId])
+}
+
+model Document {
+  id              String         @id @default(cuid())
+  businessId      String
+  partyId         String?
+  type            String
+  status          String         @default("draft")
+  number          String?
+  date            DateTime       @default(now())
+  dueDate         DateTime?
+  placeOfSupply   String?
+  notes           String?
+  subtotal        Float          @default(0)
+  discountTotal   Float          @default(0)
+  taxableTotal    Float          @default(0)
+  cgstTotal       Float          @default(0)
+  sgstTotal       Float          @default(0)
+  igstTotal       Float          @default(0)
+  roundOff        Float          @default(0)
+  grandTotal      Float          @default(0)
+  taxBreakdown    String?
+  convertedFromId String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  business        Business       @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  party           Party?         @relation(fields: [partyId], references: [id])
+  lines           DocumentLine[]
+  payments        Payment[]
+
+  @@index([businessId])
+  @@index([partyId])
+}
+
+model DocumentLine {
+  id           String   @id @default(cuid())
+  documentId   String
+  itemId       String?
+  description  String
+  hsnSac       String?
+  qty          Float    @default(1)
+  unit         String   @default("pcs")
+  rate         Float    @default(0)
+  discountPct  Float    @default(0)
+  gstRate      Float    @default(18)
+  taxableValue Float    @default(0)
+  cgst         Float    @default(0)
+  sgst         Float    @default(0)
+  igst         Float    @default(0)
+  lineTotal    Float    @default(0)
+  sortOrder    Int      @default(0)
+  document     Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  item         Item?    @relation(fields: [itemId], references: [id])
+
+  @@index([documentId])
+}
+
+model Payment {
+  id         String    @id @default(cuid())
+  businessId String
+  partyId    String?
+  documentId String?
+  amount     Float
+  mode       String    @default("cash")
+  reference  String?
+  notes      String?
+  date       DateTime  @default(now())
+  createdAt  DateTime  @default(now())
+  business   Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  party      Party?    @relation(fields: [partyId], references: [id])
+  document   Document? @relation(fields: [documentId], references: [id])
+
+  @@index([businessId])
+  @@index([partyId])
+}
+
+model StockMovement {
+  id         String   @id @default(cuid())
+  businessId String
+  itemId     String
+  qty        Float
+  type       String
+  reference  String?
+  notes      String?
+  createdAt  DateTime @default(now())
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  item       Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([businessId])
+  @@index([itemId])
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  businessId  String
+  category    String
+  amount      Float
+  date        DateTime @default(now())
+  notes       String?
+  reference   String?
+  createdAt   DateTime @default(now())
+  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([businessId])
+}

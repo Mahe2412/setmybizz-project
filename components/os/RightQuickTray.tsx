@@ -2,8 +2,10 @@
 import React from 'react';
 
 const RIGHT_TRAY_APPS = [
-   { id: 'mail', icon: 'mail', label: 'Gmail', count: 4, color: 'text-red-500' },
-   { id: 'docs', icon: 'description', label: 'Documents', color: 'text-blue-500' },
+    { id: 'mail', icon: 'mail', label: 'Gmail', count: 4, color: 'text-red-500' },
+    { id: 'billbook', icon: 'menu_book', label: 'Bill Book', color: 'text-violet-600' },
+    { id: 'bizbook', icon: 'auto_awesome', label: 'BizBook AI', color: 'text-amber-500' },
+    { id: 'docs', icon: 'description', label: 'Documents', color: 'text-blue-500' },
    { id: 'grid', icon: 'grid_view', label: 'Apps', color: 'text-green-500' },
    { id: 'notes', icon: 'edit_note', label: 'Notes', color: 'text-orange-500' },
    { id: 'tasks', icon: 'check_circle', label: 'Tasks', count: 12, color: 'text-indigo-600' },

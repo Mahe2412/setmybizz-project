@@ -143,6 +143,17 @@ const BizBookDashboardEnhanced = ({
   const isInterstate = !!business?.state && !!selectedParty?.state && business.state !== selectedParty.state;
 
   useEffect(() => {
+    const handleSwitchSubtab = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail) {
+        setTab(customEvent.detail);
+      }
+    };
+    window.addEventListener('open-bizbook-subtab', handleSwitchSubtab);
+    return () => window.removeEventListener('open-bizbook-subtab', handleSwitchSubtab);
+  }, []);
+
+  useEffect(() => {
     if (!userId) return;
     try {
       const saved = window.localStorage.getItem(expenseStorageKey);
@@ -180,7 +191,7 @@ const BizBookDashboardEnhanced = ({
   );
 
   const lowStockCount = useMemo(
-    () => items.filter((item) => (item.stock ?? 0) > 0 && item.stock <= 5).length,
+    () => items.filter((item) => (item.stock ?? 0) > 0 && (item.stock ?? 0) <= 5).length,
     [items]
   );
 

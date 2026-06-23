@@ -4,23 +4,28 @@ import { X, Search, Star, Zap, AppWindow, LayoutGrid, Award, SlidersHorizontal, 
 
 interface IntegrationsPanelProps {
     onClose: () => void;
+    installedApps: string[];
+    onInstallApp: (appId: string) => void;
+    onUninstallApp: (appId: string) => void;
 }
 
-const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ onClose }) => {
+const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ onClose, installedApps, onInstallApp, onUninstallApp }) => {
     const [activeSubTab, setActiveSubTab] = useState('Discover');
     const [searchQuery, setSearchQuery] = useState('');
 
     const CATEGORIES = ['Discover', 'Featured', 'For you', 'Trending', 'AI skills', 'Marketing', 'CRM', 'Integrations', 'Project Management'];
 
     const APPS = [
-        { id: 1, name: 'Tally Plus Automation', dev: 'By SetMyBizz', rating: 4.8, reviews: '2.4K', badge: 'Best Seller', icon: '📊', color: 'bg-emerald-50 text-emerald-600' },
-        { id: 2, name: 'WhatsApp Marketing Node', dev: 'By Cloud Connect', rating: 4.9, reviews: '8.7K', badge: 'Best Seller', icon: '💬', color: 'bg-green-50 text-green-600' },
-        { id: 3, name: 'Tally.ERP 9 Connector', dev: 'By SetMyBizz', rating: 4.7, reviews: '3.1K', badge: 'New', icon: '💼', color: 'bg-blue-50 text-blue-600' },
-        { id: 4, name: 'Zapier Ultimate Hook', dev: 'By Automation Labs', rating: 4.9, reviews: '12K', badge: 'Top Rated', icon: '⚡', color: 'bg-orange-50 text-orange-600' },
-        { id: 5, name: 'GST Filing Assistant', dev: 'By Legal Bot', rating: 4.6, reviews: '1.2K', badge: 'Popular', icon: '⚖️', color: 'bg-red-50 text-red-600' },
-        { id: 6, name: 'Razorpay Pro Integrator', dev: 'By Fintech Ops', rating: 4.9, reviews: '5.4K', badge: 'Verified', icon: '💳', color: 'bg-indigo-50 text-indigo-600' },
-        { id: 7, name: 'Email Sequence Engine', dev: 'By Mail Flow', rating: 4.5, reviews: '900', badge: 'New', icon: '📧', color: 'bg-sky-50 text-sky-600' },
-        { id: 8, name: 'Inventory AI Predictor', dev: 'By Arkle Labs', rating: 4.8, reviews: '450', badge: 'AI Native', icon: '🤖', color: 'bg-purple-50 text-purple-600' }
+        { id: 9, appId: 'billbook', name: 'Bill Book', dev: 'Main billing app (localhost:3000)', rating: 4.9, reviews: '8.2K', badge: 'Active', icon: '📒', color: 'bg-violet-50 text-violet-600' },
+        { id: 10, appId: 'bizbook', name: 'Biz Book', dev: 'SetMyBizz Labs', rating: 4.8, reviews: '2.4K', badge: 'AI Powered', icon: '🚀', color: 'bg-indigo-50 text-indigo-600' },
+        { id: 1, appId: 'tally-plus', name: 'Tally Plus Automation', dev: 'By SetMyBizz', rating: 4.8, reviews: '2.4K', badge: 'Best Seller', icon: '📊', color: 'bg-emerald-50 text-emerald-600' },
+        { id: 2, appId: 'whatsapp-business', name: 'WhatsApp Marketing Node', dev: 'By Cloud Connect', rating: 4.9, reviews: '8.7K', badge: 'Best Seller', icon: '💬', color: 'bg-green-50 text-green-600' },
+        { id: 3, appId: 'tally-erp', name: 'Tally.ERP 9 Connector', dev: 'By SetMyBizz', rating: 4.7, reviews: '3.1K', badge: 'New', icon: '💼', color: 'bg-blue-50 text-blue-600' },
+        { id: 4, appId: 'zapier', name: 'Zapier Ultimate Hook', dev: 'By Automation Labs', rating: 4.9, reviews: '12K', badge: 'Top Rated', icon: '⚡', color: 'bg-orange-50 text-orange-600' },
+        { id: 5, appId: 'gst-assistant', name: 'GST Filing Assistant', dev: 'By Legal Bot', rating: 4.6, reviews: '1.2K', badge: 'Popular', icon: '⚖️', color: 'bg-red-50 text-red-600' },
+        { id: 6, appId: 'razorpay', name: 'Razorpay Pro Integrator', dev: 'By Fintech Ops', rating: 4.9, reviews: '5.4K', badge: 'Verified', icon: '💳', color: 'bg-indigo-50 text-indigo-600' },
+        { id: 7, appId: 'email-marketing', name: 'Email Sequence Engine', dev: 'By Mail Flow', rating: 4.5, reviews: '900', badge: 'New', icon: '📧', color: 'bg-sky-50 text-sky-600' },
+        { id: 8, appId: 'inventory-ai', name: 'Inventory AI Predictor', dev: 'By Arkle Labs', rating: 4.8, reviews: '450', badge: 'AI Native', icon: '🤖', color: 'bg-purple-50 text-purple-600' }
     ];
 
     return (
@@ -142,11 +147,29 @@ const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ onClose }) => {
                                         <div className="flex items-center gap-1.5">
                                             <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
                                             <span className="text-[11px] font-black text-slate-900">{app.rating}</span>
-                                            <span className="text-[10px] font-bold text-slate-400">({app.reviews}) | {app.reviews}</span>
+                                            <span className="text-[10px] font-bold text-slate-400">({app.reviews})</span>
                                         </div>
-                                        <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                           <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
-                                        </div>
+                                        {installedApps.includes(app.appId || '') ? (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onUninstallApp(app.appId || '');
+                                                }}
+                                                className="px-3 py-1.5 bg-red-55 border border-red-200 hover:bg-red-100 text-red-600 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-all"
+                                            >
+                                                Uninstall
+                                            </button>
+                                        ) : (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onInstallApp(app.appId || '');
+                                                }}
+                                                className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[9px] font-bold uppercase tracking-wider transition-all shadow-xs"
+                                            >
+                                                Install
+                                            </button>
+                                        )}
                                     </div>
                                 </motion.div>
                             ))}

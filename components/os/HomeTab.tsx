@@ -6,6 +6,7 @@ import BizboardSpotlight from './launchpad/LaunchPadSpotlight';
 import { useBizStore } from '../../lib/useBizStore';
 import RightQuickTray from './RightQuickTray';
 import { useAuth } from '@/context/AuthContext';
+import MarketHookStep from '../steps/MarketHookStep';
 
 type Message = {
    id: string;
@@ -19,20 +20,6 @@ const HUB_APPS = [
    { id: 'vault', icon: 'account_balance_wallet', label: 'Vault' },
    { id: 'legal', icon: 'gavel', label: 'Legal' },
    { id: 'market', icon: 'storefront', label: 'Market' },
-];
-
-const QUICK_TILES = [
-   { title: 'BILL BOOK', desc: 'BizBook · Supabase', icon: 'menu_book', tab: 'billbook' as const },
-   { title: 'BILLEASE', desc: 'Full GST app', icon: 'receipt_long', tab: 'billease' as const },
-   { title: 'ORDER DESK', desc: 'WA / IG orders', icon: 'chat', tab: 'orderdesk' as const },
-   { title: 'CREATE TASK', desc: 'Add new task', icon: 'auto_awesome_motion' },
-   { title: 'BRAINSTORM IDEAS', desc: 'Neural ideation engine', icon: 'psychology' },
-   { title: 'GST EXPERT', desc: 'Tax & Compliance audit', icon: 'account_balance' },
-   { title: 'US INCORPORATION', desc: 'Expand to USA', icon: 'flag' },
-   { title: 'MARKET TRENDS', desc: 'AI Market Analysis', icon: 'trending_up' },
-   { title: 'LEGAL BOT', desc: 'Agreements & Docs', icon: 'gavel' },
-   { title: 'BRAND GEN', desc: 'Logo & Identity', icon: 'palette' },
-   { title: 'SALES PITCH', desc: 'Convert more leads', icon: 'leaderboard' },
 ];
 
 const NEURAL_NOTIFICATIONS = [
@@ -64,11 +51,12 @@ export default function HomeTab({
    const [isNeuralMenuOpen, setIsNeuralMenuOpen] = useState(false);
    const [isBrainMenuOpen, setIsBrainMenuOpen] = useState(false);
    const [isModelMenuOpen, setIsModelMenuOpen] = useState(false);
-   const [isLiveVoice, setIsLiveVoice] = useState(false);
    const [selectedContext, setSelectedContext] = useState("Arkle Brain");
    const [selectedModel, setSelectedModel] = useState("Gemini 1.5 Pro");
    const [tileIndex, setTileIndex] = useState(0);
    const [isSpotlightOpen, setIsSpotlightOpen] = useState(false);
+
+   const [showReport, setShowReport] = useState(true);
 
    const scrollRef = useRef<HTMLDivElement>(null);
    const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -76,6 +64,20 @@ export default function HomeTab({
    const [showSuggestions, setShowSuggestions] = useState(false);
    const [suggestions] = useState(['BizDesk', 'Marketing', 'LaunchPad', 'Workspace', 'Agents', 'Legal', 'Vault', 'Market']);
    const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
+
+   const QUICK_TILES = [
+      { title: 'BIZ BRIEFING', desc: 'AI Setup Roadmap', icon: 'psychology', action: () => setShowReport(true) },
+      { title: 'BILL BOOK', desc: 'Local Billing App', icon: 'menu_book', tab: 'billease' as const },
+      { title: 'BIZ BOOK', desc: 'BizBook AI Ledgers', icon: 'receipt_long', tab: 'billbook' as const },
+      { title: 'ORDER DESK', desc: 'WA / IG orders', icon: 'chat', tab: 'orderdesk' as const },
+      { title: 'CREATE TASK', desc: 'Add new task', icon: 'auto_awesome_motion' },
+      { title: 'BRAINSTORM IDEAS', desc: 'Neural ideation engine', icon: 'psychology' },
+      { title: 'GST EXPERT', desc: 'Tax & Compliance audit', icon: 'account_balance' },
+      { title: 'US INCORPORATION', desc: 'Expand to USA', icon: 'flag' },
+      { title: 'MARKET TRENDS', desc: 'AI Market Analysis', icon: 'trending_up' },
+      { title: 'LEGAL BOT', desc: 'Agreements & Docs', icon: 'gavel' },
+      { title: 'SALES PITCH', desc: 'Convert more leads', icon: 'leaderboard' },
+   ];
 
    const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       const val = e.target.value;
@@ -104,7 +106,6 @@ export default function HomeTab({
       const newVal = [...words, `@${s.toLowerCase()}`].join(' ').trim() + ' ';
       setInput(newVal);
       setShowSuggestions(false);
-      // Map BizDesk to BizBook context
       setSelectedContext(s === 'BizDesk' ? 'BizBook' : s === 'Marketing' ? 'Global Market' : s);
       textareaRef.current?.focus();
    };
@@ -116,7 +117,6 @@ export default function HomeTab({
       const q = text.trim();
       if (!q || loading) return;
 
-      // @Mention Context Detection
       let finalPrompt = q;
       const mentionMatch = q.match(/@(\w+)/);
       if (mentionMatch) {
@@ -132,7 +132,6 @@ export default function HomeTab({
 
          if (contextMap[mention]) {
             setSelectedContext(contextMap[mention]);
-            // Remove the @mention from the prompt to keep it clean for the AI
             finalPrompt = q.replace(`@${mention}`, '').trim();
          }
       }
@@ -149,7 +148,7 @@ export default function HomeTab({
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                prompt: finalPrompt,
-               context: selectedContext, // Send the selected context to the API
+               context: selectedContext,
                businessProfile: {
                    registeredId: dbUser?.registeredId || 'Pending',
                    businessName: dbBusiness?.business_name || data?.name || 'My Startup',
@@ -173,7 +172,7 @@ export default function HomeTab({
    }, [conversationMode, setSidebarOpen]);
 
    return (
-      <div className="flex h-full bg-[#f8fafc] overflow-hidden relative no-scrollbar font-sans">
+      <div className="flex h-full bg-[#f8fafc] overflow-hidden relative no-scrollbar font-sans w-full">
          {/* SIDEBAR (Hidden in Conversation Mode) */}
          <AnimatePresence>
             {!conversationMode && (
@@ -207,7 +206,7 @@ export default function HomeTab({
          </AnimatePresence>
 
          {/* MAIN CONTENT */}
-         <div className="flex-1 flex flex-col min-w-0 bg-white overflow-y-auto scrollbar-hide relative pb-40">
+         <div className="flex-1 flex flex-col min-w-0 bg-white overflow-y-auto scrollbar-hide relative pb-40 w-full">
             <div className="h-16 border-b border-slate-100 px-10 flex items-center justify-between sticky top-0 z-50 bg-white/80 backdrop-blur-md">
                <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">Neural Core Active</span>
                {conversationMode && (
@@ -221,7 +220,7 @@ export default function HomeTab({
                )}
             </div>
 
-            <div className={`px-4 md:px-20 ${conversationMode ? 'py-4' : 'pt-4 pb-12 md:pt-6 md:pb-16'} flex flex-col items-center flex-1 relative`}>
+            <div className={`px-4 md:px-20 ${conversationMode ? 'py-4' : 'pt-4 pb-12 md:pt-6 md:pb-16'} flex flex-col items-center flex-1 relative w-full`}>
                {!conversationMode && (
                   <div className="flex flex-col items-center mb-6 text-center">
                      <h3 className="text-[54px] md:text-[68px] font-black text-slate-900 tracking-tighter leading-none mb-4">
@@ -313,6 +312,9 @@ export default function HomeTab({
                                     key={tile.title}
                                     type="button"
                                     onClick={() => {
+                                       if ('action' in tile && typeof tile.action === 'function') {
+                                          tile.action();
+                                       }
                                        if ('tab' in tile && tile.tab === 'billbook') {
                                           onOpenBillBook?.();
                                        }
@@ -349,10 +351,9 @@ export default function HomeTab({
                         </div>
                         <div className="grid grid-cols-6 gap-2 md:gap-4">
                            {[
-                              { label: 'Bill Book', icon: 'menu_book', color: 'text-violet-600', bg: 'bg-violet-50', action: 'billbook' as const },
-                              { label: 'BillEase', icon: 'receipt_long', color: 'text-emerald-600', bg: 'bg-emerald-50', action: 'billease' as const },
+                              { label: 'Bill Book', icon: 'menu_book', color: 'text-violet-600', bg: 'bg-violet-50', action: 'billease' as const },
+                              { label: 'Biz Book', icon: 'auto_awesome', color: 'text-amber-600', bg: 'bg-amber-50', action: 'billbook' as const },
                               { label: 'Order Desk', icon: 'chat', color: 'text-pink-600', bg: 'bg-pink-50', action: 'orderdesk' as const },
-                              { label: 'INVOICE', icon: 'description', color: 'text-blue-600', bg: 'bg-blue-50', action: 'billbook' as const },
                               { label: 'GLOBAL', icon: 'public', color: 'text-sky-600', bg: 'bg-sky-50', action: undefined },
                               { label: 'EXCEL', icon: 'table_chart', color: 'text-emerald-600', bg: 'bg-emerald-50', action: undefined },
                               { label: 'DOCS', icon: 'description', color: 'text-indigo-600', bg: 'bg-indigo-50', action: undefined },
@@ -361,8 +362,8 @@ export default function HomeTab({
                                  key={item.label}
                                  type="button"
                                  onClick={() => {
-                                    if (item.action === 'billbook') onOpenBillBook?.();
-                                    else if (item.action === 'billease') onOpenBillEase?.();
+                                    if (item.action === 'billease') onOpenBillEase?.();
+                                    else if (item.action === 'billbook') onOpenBillBook?.();
                                     else if (item.action === 'orderdesk') onOpenOrderDesk?.();
                                  }}
                                  className="flex flex-col items-center gap-4 group cursor-pointer border-0 bg-transparent p-0"
@@ -451,6 +452,10 @@ export default function HomeTab({
          <RightQuickTray onAppClick={(appId) => {
             if (appId === 'mail') {
                onGmailClick?.();
+            } else if (appId === 'billbook') {
+               onOpenBillEase?.();
+            } else if (appId === 'bizbook') {
+               onOpenBillBook?.();
             }
          }} />
 
@@ -465,6 +470,26 @@ export default function HomeTab({
          )}
 
          <WhiteboardPanel isOpen={isWhiteboardOpen} onClose={() => setIsWhiteboardOpen(false)} />
+
+         {/* Arkle AI Report Popup Overlay (70% - 75% screen width, centered) */}
+         <AnimatePresence>
+            {showReport && (
+               <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 md:p-6 z-[9999] animate-in fade-in duration-300">
+                  <motion.div 
+                     initial={{ scale: 0.95, opacity: 0 }}
+                     animate={{ scale: 1, opacity: 1 }}
+                     exit={{ scale: 0.95, opacity: 0 }}
+                     className="bg-white rounded-[2.5rem] shadow-[0_25px_70px_rgba(0,0,0,0.15)] w-full max-w-5xl h-[85vh] overflow-y-auto relative border border-slate-100 no-scrollbar"
+                  >
+                     <MarketHookStep 
+                        data={data} 
+                        onBack={() => {}} 
+                        onDashboard={() => setShowReport(false)} 
+                     />
+                  </motion.div>
+               </div>
+            )}
+         </AnimatePresence>
       </div>
    );
 }

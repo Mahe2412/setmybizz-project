@@ -65,6 +65,8 @@ const BIZDESK_SIDEBAR: SidebarSection[] = [
       { id: 'company', icon: '🛡️', label: 'Business Vault' },
       { id: 'banking', icon: '💳', label: 'Financial Desk' },
       { id: 'sales', icon: '💼', label: 'Sales Desk' },
+      { id: 'billease', icon: '📒', label: 'Bill Book' },
+      { id: 'billbook', icon: '🚀', label: 'Biz Book' },
     ],
   },
   {
@@ -143,28 +145,7 @@ const TOP_NAV: { id: TopNavId; label: string; icon: string; badge?: string; desc
     label: 'Biz Desk',
     icon: 'work',
     description: 'Your entire company — one desk. Management, legal, compliance, finance, banking, hiring, scaling, and go-global support. Run your company from your desk.',
-  },
-  {
-    id: 'launchpad',
-    label: 'LaunchPad',
-    icon: 'rocket_launch',
-    badge: 'Beta',
-    description: 'A rapid business builder. Build your brand, logo, website, pitch decks, and brochures without agencies or coding. Your AI Co-Founder builds everything through simple conversation.',
-  },
-  {
-    id: 'learn',
-    label: 'LearnHub',
-    icon: 'school',
-    badge: 'Beta',
-    description: 'Skill upgradation and tech adoption center. Learn business strategy, marketing, compliance, and more.',
-  },
-  {
-    id: 'ai-workspace',
-    label: 'AI Workspace',
-    icon: 'api',
-    badge: 'Beta',
-    description: 'Your tech automation control room. CRM, sales pipelines, WhatsApp campaigns, email automation, stock management, ERP — all AI-powered.',
-  },
+  }
 ];
 
 export default function OSPage() {
@@ -193,11 +174,43 @@ export default function OSPage() {
   const [billeaseMounted, setBilleaseMounted] = useState(false);
   const [showGoogleConnect, setShowGoogleConnect] = useState(false);
   const [isGoogleConnected, setIsGoogleConnected] = useState(false);
+  const [billbookDropdownOpen, setBillbookDropdownOpen] = useState(false);
 
   // Dynamic UI replacement accessors to completely remove static mock data placeholders
   const liveBizName = dbBusiness?.business_name || dbUser?.business_name || bizData.name || 'Your Startup';
   const liveUserName = dbUser?.full_name || user?.user_metadata?.full_name || 'Operator';
   const liveUserInitials = liveUserName.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() || 'MK';
+
+  const [installedApps, setInstalledApps] = useState<string[]>(['billbook']);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('setmybizz_installed_apps');
+      if (saved) {
+        try {
+          setInstalledApps(JSON.parse(saved));
+        } catch (e) {
+          console.error("Failed to load installed apps", e);
+        }
+      }
+    }
+  }, []);
+
+  const handleInstallApp = useCallback((appId: string) => {
+    setInstalledApps(prev => {
+      const updated = [...prev.filter(x => x !== appId), appId];
+      localStorage.setItem('setmybizz_installed_apps', JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
+  const handleUninstallApp = useCallback((appId: string) => {
+    setInstalledApps(prev => {
+      const updated = prev.filter(x => x !== appId);
+      localStorage.setItem('setmybizz_installed_apps', JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
 
   useEffect(() => {
     if (isDevAuthBypass()) {
@@ -278,7 +291,6 @@ export default function OSPage() {
   const openBillEase = useCallback(() => {
     setActiveTopNav('bizdesk');
     setActiveTab('billease');
-    setBilleaseMounted(true);
     if (typeof window !== 'undefined' && window.innerWidth < 768) {
       setSidebarOpen(false);
     }
@@ -287,6 +299,24 @@ export default function OSPage() {
   useEffect(() => {
     if (activeTab === 'billease') setBilleaseMounted(true);
   }, [activeTab]);
+
+  useEffect(() => {
+    const handleOpenBillEase = () => {
+      openBillEase();
+    };
+    const handleOpenOsTab = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail) {
+        setActiveTab(customEvent.detail);
+      }
+    };
+    window.addEventListener('open-billease', handleOpenBillEase);
+    window.addEventListener('open-os-tab', handleOpenOsTab);
+    return () => {
+      window.removeEventListener('open-billease', handleOpenBillEase);
+      window.removeEventListener('open-os-tab', handleOpenOsTab);
+    };
+  }, [openBillEase]);
 
   const openOrderDesk = useCallback(() => {
     setActiveTopNav('bizdesk');
@@ -489,6 +519,69 @@ export default function OSPage() {
               >
                 <span className="material-symbols-rounded text-[13px]">featured_play_list</span>
               </button>
+
+              {/* Bill Book Quick Action Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setBillbookDropdownOpen(!billbookDropdownOpen)}
+                  className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all group relative ${billbookDropdownOpen ? 'bg-sky-600 text-white shadow-lg' : 'text-slate-500 hover:text-sky-600 hover:bg-white'}`}
+                  title="Bill Book Quick Menu"
+                >
+                  <span className="material-symbols-rounded text-[13px]">menu_book</span>
+                  <span className="absolute -bottom-0.5 -right-0.5 w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+                </button>
+                
+                <AnimatePresence>
+                  {billbookDropdownOpen && (
+                    <>
+                      {/* Click outside overlay */}
+                      <div 
+                        className="fixed inset-0 z-40" 
+                        onClick={() => setBillbookDropdownOpen(false)}
+                      />
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        className="absolute right-0 mt-2 w-60 bg-white border border-slate-200 rounded-2xl shadow-xl p-2 z-50 overflow-hidden"
+                      >
+                        <div className="px-3 py-1.5 text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 mb-1.5">
+                          Biz Book Options
+                        </div>
+                        <div className="space-y-0.5">
+                          {[
+                            { label: 'Open Full Biz Book', subtab: 'home', icon: 'menu_book', color: 'text-violet-600' },
+                            { label: 'Create GST Invoice', subtab: 'invoice', icon: 'receipt_long', color: 'text-emerald-600' },
+                            { label: 'Add Product / Item', subtab: 'items', icon: 'inventory_2', color: 'text-amber-500' },
+                            { label: 'Add Party / Customer', subtab: 'parties', icon: 'group', color: 'text-sky-500' },
+                            { label: 'Record Expense', subtab: 'expenses', icon: 'payments', color: 'text-rose-500' },
+                          ].map((opt) => (
+                            <button
+                              key={opt.label}
+                              onClick={() => {
+                                setBillbookDropdownOpen(false);
+                                setActiveTopNav('bizdesk');
+                                setActiveTab('billbook');
+                                setTimeout(() => {
+                                  window.dispatchEvent(new CustomEvent('open-bizbook-subtab', { detail: opt.subtab }));
+                                }, 100);
+                              }}
+                              className="w-full text-left p-2 rounded-xl hover:bg-slate-50 transition-all flex items-center gap-2.5 group/opt"
+                            >
+                              <span className={`material-symbols-rounded text-[18px] ${opt.color} group-hover/opt:scale-110 transition-transform`}>
+                                {opt.icon}
+                              </span>
+                              <span className="text-[11px] font-bold text-slate-700 group-hover/opt:text-slate-900 transition-colors">
+                                {opt.label}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
+              </div>
               <button className="hidden md:flex w-9 h-9 items-center justify-center rounded-lg transition-all text-slate-500 hover:text-sky-600 hover:bg-white" title="Add Guest">
                 <span className="material-symbols-rounded text-[13px]">person_add</span>
               </button>
@@ -599,59 +692,67 @@ export default function OSPage() {
                 </div>
 
                 <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-2 py-4 no-scrollbar md:px-3">
-                  {(activeTopNav === 'bizdesk' ? BIZDESK_SIDEBAR : LEARN_SIDEBAR).map((section, si) => (
-                    <div key={si} className="mb-5">
-                      {!sidebarCollapsed && (
-                        <h3
-                          className={`mb-2 px-2 text-[10px] font-bold capitalize tracking-[0.15em] ${section.section.includes('ARKLE') || section.section.includes('AI PARTNER')
-                              ? 'text-[#575CDE]'
-                              : 'text-[#676879]'
-                            }`}
-                        >
-                          {section.section === 'AI PARTNER'
-                            ? 'Powered by Arkle AI'
-                            : section.section.toLowerCase()}
-                        </h3>
-                      )}
-                      <div className="space-y-1">
-                        {section.items.map((item) => (
-                          <button
-                            key={item.label}
-                            type="button"
-                            onClick={() => {
-                              setActiveTab(item.id);
-                              if (window.innerWidth < 768) closeSidebar();
-                            }}
-                            title={sidebarCollapsed ? item.label : undefined}
-                            className={`group flex w-full items-center rounded-lg py-2.5 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 hover:bg-white/80 ${sidebarCollapsed ? 'justify-center px-2' : 'gap-3 px-3'
-                              } ${activeTab === item.id ? 'bg-white shadow-sm ring-1 ring-sky-100' : ''}`}
+                  {(activeTopNav === 'bizdesk' ? BIZDESK_SIDEBAR : LEARN_SIDEBAR).map((section, si) => {
+                    const filteredItems = section.items.filter(item => {
+                      if (item.id === 'billease') return installedApps.includes('billbook');
+                      if (item.id === 'billbook') return installedApps.includes('bizbook');
+                      return true;
+                    });
+                    if (filteredItems.length === 0) return null;
+                    return (
+                      <div key={si} className="mb-5">
+                        {!sidebarCollapsed && (
+                          <h3
+                            className={`mb-2 px-2 text-[10px] font-bold capitalize tracking-[0.15em] ${section.section.includes('ARKLE') || section.section.includes('AI PARTNER')
+                                ? 'text-[#575CDE]'
+                                : 'text-[#676879]'
+                              }`}
                           >
-                            <span
-                              className={`shrink-0 text-center text-[16px] leading-none transition-transform group-hover:scale-110 ${activeTab === item.id ? 'text-[#0073ea]' : 'text-[#676879]'
-                                }`}
+                            {section.section === 'AI PARTNER'
+                              ? 'Powered by Arkle AI'
+                              : section.section.toLowerCase()}
+                          </h3>
+                        )}
+                        <div className="space-y-1">
+                          {filteredItems.map((item) => (
+                            <button
+                              key={item.label}
+                              type="button"
+                               onClick={() => {
+                                 setActiveTab(item.id);
+                                 if (window.innerWidth < 768) closeSidebar();
+                               }}
+                              title={sidebarCollapsed ? item.label : undefined}
+                              className={`group flex w-full items-center rounded-lg py-2.5 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 hover:bg-white/80 ${sidebarCollapsed ? 'justify-center px-2' : 'gap-3 px-3'
+                                } ${activeTab === item.id ? 'bg-white shadow-sm ring-1 ring-sky-100' : ''}`}
                             >
-                              {item.icon}
-                            </span>
-                            {!sidebarCollapsed && (
-                              <>
-                                <span
-                                  className={`flex-1 truncate text-[12.5px] font-medium group-hover:underline ${activeTab === item.id ? 'text-[#0073ea]' : 'text-[#323338]'
-                                    }`}
-                                >
-                                  {item.label}
-                                </span>
-                                {item.badge && (
-                                  <span className="ml-1 rounded-full bg-[#f5f6f8] px-1.5 py-0.5 text-[9px] font-bold text-[#676879]">
-                                    {item.badge}
+                              <span
+                                className={`shrink-0 text-center text-[16px] leading-none transition-transform group-hover:scale-110 ${activeTab === item.id ? 'text-[#0073ea]' : 'text-[#676879]'
+                                  }`}
+                              >
+                                {item.icon}
+                              </span>
+                              {!sidebarCollapsed && (
+                                <>
+                                  <span
+                                    className={`flex-1 truncate text-[12.5px] font-medium group-hover:underline ${activeTab === item.id ? 'text-[#0073ea]' : 'text-[#323338]'
+                                      }`}
+                                  >
+                                    {item.label}
                                   </span>
-                                )}
-                              </>
-                            )}
-                          </button>
-                        ))}
+                                  {item.badge && (
+                                    <span className="ml-1 rounded-full bg-[#f5f6f8] px-1.5 py-0.5 text-[9px] font-bold text-[#676879]">
+                                      {item.badge}
+                                    </span>
+                                  )}
+                                </>
+                              )}
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 <div
@@ -711,7 +812,7 @@ export default function OSPage() {
               >
                 {/* ══════ BIZDESK MODE ══════ */}
                 {activeTopNav === 'bizdesk' && (
-                  <div className="w-full h-full md:transform md:scale-[0.85] md:origin-top-left md:w-[117.65%]">
+                  <div className="w-full h-full">
                     <div className="flex flex-col md:flex-row gap-3 md:gap-5 p-3 md:p-5 h-full">
                       {/* Main Workspace Area (Tab-based content) */}
                       <div className="flex-1 min-w-0 h-full overflow-y-auto pr-1">
@@ -737,14 +838,7 @@ export default function OSPage() {
                         {activeTab === 'banking' && <BankingTab />}
                         {activeTab === 'sales' && <SalesTab />}
                         {activeTab === 'billbook' && <BillBookTab />}
-                        {billeaseMounted && (
-                          <div
-                            className={activeTab === 'billease' ? '' : 'hidden'}
-                            aria-hidden={activeTab !== 'billease'}
-                          >
-                            <BilleaseTab />
-                          </div>
-                        )}
+                        {activeTab === 'billease' && <BilleaseTab />}
                         {activeTab === 'orderdesk' && <OrderDeskTab />}
                         {activeTab === 'learn' && <StartupStoreTab />}
                         {activeTab === 'global' && <GlobalTab />}
@@ -813,7 +907,12 @@ export default function OSPage() {
                   exit={{ opacity: 0, scale: 0.95 }}
                   className="fixed inset-4 md:inset-10 lg:inset-20 z-[200] bg-white shadow-[0_0_100px_rgba(0,0,0,0.2)] border border-slate-200 rounded-[32px] overflow-hidden flex flex-col"
                 >
-                  <IntegrationsPanel onClose={() => setIntegrationsOpen(false)} />
+                  <IntegrationsPanel 
+                    onClose={() => setIntegrationsOpen(false)} 
+                    installedApps={installedApps}
+                    onInstallApp={handleInstallApp}
+                    onUninstallApp={handleUninstallApp}
+                  />
                 </motion.div>
               )}
             </AnimatePresence>

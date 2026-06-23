@@ -35,6 +35,29 @@ body {
   overflow-x: hidden;
 }
 
+/* Hide raw text of Material Icons before font loads to prevent FOUT (Flash of Unstyled Text) */
+.material-symbols-rounded,
+.material-symbols-outlined,
+.material-icons,
+.material-icons-outlined {
+  font-family: 'Material Symbols Rounded', 'Material Symbols Outlined', 'Material Icons', sans-serif !important;
+  font-display: block;
+  /* Hide the text content (raw names like 'menu_book') while font is loading */
+  overflow: hidden;
+  text-align: center;
+  color: transparent !important;
+}
+
+/* Once font is loaded (recognized by the specific font-family being active), display the symbol color */
+@supports (font-variation-settings: normal) {
+  .material-symbols-rounded,
+  .material-symbols-outlined,
+  .material-icons,
+  .material-icons-outlined {
+    color: inherit !important;
+  }
+}
+
 /* Glassmorphism */
 .glass-panel {
   background: rgba(255, 255, 255, 0.72);

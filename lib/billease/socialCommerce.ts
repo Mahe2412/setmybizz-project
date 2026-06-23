@@ -176,3 +176,4 @@ export const DEFAULT_SHAMPOO_CATALOG: CatalogItem[] = [
 
 export const STORAGE_KEY_ORDERS = "billease_social_orders_v1";
 export const STORAGE_KEY_CATALOG = "billease_social_catalog_v1";
+

@@ -141,12 +141,35 @@ export default function ArklePanel({ onClose, selectedLang = 'en-IN' }: { onClos
       let match;
       while ((match = directiveRegex.exec(aiResponse)) !== null) {
         const action = match[1];
-        const payload = JSON.parse(match[2]);
-        console.log(`Neural Execution: ${action}`, payload);
-        
-        // Handle Global Execution (e.g. creating tasks in Supabase soon)
-        if (action === 'NOTIFY') {
-          // Future: Toast notification
+        try {
+          const payload = JSON.parse(match[2]);
+          console.log(`Neural Execution: ${action}`, payload);
+          
+          // Handle Global Execution (e.g. creating tasks in Supabase soon)
+          if (action === 'NOTIFY') {
+            // Future: Toast notification
+          } else if (action === 'CREATE_INVOICE_DRAFT' || action === 'ADD_LINE_ITEM' || action === 'SET_PARTY') {
+            // Switch to BillEase tab first
+            window.dispatchEvent(new CustomEvent('open-billease'));
+            
+            const sendToIframe = () => {
+              const iframe = document.querySelector('iframe[title="BillEase"]') as HTMLIFrameElement;
+              if (iframe && iframe.contentWindow) {
+                iframe.contentWindow.postMessage({ action, data: payload }, "*");
+                return true;
+              }
+              return false;
+            };
+            
+            if (!sendToIframe()) {
+              // If iframe is not ready, retry after a short delay
+              setTimeout(sendToIframe, 500);
+              setTimeout(sendToIframe, 1500);
+              setTimeout(sendToIframe, 3000);
+            }
+          }
+        } catch (err) {
+          console.error("Failed to parse directive payload:", err);
         }
       }
 

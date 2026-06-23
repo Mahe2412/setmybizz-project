@@ -25,6 +25,18 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "@billease/db": [
+        "./lib/billease-db/src/index.ts"
+      ],
+      "@billease/db/*": [
+        "./lib/billease-db/*"
+      ],
+      "@billease/shared": [
+        "./lib/billease-shared/src/index.ts"
+      ],
+      "@billease/shared/*": [
+        "./lib/billease-shared/*"
       ]
     }
   },
@@ -40,6 +52,7 @@
   ],
   "exclude": [
     "node_modules",
+    "apps",
     ".checkpoints",
     "_archive",
     "_OS_BACKUP_STORAGE",

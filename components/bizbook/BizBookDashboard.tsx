@@ -162,7 +162,7 @@ const BizBookDashboard = () => {
   );
 
   const lowStockCount = useMemo(
-    () => items.filter((item) => (item.stock ?? 0) > 0 && item.stock <= 5).length,
+    () => items.filter((item) => (item.stock ?? 0) > 0 && (item.stock ?? 0) <= 5).length,
     [items]
   );
 
