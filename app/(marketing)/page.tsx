@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import {
     Building2, ShieldCheck, Zap, MessageCircle, FileText, CheckCircle2, Star,
-    Scale, HelpCircle, ArrowRight, Laptop, Award, PhoneCall, AlertCircle, Check, X
+    Scale, HelpCircle, ArrowRight, Laptop, Award, PhoneCall, AlertCircle, Check, X, Sparkles
 } from 'lucide-react';
 import LeadCaptureModal from '@/components/marketing/LeadCaptureModal';
 import RkleAiAdvisor from '@/components/steps/RkleAiAdvisor';
@@ -96,13 +96,13 @@ export default function HomePage() {
             {/* ─── NAV / HEADER ─── */}
             <nav className="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-slate-100 px-6 py-4">
                 <div className="max-w-7xl mx-auto flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-600/10">
-                            <Building2 size={18} />
+                    <Link href="/" className="flex items-center gap-3 group">
+                        <div className="w-10 h-10 rounded-xl bg-linear-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20 group-hover:rotate-6 transition-transform duration-300">
+                            <Sparkles className="w-5 h-5 text-white" />
                         </div>
                         <div className="flex flex-col">
-                            <span className="font-extrabold text-slate-900 text-sm tracking-tight uppercase leading-none">SetMyBizz</span>
-                            <span className="text-[9px] font-bold text-blue-600 uppercase tracking-widest mt-1">CA & Startup Support</span>
+                            <span className="font-black text-slate-950 text-base tracking-tighter uppercase leading-none">SetMyBizz</span>
+                            <span className="text-[7.5px] font-black text-slate-400 uppercase tracking-widest mt-1">Start, Run & Manage Your Startup</span>
                         </div>
                     </Link>
 
@@ -729,10 +729,13 @@ export default function HomePage() {
                 <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 text-slate-600">
                     <div>
                         <div className="flex items-center gap-3 mb-6">
-                            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-md">
-                                <Building2 size={16} />
+                            <div className="w-9 h-9 rounded-xl bg-linear-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md">
+                                <Sparkles size={16} />
                             </div>
-                            <span className="font-extrabold text-slate-900 tracking-tight uppercase text-sm">SetMyBizz</span>
+                            <div className="flex flex-col">
+                                <span className="font-black text-slate-950 text-sm tracking-tighter uppercase leading-none">SetMyBizz</span>
+                                <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest mt-1">Start, Run & Manage Your Startup</span>
+                            </div>
                         </div>
                         <p className="text-xs font-bold leading-relaxed max-w-xs mb-6 uppercase tracking-wider text-slate-400">
                             Partnering with founders for startup setups, accounting compliance, and strategic scale.

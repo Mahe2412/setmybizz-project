@@ -458,10 +458,12 @@ export default function OSPage() {
               </button>
             )}
             <Link href="/" className="flex items-center gap-3 group">
-              <div className="w-8 h-8 rounded-[10px] flex items-center justify-center font-black text-white bg-linear-to-tr from-sky-600 to-blue-700 shadow-lg shadow-sky-600/20 group-hover:scale-105 active:scale-95 transition-all outline outline-2 outline-white/50">B</div>
+              <div className="w-8 h-8 rounded-[10px] flex items-center justify-center font-black text-white bg-linear-to-tr from-blue-600 to-indigo-600 shadow-lg shadow-blue-600/20 group-hover:scale-105 active:scale-95 transition-all outline outline-2 outline-white/50">
+                <span className="material-symbols-rounded text-[16px] text-white">rocket_launch</span>
+              </div>
               <div className="hidden lg:block space-y-0">
                 <span className="font-black text-[13px] tracking-tight uppercase block leading-tight text-slate-900">BizOS</span>
-                <span className="text-[7.5px] font-black tracking-[0.15em] block uppercase text-sky-600/80 leading-none">SetMyBizz</span>
+                <span className="text-[7px] font-black tracking-[0.12em] block uppercase text-slate-400 leading-none mt-0.5">Start, Run & Manage</span>
               </div>
             </Link>
           </div>
