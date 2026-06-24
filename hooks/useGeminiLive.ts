@@ -12,22 +12,11 @@ export const useGeminiLive = (apiKey: string, onToolCall?: (fn: string, args: an
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
 
-  const connect = useCallback(async () => {
-    if (!serviceRef.current) {
-      serviceRef.current = new WebSocketService(apiKey, onToolCall);
-    }
-    await serviceRef.current.connect();
-    setIsConnected(true);
-    startRecording();
-  }, [apiKey, onToolCall]);
-
-  const disconnect = useCallback(() => {
-    serviceRef.current?.disconnect();
-    stopRecording();
-    setIsConnected(false);
+  const stopRecording = useCallback(() => {
+    audioContextRef.current?.close();
   }, []);
 
-  const startRecording = async () => {
+  const startRecording = useCallback(async () => {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     audioContextRef.current = new AudioContext({ sampleRate: 16000 });
     const source = audioContextRef.current.createMediaStreamSource(stream);
@@ -47,11 +36,22 @@ export const useGeminiLive = (apiKey: string, onToolCall?: (fn: string, args: an
       const base64 = btoa(String.fromCharCode(...new Uint8Array(pcmData.buffer)));
       serviceRef.current?.sendAudio(base64);
     };
-  };
+  }, []);
 
-  const stopRecording = () => {
-    audioContextRef.current?.close();
-  };
+  const connect = useCallback(async () => {
+    if (!serviceRef.current) {
+      serviceRef.current = new WebSocketService(apiKey, onToolCall);
+    }
+    await serviceRef.current.connect();
+    setIsConnected(true);
+    startRecording();
+  }, [apiKey, onToolCall, startRecording]);
+
+  const disconnect = useCallback(() => {
+    serviceRef.current?.disconnect();
+    stopRecording();
+    setIsConnected(false);
+  }, [stopRecording]);
 
   // Listen for interruptions (e.g., if user speaks while AI is talking)
   // This would be triggered by a VAD (Voice Activity Detection) logic
