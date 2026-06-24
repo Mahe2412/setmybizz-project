@@ -7,6 +7,7 @@ import {
     Scale, HelpCircle, ArrowRight, Laptop, Award, PhoneCall, AlertCircle, Check, X
 } from 'lucide-react';
 import LeadCaptureModal from '@/components/marketing/LeadCaptureModal';
+import RkleAiAdvisor from '@/components/steps/RkleAiAdvisor';
 
 export default function HomePage() {
     const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
@@ -770,17 +771,20 @@ export default function HomePage() {
             </footer>
 
             {/* ─── STICKY WHATSAPP FLOATING CTA ─── */}
-            <div className="fixed bottom-6 right-6 z-50 animate-bounce hover:animate-none">
+            <div className="fixed bottom-6 right-24 md:right-28 z-50 animate-pulse hover:scale-105 transition-all">
                 <a 
                     href="https://wa.me/917893332884"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm px-5 py-3 rounded-full shadow-lg shadow-emerald-500/20 hover:scale-105 transition-all"
+                    className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm px-5 py-3 rounded-full shadow-lg shadow-emerald-500/20"
                 >
                     <MessageCircle size={18} fill="currentColor" />
                     <span>Talk to Expert (WhatsApp)</span>
                 </a>
             </div>
+
+            {/* ─── ARKLE FLOATING AI ADVISOR CHATBOT ─── */}
+            <RkleAiAdvisor onLeadCapture={() => openLeadModal()} />
 
             {/* ─── LEAD CAPTURE MODAL ─── */}
             <LeadCaptureModal 
