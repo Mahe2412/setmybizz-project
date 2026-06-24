@@ -2,11 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-const DEFAULT_BILLEASE_URL = process.env.NEXT_PUBLIC_BILLEASE_URL || 'http://localhost:3000';
+const DEFAULT_BILLEASE_URL = '/billease';
 
 export default function BilleaseTab() {
   const billeaseUrl = useMemo(
-    () => `${DEFAULT_BILLEASE_URL.replace(/\/$/, '')}/dashboard`,
+    () => `${DEFAULT_BILLEASE_URL}/dashboard`,
     []
   );
   const [loading, setLoading] = useState(true);
@@ -43,7 +43,7 @@ export default function BilleaseTab() {
           <div>
             <p className="text-xs font-black uppercase tracking-wider text-emerald-700">Bill Book</p>
             <p className="text-[10px] text-slate-500">
-              Standalone billing app from your local `billing-app` project.
+              Native internal billing engine (Prisma & SQLite).
             </p>
           </div>
         </div>
@@ -68,7 +68,7 @@ export default function BilleaseTab() {
             <div className="h-10 w-10 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
             <p className="text-sm font-semibold text-slate-700">Starting Bill Book…</p>
             <p className="max-w-xs text-[11px] text-slate-500">
-              Make sure your local billing app is running at <span className="font-medium">{DEFAULT_BILLEASE_URL}</span>.
+              Loading the unified database connection...
             </p>
           </div>
         )}

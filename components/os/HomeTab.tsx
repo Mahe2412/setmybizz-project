@@ -56,7 +56,14 @@ export default function HomeTab({
    const [tileIndex, setTileIndex] = useState(0);
    const [isSpotlightOpen, setIsSpotlightOpen] = useState(false);
 
-   const [showReport, setShowReport] = useState(true);
+   const [showReport, setShowReport] = useState(() => {
+      if (typeof window !== 'undefined') {
+         const show = sessionStorage.getItem('show_onboarding_briefing') === 'true';
+         sessionStorage.removeItem('show_onboarding_briefing');
+         return show;
+      }
+      return false;
+   });
 
    const scrollRef = useRef<HTMLDivElement>(null);
    const textareaRef = useRef<HTMLTextAreaElement>(null);

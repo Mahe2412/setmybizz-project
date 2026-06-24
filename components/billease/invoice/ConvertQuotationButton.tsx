@@ -15,7 +15,7 @@ export function ConvertQuotationButton({ documentId }: { documentId: string }) {
     const data = await res.json();
     setLoading(false);
     if (res.ok && data.id) {
-      router.push(`/invoices/${data.id}`);
+      router.push(`/billease/invoices/${data.id}`);
       router.refresh();
     } else {
       alert("Conversion failed. Please try again.");

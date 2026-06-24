@@ -21,17 +21,17 @@ import {
 import { cn } from "@/lib/billease/utils";
 
 const links = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, group: "main" },
-  { href: "/invoices", label: "Invoices", icon: FileText, group: "main" },
-  { href: "/purchases", label: "Purchases", icon: ShoppingCart, group: "main" },
-  { href: "/expenses", label: "Expenses", icon: TrendingDown, group: "main" },
-  { href: "/parties", label: "Parties", icon: Users, group: "books" },
-  { href: "/payments", label: "Payments", icon: CreditCard, group: "books" },
-  { href: "/items", label: "Products", icon: Package, group: "books" },
-  { href: "/inventory", label: "Inventory", icon: Warehouse, group: "books" },
-  { href: "/store", label: "Digital Store", icon: Store, group: "reports" },
-  { href: "/reports", label: "Reports", icon: BarChart3, group: "reports" },
-  { href: "/settings", label: "Settings", icon: Settings, group: "settings" },
+  { href: "/billease/dashboard", label: "Dashboard", icon: LayoutDashboard, group: "main" },
+  { href: "/billease/invoices", label: "Invoices", icon: FileText, group: "main" },
+  { href: "/billease/purchases", label: "Purchases", icon: ShoppingCart, group: "main" },
+  { href: "/billease/expenses", label: "Expenses", icon: TrendingDown, group: "main" },
+  { href: "/billease/parties", label: "Parties", icon: Users, group: "books" },
+  { href: "/billease/payments", label: "Payments", icon: CreditCard, group: "books" },
+  { href: "/billease/items", label: "Products", icon: Package, group: "books" },
+  { href: "/billease/inventory", label: "Inventory", icon: Warehouse, group: "books" },
+  { href: "/billease/store", label: "Digital Store", icon: Store, group: "reports" },
+  { href: "/billease/reports", label: "Reports", icon: BarChart3, group: "reports" },
+  { href: "/billease/settings", label: "Settings", icon: Settings, group: "settings" },
 ];
 
 const groups = [

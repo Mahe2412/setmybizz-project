@@ -12,7 +12,9 @@ function EmbedLayoutInner({
   businessName?: string | null;
 }) {
   const searchParams = useSearchParams();
-  const embed = searchParams.get("embed") === "1";
+  const isEmbedQuery = searchParams?.get("embed") === "1";
+  const inIframe = typeof window !== "undefined" && window.self !== window.top;
+  const embed = isEmbedQuery || inIframe;
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {

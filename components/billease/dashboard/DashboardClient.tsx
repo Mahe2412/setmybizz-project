@@ -51,23 +51,23 @@ export function DashboardClient({ stats, businessName }: DashboardClientProps) {
   const purchasesValue = selectedTimeframe === "All Time" ? stats.totalPurchases : stats.totalPurchases * 0.35;
 
   const createActions = [
-    { label: "Invoice", icon: FileText, href: "/invoices/new", color: "bg-blue-50 text-blue-600 border-blue-100" },
-    { label: "Purchase", icon: ShoppingCart, href: "/purchases/new", color: "bg-emerald-50 text-emerald-600 border-emerald-100" },
-    { label: "Quotation", icon: FileSignature, href: "/invoices/new?type=quotation", color: "bg-purple-50 text-purple-600 border-purple-100" },
-    { label: "Delivery Challan", icon: Truck, href: "/invoices/new?type=challan", color: "bg-amber-50 text-amber-600 border-amber-100" },
-    { label: "Credit Note", icon: Undo2, href: "/invoices/new?type=credit_note", color: "bg-rose-50 text-rose-600 border-rose-100" },
-    { label: "Purchase Order", icon: FilePlus, href: "/purchases/new?type=po", color: "bg-cyan-50 text-cyan-600 border-cyan-100" },
-    { label: "Expenses", icon: TrendingDown, href: "/expenses", color: "bg-indigo-50 text-indigo-600 border-indigo-100" },
-    { label: "Pro Forma Invoice", icon: Receipt, href: "/invoices/new?type=proforma", color: "bg-teal-50 text-teal-600 border-teal-100" },
+    { label: "Invoice", icon: FileText, href: "/billease/invoices/new", color: "bg-blue-50 text-blue-600 border-blue-100" },
+    { label: "Purchase", icon: ShoppingCart, href: "/billease/purchases/new", color: "bg-emerald-50 text-emerald-600 border-emerald-100" },
+    { label: "Quotation", icon: FileSignature, href: "/billease/invoices/new?type=quotation", color: "bg-purple-50 text-purple-600 border-purple-100" },
+    { label: "Delivery Challan", icon: Truck, href: "/billease/invoices/new?type=challan", color: "bg-amber-50 text-amber-600 border-amber-100" },
+    { label: "Credit Note", icon: Undo2, href: "/billease/invoices/new?type=credit_note", color: "bg-rose-50 text-rose-600 border-rose-100" },
+    { label: "Purchase Order", icon: FilePlus, href: "/billease/purchases/new?type=po", color: "bg-cyan-50 text-cyan-600 border-cyan-100" },
+    { label: "Expenses", icon: TrendingDown, href: "/billease/expenses", color: "bg-indigo-50 text-indigo-600 border-indigo-100" },
+    { label: "Pro Forma Invoice", icon: Receipt, href: "/billease/invoices/new?type=proforma", color: "bg-teal-50 text-teal-600 border-teal-100" },
   ];
 
   const quickAccessActions = [
-    { label: "Payments Timeline", icon: Calendar, href: "/payments" },
-    { label: "Parties Ledger", icon: Users, href: "/parties" },
-    { label: "Products / Stock", icon: Package, href: "/items" },
-    { label: "Digital Store", icon: Warehouse, href: "/store" },
-    { label: "Reports & GST", icon: BarChart3, href: "/reports" },
-    { label: "Settings", icon: Settings, href: "/settings" },
+    { label: "Payments Timeline", icon: Calendar, href: "/billease/payments" },
+    { label: "Parties Ledger", icon: Users, href: "/billease/parties" },
+    { label: "Products / Stock", icon: Package, href: "/billease/items" },
+    { label: "Digital Store", icon: Warehouse, href: "/billease/store" },
+    { label: "Reports & GST", icon: BarChart3, href: "/billease/reports" },
+    { label: "Settings", icon: Settings, href: "/billease/settings" },
   ];
 
   return (
@@ -82,7 +82,7 @@ export function DashboardClient({ stats, businessName }: DashboardClientProps) {
         </div>
         <div className="flex items-center gap-3">
           <Link
-            href="/invoices/new"
+            href="/billease/invoices/new"
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white shadow-md shadow-blue-500/10 hover:bg-blue-700 transition-all"
           >
             <Plus className="h-4 w-4" />
@@ -235,7 +235,7 @@ export function DashboardClient({ stats, businessName }: DashboardClientProps) {
           <div>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xs font-black text-slate-400 uppercase tracking-wider">Recent Invoices</h2>
-              <Link href="/invoices" className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1">
+              <Link href="/billease/invoices" className="text-xs font-bold text-blue-600 hover:underline flex items-center gap-1">
                 View All <ArrowRight className="h-3 w-3" />
               </Link>
             </div>
@@ -247,7 +247,7 @@ export function DashboardClient({ stats, businessName }: DashboardClientProps) {
                 {stats.recentInvoices.map((inv) => (
                   <div key={inv.id} className="flex items-center justify-between border-b border-slate-50 pb-2">
                     <div>
-                      <Link href={`/invoices/${inv.id}`} className="text-xs font-bold text-blue-600 hover:underline block">
+                      <Link href={`/billease/invoices/${inv.id}`} className="text-xs font-bold text-blue-600 hover:underline block">
                         {inv.number ?? "Draft"}
                       </Link>
                       <span className="text-[10px] text-slate-500">{inv.party?.name ?? "Walk-in Customer"}</span>

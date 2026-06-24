@@ -38,7 +38,7 @@ export function PartyForm({
     });
 
     setLoading(false);
-    router.push("/parties");
+    router.push("/billease/parties");
     router.refresh();
   }
 

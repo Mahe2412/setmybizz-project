@@ -38,7 +38,7 @@ export function ItemForm({
     });
 
     setLoading(false);
-    router.push("/items");
+    router.push("/billease/items");
     router.refresh();
   }
 

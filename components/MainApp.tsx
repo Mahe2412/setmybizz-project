@@ -135,7 +135,12 @@ const AppContent: React.FC = () => {
         <SizeStep key="size" data={data} updateData={updateData} onNext={nextStep} onBack={prevStep} uiStep={3} totalSteps={9} />,
         <MotivationStep key="motivation" data={data} updateData={updateData} onNext={nextStep} onBack={prevStep} uiStep={4} totalSteps={9} />,
         <FocusStep key="focus" data={data} updateData={updateData} onNext={nextStep} onBack={prevStep} uiStep={5} totalSteps={9} />,
-        <SummaryStep key="summary" data={data} onBack={prevStep} onNext={() => setView('dashboard')} />
+        <SummaryStep key="summary" data={data} onBack={prevStep} onNext={() => {
+            if (typeof window !== 'undefined') {
+                sessionStorage.setItem('show_onboarding_briefing', 'true');
+            }
+            setView('dashboard');
+        }} />
     ];
 
     // Redirect to /os when onboarding completes

@@ -16,7 +16,7 @@ const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ onClose, installe
     const CATEGORIES = ['Discover', 'Featured', 'For you', 'Trending', 'AI skills', 'Marketing', 'CRM', 'Integrations', 'Project Management'];
 
     const APPS = [
-        { id: 9, appId: 'billbook', name: 'Bill Book', dev: 'Main billing app (localhost:3000)', rating: 4.9, reviews: '8.2K', badge: 'Active', icon: '📒', color: 'bg-violet-50 text-violet-600' },
+        { id: 9, appId: 'billbook', name: 'Bill Book', dev: 'Built-in Billing (SQLite & Prisma)', rating: 4.9, reviews: '8.2K', badge: 'Active', icon: '📒', color: 'bg-violet-50 text-violet-600' },
         { id: 10, appId: 'bizbook', name: 'Biz Book', dev: 'SetMyBizz Labs', rating: 4.8, reviews: '2.4K', badge: 'AI Powered', icon: '🚀', color: 'bg-indigo-50 text-indigo-600' },
         { id: 1, appId: 'tally-plus', name: 'Tally Plus Automation', dev: 'By SetMyBizz', rating: 4.8, reviews: '2.4K', badge: 'Best Seller', icon: '📊', color: 'bg-emerald-50 text-emerald-600' },
         { id: 2, appId: 'whatsapp-business', name: 'WhatsApp Marketing Node', dev: 'By Cloud Connect', rating: 4.9, reviews: '8.7K', badge: 'Best Seller', icon: '💬', color: 'bg-green-50 text-green-600' },

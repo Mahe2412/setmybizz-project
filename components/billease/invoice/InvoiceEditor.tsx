@@ -253,8 +253,8 @@ export function InvoiceEditor({
     if (res.ok) {
       const base =
         docType === "purchase"
-          ? "/purchases"
-          : "/invoices";
+          ? "/billease/purchases"
+          : "/billease/invoices";
       router.push(`${base}/${data.id}`);
       router.refresh();
     }
