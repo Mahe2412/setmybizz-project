@@ -115,7 +115,7 @@ export default function PlatformPage() {
                         <Link href="/start-in-india" className="text-blue-600 font-semibold hover:text-blue-700">🌍 Start in India</Link>
                     </div>
                     <div className="flex items-center gap-3">
-                        <a href="https://wa.me/917893332884" className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 transition-colors">
+                        <a href="https://wa.me/918501999457" className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 transition-colors">
                             <MessageCircle className="w-4 h-4" /> Expert
                         </a>
                         <Link href="/onboarding" className="inline-flex items-center gap-1.5 px-5 py-2.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow">
@@ -336,7 +336,7 @@ export default function PlatformPage() {
                             Start Building Free 🚀
                         </Link>
                         <a
-                            href="https://wa.me/917893332884"
+                            href="https://wa.me/918501999457"
                             className="inline-flex items-center justify-center gap-2 px-8 py-4 border-2 border-white/40 text-white font-bold rounded-2xl hover:bg-white/10 transition-all"
                         >
                             <MessageCircle className="w-5 h-5" /> Talk to an Expert

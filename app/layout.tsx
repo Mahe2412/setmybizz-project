@@ -19,18 +19,17 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL('https://setmybizz.com'),
   title: {
-    default: "SetMyBizz | World's First AI Business OS & India's #1 Setup Platform",
+    default: "SetMyBizz | Online CA Services, Company Registration & Startup Banking OS",
     template: '%s | SetMyBizz AI Business OS',
   },
   description:
-    "Launch, run & scale your startup seamlessly with SetMyBizz — the World's First AI Business Operating System. Featuring the World's First AI Co-Founder and AI Startup LaunchPad. Get Company Registration, GST, Trademark, and entire brand presence built instantly.",
+    "Get Pvt Ltd / LLP company registration online, GST & tax filings from certified CA experts, current account business banking setup, and automate operations with the World's First AI Business Operating System (BizOS). Start, run, and scale your startup with SetMyBizz.",
   keywords: [
     'worlds first AI business OS', "india's first AI business setup platform", 'worlds first AI co founder', 'worlds first AI startup launchpad', 
-    'business registration india', 'pvt ltd registration online', 'GST registration',
-    'AI operations platform', 'AI brand identity', 'AI startup builder',
-    'trademark registration india', 'company incorporation', 'AI business platform india',
-    'startup tools india', 'MSME registration', 'IEC code', 'business setup visakhapatnam',
-    'AI co-founder', 'setmybizz', 'business operating system', 'business automation suite'
+    'pvt ltd company registration', 'online company registration india', 'LLP incorporation online', 'register startup india',
+    'online CA services', 'chartered accountant services online', 'GST registration and filing', 'income tax filing ITR', 'ROC legal compliance',
+    'startup business banking', 'corporate current account setup', 'business bank account online', 'startup banking partners',
+    'business setup visakhapatnam', 'msme registration udyam', 'trademark registration online', 'business automation suite'
   ],
   authors: [{ name: 'SetMyBizz', url: 'https://setmybizz.com' }],
   creator: 'SetMyBizz',
@@ -38,14 +37,14 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true, googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 } },
   openGraph: {
     type: 'website', locale: 'en_IN', url: 'https://setmybizz.com', siteName: 'SetMyBizz',
-    title: "SetMyBizz | World's First AI Business OS",
-    description: "Launch, run & scale your startup seamlessly with SetMyBizz. The World's First AI Co-Founder, AI LaunchPad, and comprehensive business setup—all in one place.",
+    title: "SetMyBizz | Online CA Services, Company Registration & Startup Banking OS",
+    description: "Get Pvt Ltd / LLP company registration online, GST & tax filings from certified CA experts, current account business banking setup, and automate operations with SetMyBizz.",
     images: [{ url: '/images/og-image.png', width: 1200, height: 630, alt: 'SetMyBizz — World\'s First AI Business OS' }],
   },
   twitter: {
     card: 'summary_large_image', site: '@setmybizz', creator: '@setmybizz',
-    title: "SetMyBizz | World's First AI Business OS",
-    description: "Worlds first AI Startup LaunchPad and AI Co-Founder. Setup, build, run, and scale your business effortlessly.",
+    title: "SetMyBizz | Online CA Services, Company Registration & Startup Banking OS",
+    description: "Get Pvt Ltd / LLP company registration online, GST & tax filings from certified CA experts, current account business banking setup, and automate operations with SetMyBizz.",
     images: ['/images/og-image.png'],
   },
   alternates: { canonical: 'https://setmybizz.com' },

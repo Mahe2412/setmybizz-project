@@ -87,7 +87,7 @@ export default function ServicesLandingPage() {
                         <a href="#brochures" className="hover:text-blue-600 transition-colors">Brochures</a>
                     </nav>
                     <div className="flex items-center gap-4">
-                        <a href="https://wa.me/917893332884" className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-emerald-700 bg-emerald-50 border border-emerald-200">
+                        <a href="https://wa.me/918501999457" className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-emerald-700 bg-emerald-50 border border-emerald-200">
                             <MessageSquare className="w-4 h-4" /> Chat with Expert
                         </a>
                         <Link href="/onboarding" className="px-5 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-black transition-all">
@@ -116,7 +116,7 @@ export default function ServicesLandingPage() {
                             <Link href="/onboarding" className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-black text-lg shadow-2xl shadow-blue-500/40 hover:-translate-y-1 transition-all flex items-center gap-3">
                                 Start Your Setup Now <ArrowRight className="w-5 h-5" />
                             </Link>
-                            <a href="https://wa.me/917893332884" className="px-8 py-4 bg-white text-slate-900 border border-slate-200 rounded-2xl font-black text-lg hover:bg-slate-50 transition-all flex items-center gap-3">
+                            <a href="https://wa.me/918501999457" className="px-8 py-4 bg-white text-slate-900 border border-slate-200 rounded-2xl font-black text-lg hover:bg-slate-50 transition-all flex items-center gap-3">
                                 Download Catalog <Download className="w-5 h-5" />
                             </a>
                         </div>
@@ -253,7 +253,7 @@ export default function ServicesLandingPage() {
                             <Link href="/onboarding" className="px-10 py-5 bg-blue-600 text-white rounded-2xl font-black text-xl hover:bg-blue-700 transition-all shadow-2xl shadow-blue-500/40">
                                 Launch Your Startup
                             </Link>
-                            <a href="https://wa.me/917893332884" className="px-10 py-5 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-2xl font-black text-xl hover:bg-white/20 transition-all">
+                            <a href="https://wa.me/918501999457" className="px-10 py-5 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-2xl font-black text-xl hover:bg-white/20 transition-all">
                                 Chat with Expert
                             </a>
                         </div>

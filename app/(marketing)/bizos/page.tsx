@@ -261,6 +261,7 @@ export default function HomePage() {
     const [activeIdeTab, setActiveIdeTab] = useState('bizdesk');
     const [activeSubSlide, setActiveSubSlide] = useState(0);
     const [scrolled, setScrolled] = useState(false);
+    const [bizosDropdownOpen, setBizosDropdownOpen] = useState(false);
     const [activeSubTray, setActiveSubTray] = useState<string | null>(null);
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [chatStep, setChatStep] = useState(0);
@@ -319,11 +320,11 @@ export default function HomePage() {
             {/* ── NAVIGATION ── */}
             <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-xl border-b border-slate-100 py-4 shadow-sm' : 'bg-transparent py-6'}`}>
                 <div className="max-w-[1600px] mx-auto px-6 lg:px-12 flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-2">
-                        <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
-                            <Rocket className="w-6 h-6 text-white" />
+                    <Link href="/" className="flex items-center gap-3.5 group">
+                        <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
+                            <Rocket className="w-7 h-7 text-white" />
                         </div>
-                        <span className="text-2xl font-black tracking-tighter">SetMyBizz</span>
+                        <span className="text-3xl font-black tracking-tighter">SetMyBizz</span>
                     </Link>
 
                     <nav className="hidden lg:flex items-center gap-10 text-sm font-bold text-slate-500">
@@ -332,6 +333,59 @@ export default function HomePage() {
                     </nav>
 
                     <div className="flex items-center gap-4">
+                        {/* bizOS Dropdown Button */}
+                        <div className="relative flex items-center">
+                            <div className="flex items-center gap-1">
+                                <Link 
+                                    href="/bizos" 
+                                    className="text-sm font-black text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-1 bg-blue-50 px-3 py-1.5 rounded-full"
+                                >
+                                    <Sparkles className="w-3.5 h-3.5" />
+                                    <span>bizOS</span>
+                                </Link>
+                                <button 
+                                    onClick={() => setBizosDropdownOpen(!bizosDropdownOpen)}
+                                    className="text-blue-600 hover:text-blue-700 transition-colors flex items-center justify-center p-1 rounded-full hover:bg-blue-50/50"
+                                >
+                                    <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${bizosDropdownOpen ? 'rotate-180' : ''}`} />
+                                </button>
+                            </div>
+
+                            {/* Dropdown Menu */}
+                            {bizosDropdownOpen && (
+                                <>
+                                    <div className="fixed inset-0 z-40" onClick={() => setBizosDropdownOpen(false)} />
+                                    <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-slate-100 rounded-2xl shadow-xl p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                                        <div className="px-3 py-1.5 text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 mb-1.5">
+                                            Ecosystem Parts
+                                        </div>
+                                        <div className="space-y-0.5">
+                                            {[
+                                                { label: 'Bizdesk', href: '/os?topNav=bizdesk&tab=home', desc: 'Manage legal & finance' },
+                                                { label: 'Launchpad', href: '/os?topNav=launchpad', desc: 'Design brand assets' },
+                                                { label: 'Ai workspace', href: '/os?topNav=ai-workspace', desc: 'AI co-founder workspace' },
+                                                { label: 'Arkle', href: '/os?arkle=true', desc: 'Voice assistant agent' }
+                                            ].map((item) => (
+                                                <Link
+                                                    key={item.label}
+                                                    href={item.href}
+                                                    onClick={() => setBizosDropdownOpen(false)}
+                                                    className="block w-full text-left p-2.5 rounded-xl hover:bg-slate-50 transition-all group"
+                                                >
+                                                    <span className="block text-[11.5px] font-bold text-slate-700 group-hover:text-blue-600 transition-colors">
+                                                        {item.label}
+                                                    </span>
+                                                    <span className="block text-[8.5px] font-medium text-slate-400 mt-0.5 leading-none">
+                                                        {item.desc}
+                                                    </span>
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+
                         <Link href="/onboarding?view=login" className="hidden sm:flex items-center gap-2 px-6 py-2.5 text-sm font-bold text-slate-700 bg-slate-50 rounded-xl hover:bg-slate-100 transition-all">
                             <Lock className="w-3.5 h-3.5" /> BizDesk Login
                         </Link>

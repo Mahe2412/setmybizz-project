@@ -175,6 +175,7 @@ export default function OSPage() {
   const [showGoogleConnect, setShowGoogleConnect] = useState(false);
   const [isGoogleConnected, setIsGoogleConnected] = useState(false);
   const [billbookDropdownOpen, setBillbookDropdownOpen] = useState(false);
+  const [bizosMenuOpen, setBizosMenuOpen] = useState(false);
 
   // Dynamic UI replacement accessors to completely remove static mock data placeholders
   const liveBizName = dbBusiness?.business_name || dbUser?.business_name || bizData.name || 'Your Startup';
@@ -270,6 +271,23 @@ export default function OSPage() {
       sessionStorage.removeItem('bizos_open_tab');
       setActiveTopNav('bizdesk');
       setActiveTab(pendingTab);
+    }
+
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const topNavParam = urlParams.get('topNav') as TopNavId | null;
+      const tabParam = urlParams.get('tab') as OsTab | null;
+      const openArkle = urlParams.get('arkle') === 'true';
+
+      if (topNavParam) {
+        setActiveTopNav(topNavParam);
+        if (topNavParam === 'bizdesk') {
+          setActiveTab(tabParam || 'home');
+        }
+      }
+      if (openArkle) {
+        setArkleOpen(true);
+      }
     }
   }, []);
 
@@ -447,7 +465,7 @@ export default function OSPage() {
               <button
                 type="button"
                 onClick={toggleSidebar}
-                className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200/80 bg-white text-slate-600 shadow-sm transition-all hover:border-sky-200 hover:bg-sky-50 hover:text-sky-700"
+                className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200/80 bg-white text-slate-600 shadow-sm transition-all hover:border-sky-200 hover:bg-sky-50 hover:text-sky-700 shrink-0"
                 title={sidebarOpen ? 'Close navigation' : 'Open navigation'}
                 aria-expanded={sidebarOpen}
                 aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
@@ -457,15 +475,85 @@ export default function OSPage() {
                 </span>
               </button>
             )}
-            <Link href="/" className="flex items-center gap-3 group">
+            <Link href="/" className="flex items-center gap-2.5 group shrink-0">
               <div className="w-8 h-8 rounded-[10px] flex items-center justify-center font-black text-white bg-linear-to-tr from-blue-600 to-indigo-600 shadow-lg shadow-blue-600/20 group-hover:scale-105 active:scale-95 transition-all outline outline-2 outline-white/50">
                 <span className="material-symbols-rounded text-[16px] text-white">rocket_launch</span>
               </div>
-              <div className="hidden lg:block space-y-0">
-                <span className="font-black text-[13px] tracking-tight uppercase block leading-tight text-slate-900">BizOS</span>
-                <span className="text-[7px] font-black tracking-[0.12em] block uppercase text-slate-400 leading-none mt-0.5">Start, Run & Manage</span>
+              <div className="hidden xl:block space-y-0">
+                <span className="font-black text-[13px] tracking-tight uppercase block leading-tight text-slate-900">SetMyBizz</span>
+                <span className="text-[7px] font-black tracking-[0.12em] block uppercase text-slate-400 leading-none mt-0.5 font-bold">Start, Run & Manage</span>
               </div>
             </Link>
+
+            {/* Separator line */}
+            <div className="hidden sm:block w-[1px] h-5 bg-slate-200/60 shrink-0"></div>
+
+            {/* bizOS split dropdown button */}
+            <div className="relative flex items-center shrink-0">
+              <Link href="/bizos" className="flex items-center gap-1 px-2.5 h-8 rounded-l-lg text-[10.5px] font-black uppercase tracking-wider text-sky-700 bg-sky-50/50 hover:bg-sky-50 border border-r-0 border-sky-100/80 hover:border-sky-200 transition-all shadow-xs">
+                <span className="material-symbols-rounded text-[13px] text-sky-600 [font-variation-settings:'FILL'_1]">widgets</span>
+                bizOS
+              </Link>
+              <button 
+                onClick={() => setBizosMenuOpen(!bizosMenuOpen)} 
+                className="flex items-center justify-center w-7 h-8 rounded-r-lg bg-sky-50/50 hover:bg-sky-50 border border-sky-100/80 hover:border-sky-200 text-slate-400 hover:text-slate-700 transition-all shadow-xs"
+              >
+                <span className={`material-symbols-rounded text-[14px] transition-transform duration-200 ${bizosMenuOpen ? 'rotate-180' : ''}`}>
+                  keyboard_arrow_down
+                </span>
+              </button>
+
+              <AnimatePresence>
+                {bizosMenuOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setBizosMenuOpen(false)} />
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      className="absolute left-0 top-full mt-2 w-48 bg-white border border-slate-200 rounded-2xl shadow-xl p-2 z-50 overflow-hidden"
+                    >
+                      <div className="px-3 py-1.5 text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 mb-1.5">
+                        Ecosystem Parts
+                      </div>
+                      <div className="space-y-0.5">
+                        {[
+                          { id: 'bizdesk', label: 'Bizdesk', icon: 'work', color: 'text-indigo-600' },
+                          { id: 'launchpad', label: 'Launchpad', icon: 'rocket_launch', color: 'text-rose-500' },
+                          { id: 'ai-workspace', label: 'Ai workspace', icon: 'psychology', color: 'text-purple-600' },
+                          { id: 'arkle', label: 'Arkle', icon: 'forum', color: 'text-sky-500' }
+                        ].map((item) => (
+                          <button
+                            key={item.id}
+                            onClick={() => {
+                              setBizosMenuOpen(false);
+                              if (item.id === 'bizdesk') {
+                                setActiveTopNav('bizdesk');
+                                setActiveTab('home');
+                              } else if (item.id === 'launchpad') {
+                                setActiveTopNav('launchpad');
+                              } else if (item.id === 'ai-workspace') {
+                                setActiveTopNav('ai-workspace');
+                              } else if (item.id === 'arkle') {
+                                setArkleOpen(true);
+                              }
+                            }}
+                            className="w-full text-left p-2 rounded-xl hover:bg-slate-50 transition-all flex items-center gap-2.5 group/opt"
+                          >
+                            <span className={`material-symbols-rounded text-[18px] ${item.color} group-hover/opt:scale-110 transition-transform`}>
+                              {item.icon}
+                            </span>
+                            <span className="text-[11px] font-bold text-slate-700 group-hover/opt:text-slate-900 transition-colors">
+                              {item.label}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
  
           {/* Center Segment: Mathematically Aligned Premium Navigation Dock */}

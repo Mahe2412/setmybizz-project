@@ -95,7 +95,7 @@ export default async function ServicePage({ params }: { params: Promise<{ slug: 
                         </span>
                     </div>
                     <div className="flex items-center gap-3">
-                        <a href="https://wa.me/917893332884" className="hidden md:inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 transition-colors">
+                        <a href="https://wa.me/918501999457" className="hidden md:inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 transition-colors">
                             <MessageCircle className="w-4 h-4" /> Expert Help
                         </a>
                         <Link href="/onboarding" className="inline-flex items-center gap-1 px-5 py-2.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
@@ -209,7 +209,7 @@ export default async function ServicePage({ params }: { params: Promise<{ slug: 
                             <div className="text-3xl mb-3">💬</div>
                             <h3 className="font-bold text-slate-900 mb-2">Talk to an Expert</h3>
                             <p className="text-slate-600 text-sm mb-4">Get free guidance on {service.title}. Our CA team answers in minutes.</p>
-                            <a href="https://wa.me/917893332884" className="flex items-center justify-center gap-2 w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-colors">
+                            <a href="https://wa.me/918501999457" className="flex items-center justify-center gap-2 w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-colors">
                                 <MessageCircle className="w-4 h-4" /> WhatsApp Now
                             </a>
                         </div>

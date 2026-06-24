@@ -114,7 +114,7 @@ export default function StartInIndiaPage() {
                         <span className="font-black text-lg text-slate-900">SetMyBizz</span>
                     </Link>
                     <div className="flex items-center gap-3">
-                        <a href="https://wa.me/917893332884" className="hidden md:inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 transition-colors">
+                        <a href="https://wa.me/918501999457" className="hidden md:inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 transition-colors">
                             <MessageCircle className="w-4 h-4" /> Talk to Expert
                         </a>
                         <Link href="/onboarding" className="inline-flex items-center gap-1 px-5 py-2.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow">
@@ -213,7 +213,7 @@ export default function StartInIndiaPage() {
 
                     <div className="text-center mt-10">
                         <p className="text-slate-500 text-sm mb-3">Not sure which path is right for you?</p>
-                        <a href="https://wa.me/917893332884" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 transition-colors">
+                        <a href="https://wa.me/918501999457" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 transition-colors">
                             <MessageCircle className="w-4 h-4" /> Talk to Our India Entry Expert (Free Consultation)
                         </a>
                     </div>
@@ -298,7 +298,7 @@ export default function StartInIndiaPage() {
                         <Link href="/onboarding?audience=incorporate-india" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-blue-700 font-bold rounded-xl hover:-translate-y-0.5 transition-all shadow-lg">
                             Start Now — It&apos;s Free <ArrowRight className="w-4 h-4" />
                         </Link>
-                        <a href="https://wa.me/917893332884" className="inline-flex items-center justify-center gap-2 px-8 py-4 border-2 border-white/40 text-white font-bold rounded-xl hover:bg-white/10 transition-all">
+                        <a href="https://wa.me/918501999457" className="inline-flex items-center justify-center gap-2 px-8 py-4 border-2 border-white/40 text-white font-bold rounded-xl hover:bg-white/10 transition-all">
                             <MessageCircle className="w-4 h-4" /> WhatsApp Expert
                         </a>
                     </div>
