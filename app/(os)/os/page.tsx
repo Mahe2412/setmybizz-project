@@ -175,6 +175,16 @@ export default function OSPage() {
   const [integrationsOpen, setIntegrationsOpen] = useState(false);
   const [integrationsInitialTab, setIntegrationsInitialTab] = useState<'bizos_apps' | 'marketplace'>('bizos_apps');
   const [globalLang, setGlobalLang] = useState('en-IN');
+  const [isMobileView, setIsMobileView] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobileView(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     const handleOpenMarketplace = (e: Event) => {
@@ -469,6 +479,153 @@ export default function OSPage() {
           </div>
         )}
       </div>
+    );
+  }
+
+  const renderActiveTab = () => {
+    switch (activeTab) {
+      case 'home':
+        return (
+          <HomeTab
+            data={bizData}
+            onOpenBillBook={openBillBook}
+            onOpenBillEase={openBillEase}
+            onOpenOrderDesk={openOrderDesk}
+            onGmailClick={() => {
+              if (isGoogleConnected) {
+                setActiveTab('google');
+              } else {
+                setShowGoogleConnect(true);
+              }
+            }}
+          />
+        );
+      case 'google':
+        return <GoogleWorkspaceDashboard onBack={() => setActiveTab('home')} />;
+      case 'company': return <CompanyTab />;
+      case 'banking': return <BankingTab />;
+      case 'sales': return <SalesTab />;
+      case 'billbook': return <BillBookTab />;
+      case 'billease': return <BilleaseTab />;
+      case 'crm': return <CRMTab />;
+      case 'orderdesk': return <OrderDeskTab />;
+      case 'learn':
+        return (
+          <StartupStoreTab 
+            installedApps={installedApps}
+            onInstall={handleInstallApp}
+            onUninstall={handleUninstallApp}
+          />
+        );
+      case 'global': return <GlobalTab />;
+      case 'networking': return <NetworkingTab />;
+      case 'bharat-support': return <BharatSupportTab />;
+      case 'market-access': return <MarketAccessTab />;
+      case 'user-profile': return <UserProfileTab />;
+      case 'settings': return <SettingsTab />;
+      case 'sell-commerce': return <SellCommerceTab />;
+      case 'suppliers': return <SuppliersTab />;
+      case 'retailer': return <RetailerTab />;
+      default:
+        return (
+          <HomeTab
+            data={bizData}
+            onOpenBillBook={openBillBook}
+            onOpenBillEase={openBillEase}
+            onOpenOrderDesk={openOrderDesk}
+            onGmailClick={() => {
+              if (isGoogleConnected) {
+                setActiveTab('google');
+              } else {
+                setShowGoogleConnect(true);
+              }
+            }}
+          />
+        );
+    }
+  };
+
+  if (isMobileView) {
+    return (
+      <ArkleCoreProvider>
+        <div className="h-screen flex flex-col bg-[#f8fafc] overflow-hidden" style={{ fontFamily: '"DM Sans", sans-serif' }}>
+          <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;900&display=swap');
+          @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
+          
+          ::-webkit-scrollbar { width: 4px; }
+          ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
+          `}</style>
+
+          {/* Dev mode header indicator */}
+          {isDevAuthBypass() && (
+            <div className="shrink-0 bg-amber-500 px-3 py-1 text-center text-[10px] font-bold uppercase tracking-wider text-amber-950">
+              Dev mode — login bypassed (localhost only)
+            </div>
+          )}
+
+          {/* Mobile Header */}
+          <header className="h-14 bg-white/95 backdrop-blur-md border-b border-slate-100 flex items-center justify-between px-4 sticky top-0 z-50 shrink-0 shadow-[0_2px_15px_rgba(0,0,0,0.01)]">
+            <div className="flex items-center gap-2">
+              <span className="font-black text-slate-900 tracking-tighter text-[16px] uppercase">SetMyBizz</span>
+              <span className="px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 text-[8px] font-black uppercase tracking-wider">BizOS</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div 
+                onClick={() => setIntegrationsOpen(true)}
+                className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-500"
+              >
+                <span className="material-symbols-rounded text-[20px]">apps</span>
+              </div>
+              <div 
+                onClick={() => { setActiveTab('user-profile'); }}
+                className="w-8 h-8 rounded-full flex items-center justify-center font-black text-[10px] bg-linear-to-tr from-sky-600 to-blue-700 text-white cursor-pointer shadow-md border border-white"
+              >
+                {liveUserInitials}
+              </div>
+            </div>
+          </header>
+
+          {/* Mobile Main Content */}
+          <main className="flex-1 overflow-y-auto no-scrollbar pb-20">
+            {renderActiveTab()}
+          </main>
+
+          {/* Mobile Bottom Navigation */}
+          <nav className="fixed bottom-0 inset-x-0 h-16 bg-white/95 backdrop-blur-md border-t border-slate-150 flex items-center justify-around px-2 z-[150] shadow-[0_-5px_20px_rgba(0,0,0,0.02)]">
+            {[
+              { id: 'home', label: 'Arkle', icon: 'auto_awesome' },
+              { id: 'crm', label: 'CRM', icon: 'group' },
+              { id: 'billbook', label: 'Billing', icon: 'receipt_long' },
+              { id: 'learn', label: 'Vault', icon: 'folder_shared' }
+            ].map((tab) => {
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as OsTab)}
+                  className={`flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all ${
+                    isActive ? 'text-blue-600 scale-105' : 'text-slate-400'
+                  }`}
+                >
+                  <span className={`material-symbols-rounded text-[22px] transition-transform ${isActive ? '[font-variation-settings:"FILL"_1]' : ''}`}>
+                    {tab.icon}
+                  </span>
+                  <span className="text-[9px] font-black uppercase tracking-wider">{tab.label}</span>
+                </button>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* Global Modals */}
+        {integrationsOpen && (
+          <IntegrationsPanel 
+            onClose={() => setIntegrationsOpen(false)} 
+            initialTab={integrationsInitialTab}
+          />
+        )}
+      </ArkleCoreProvider>
     );
   }
 

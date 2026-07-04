@@ -51,6 +51,9 @@ model Business {
   stockMovements  StockMovement[]
   expenses        Expense[]
   taxProfile      TaxProfile?
+  crmLeads        CrmLead[]
+  crmWorkflows    CrmWorkflow[]
+  crmIntegrations CrmIntegration[]
 }
 
 model Membership {
@@ -288,4 +291,62 @@ model CaLead {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 }
+
+model CrmLead {
+  id         String   @id @default(cuid())
+  businessId String?
+  business   Business? @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name       String
+  phone      String
+  category   String
+  stage      String
+  priority   String
+  source     String
+  note       String?
+  score      Int      @default(0)
+  addedAt    DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  messages   CrmMessage[]
+
+  @@index([businessId])
+}
+
+model CrmMessage {
+  id      String   @id @default(cuid())
+  leadId  String
+  lead    CrmLead  @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  role    String   // "ai" or "lead"
+  text    String
+  channel String   @default("whatsapp")
+  sentAt  DateTime @default(now())
+
+  @@index([leadId])
+}
+
+model CrmWorkflow {
+  id         String   @id @default(cuid())
+  businessId String?
+  business   Business? @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  title      String
+  trigger    String
+  actions    String
+  active     Boolean  @default(true)
+  runCount   Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  @@index([businessId])
+}
+
+model CrmIntegration {
+  id          String   @id @default(cuid())
+  businessId  String?
+  business    Business? @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  type        String
+  credentials String?
+  active      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([businessId])
+}
+
 
