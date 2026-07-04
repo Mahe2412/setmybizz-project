@@ -37,6 +37,7 @@ const BilleaseTab = dynamic(() => import('@/components/os/BilleaseTab'), {
   ),
 });
 import OrderDeskTab from '@/components/os/OrderDeskTab';
+import CRMTab from '@/components/os/CRMTab';
 import { useBizStore } from '@/lib/useBizStore';
 import LaunchPadTab from '@/components/os/LaunchPadTab';
 import Workspace from '@/components/dashboard/Workspace';
@@ -67,6 +68,7 @@ const BIZDESK_SIDEBAR: SidebarSection[] = [
       { id: 'sales', icon: '💼', label: 'Sales Desk' },
       { id: 'billease', icon: '📒', label: 'Bill Book' },
       { id: 'billbook', icon: '🚀', label: 'Biz Book' },
+      { id: 'crm', icon: '🎯', label: 'CRM Desk' },
     ],
   },
   {
@@ -136,6 +138,21 @@ const LEARN_SIDEBAR: SidebarSection[] = [
   },
 ];
 
+const ALL_APPS = [
+  { id: 'home', label: 'Arkle Control', icon: '🧠' },
+  { id: 'company', label: 'Business Vault', icon: '🛡️' },
+  { id: 'banking', label: 'Financial Desk', icon: '💳' },
+  { id: 'sales', label: 'Sales Desk', icon: '💼' },
+  { id: 'billease', label: 'Bill Book', icon: '📒', isApp: true },
+  { id: 'billbook', label: 'Biz Book', icon: '🚀', isApp: true },
+  { id: 'crm', label: 'CRM Desk', icon: '🎯', isApp: true },
+  { id: 'learn', label: 'Startup Store', icon: '🛒' },
+  { id: 'sell-commerce', label: 'Commerce OS', icon: '📦' },
+  { id: 'suppliers', label: 'Supply Chain', icon: '🏭' },
+  { id: 'global', label: 'Global Gateway', icon: '🌐' },
+  { id: 'bharat-support', label: 'Bharat Startup', icon: '🇮🇳' }
+];
+
 /* ───────────── TOP NAV CONFIG ───────────── */
 type TopNavId = 'bizdesk' | 'launchpad' | 'learn' | 'ai-workspace';
 
@@ -156,7 +173,22 @@ export default function OSPage() {
   const [showLaunchPadFlow, setShowLaunchPadFlow] = useState(false);
   const [bizData, setBizData] = useState(BIZ);
   const [integrationsOpen, setIntegrationsOpen] = useState(false);
+  const [integrationsInitialTab, setIntegrationsInitialTab] = useState<'bizos_apps' | 'marketplace'>('bizos_apps');
   const [globalLang, setGlobalLang] = useState('en-IN');
+
+  useEffect(() => {
+    const handleOpenMarketplace = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const initialTab = customEvent.detail?.tab || 'marketplace';
+      setIntegrationsInitialTab(initialTab);
+      setIntegrationsOpen(true);
+    };
+
+    window.addEventListener('open-marketplace-apps', handleOpenMarketplace);
+    return () => {
+      window.removeEventListener('open-marketplace-apps', handleOpenMarketplace);
+    };
+  }, []);
   const {
     whiteboardOpen,
     setWhiteboardOpen,
@@ -183,6 +215,39 @@ export default function OSPage() {
   const liveUserInitials = liveUserName.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() || 'MK';
 
   const [installedApps, setInstalledApps] = useState<string[]>(['billbook']);
+  const [pinnedApps, setPinnedApps] = useState<string[]>(['home', 'company', 'banking', 'crm']);
+  const [isAppTrayOpen, setIsAppTrayOpen] = useState(false);
+  const [trayContextMenu, setTrayContextMenu] = useState<{ x: number; y: number; appId: string; mode: 'dock' | 'tray' } | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedPinned = localStorage.getItem('setmybizz_pinned_apps');
+      if (savedPinned) {
+        try {
+          setPinnedApps(JSON.parse(savedPinned));
+        } catch (e) {
+          console.error("Failed to load pinned apps", e);
+        }
+      }
+    }
+  }, []);
+
+  const handlePinApp = useCallback((appId: string) => {
+    setPinnedApps(prev => {
+      if (prev.includes(appId)) return prev;
+      const updated = [...prev, appId];
+      localStorage.setItem('setmybizz_pinned_apps', JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
+  const handleUnpinApp = useCallback((appId: string) => {
+    setPinnedApps(prev => {
+      const updated = prev.filter(x => x !== appId);
+      localStorage.setItem('setmybizz_pinned_apps', JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -746,14 +811,16 @@ export default function OSPage() {
                 initial={{ x: -280, width: 0 }}
                 animate={{
                   x: 0,
-                  width: sidebarCollapsed ? 72 : 256,
+                  width: sidebarCollapsed ? 60 : 240,
                 }}
                 exit={{ x: -280, width: 0 }}
                 transition={{ type: 'spring', damping: 28, stiffness: 260 }}
-                className={`fixed inset-y-0 left-0 z-40 flex h-full shrink-0 flex-col overflow-hidden border-r border-sky-100/60 bg-sky-50/90 shadow-2xl backdrop-blur-xl md:relative md:h-auto ${sidebarCollapsed ? 'md:w-[72px]' : 'md:w-64 w-[min(280px,88vw)]'
+                onMouseEnter={() => setSidebarCollapsed(false)}
+                onMouseLeave={() => setSidebarCollapsed(true)}
+                className={`fixed inset-y-0 left-0 z-40 flex h-full shrink-0 flex-col overflow-hidden border-r border-sky-100/60 bg-sky-50/90 shadow-2xl backdrop-blur-xl md:relative md:h-auto ${sidebarCollapsed ? 'md:w-[60px]' : 'md:w-[240px] w-[min(240px,88vw)]'
                   }`}
               >
-                <div className="flex shrink-0 items-center justify-between gap-2 border-b border-sky-100/80 px-3 py-3">
+                <div className="flex shrink-0 items-center justify-between gap-2 border-b border-sky-100/80 px-2 py-3">
                   {!sidebarCollapsed && (
                     <span className="truncate text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">
                       Navigation
@@ -784,8 +851,9 @@ export default function OSPage() {
                 <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-2 py-4 no-scrollbar md:px-3">
                   {(activeTopNav === 'bizdesk' ? BIZDESK_SIDEBAR : LEARN_SIDEBAR).map((section, si) => {
                     const filteredItems = section.items.filter(item => {
-                      if (item.id === 'billease') return installedApps.includes('billbook');
-                      if (item.id === 'billbook') return installedApps.includes('bizbook');
+                      if (item.id === 'billease') return installedApps.includes('billease') || installedApps.includes('billbook');
+                      if (item.id === 'billbook') return installedApps.includes('billbook') || installedApps.includes('bizbook');
+                      if (item.id === 'crm') return installedApps.includes('crm');
                       return true;
                     });
                     if (filteredItems.length === 0) return null;
@@ -929,8 +997,15 @@ export default function OSPage() {
                         {activeTab === 'sales' && <SalesTab />}
                         {activeTab === 'billbook' && <BillBookTab />}
                         {activeTab === 'billease' && <BilleaseTab />}
+                        {activeTab === 'crm' && <CRMTab />}
                         {activeTab === 'orderdesk' && <OrderDeskTab />}
-                        {activeTab === 'learn' && <StartupStoreTab />}
+                         {activeTab === 'learn' && (
+                          <StartupStoreTab 
+                            installedApps={installedApps}
+                            onInstall={handleInstallApp}
+                            onUninstall={handleUninstallApp}
+                          />
+                        )}
                         {activeTab === 'global' && <GlobalTab />}
                         {activeTab === 'networking' && <NetworkingTab />}
                         {activeTab === 'bharat-support' && <BharatSupportTab />}
@@ -998,6 +1073,7 @@ export default function OSPage() {
                   className="fixed inset-4 md:inset-10 lg:inset-20 z-[200] bg-white shadow-[0_0_100px_rgba(0,0,0,0.2)] border border-slate-200 rounded-[32px] overflow-hidden flex flex-col"
                 >
                   <IntegrationsPanel 
+                    initialTab={integrationsInitialTab}
                     onClose={() => setIntegrationsOpen(false)} 
                     installedApps={installedApps}
                     onInstallApp={handleInstallApp}
@@ -1021,6 +1097,182 @@ export default function OSPage() {
             </AnimatePresence>
           </main>
         </div>
+
+        {/* BIZHUB STICKY DOCK */}
+        {!conversationMode && (
+          <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[150] flex items-center gap-3 p-3 bg-white/80 backdrop-blur-2xl rounded-[32px] border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.1)] hover:scale-[1.02] transition-all duration-300">
+            {/* Left label */}
+            <div className="flex items-center gap-2 px-3 border-r border-slate-200 mr-1">
+              <span className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse" />
+              <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">BizHub</span>
+            </div>
+
+            {/* Pinned apps list */}
+            <div className="flex items-center gap-2">
+              {pinnedApps.map(appId => {
+                const app = ALL_APPS.find(a => a.id === appId);
+                if (!app) return null;
+                const isActive = activeTab === appId;
+                return (
+                  <button
+                    key={appId}
+                    onClick={() => {
+                      setActiveTopNav('bizdesk');
+                      setActiveTab(appId as any);
+                    }}
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      setTrayContextMenu({
+                        x: e.clientX,
+                        y: e.clientY - 60,
+                        appId,
+                        mode: 'dock'
+                      });
+                    }}
+                    title={app.label}
+                    className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl transition-all duration-300 ${
+                      isActive 
+                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20 scale-105' 
+                        : 'bg-white hover:bg-slate-50 border border-slate-100 hover:-translate-y-1 shadow-sm'
+                    }`}
+                  >
+                    {app.icon}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="w-px h-8 bg-slate-200 mx-1" />
+
+            {/* App Tray trigger button */}
+            <button
+              onClick={() => setIsAppTrayOpen(!isAppTrayOpen)}
+              className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white transition-all shadow-md active:scale-95 ${
+                isAppTrayOpen ? 'bg-blue-600' : 'bg-slate-900 hover:bg-slate-800'
+              }`}
+              title="All Apps & Tools"
+            >
+              <span className="material-symbols-rounded text-[22px]">grid_view</span>
+            </button>
+          </div>
+        )}
+
+        {/* SMART APP TRAY POPUP (MOBILE DRAWER STYLE) */}
+        <AnimatePresence>
+          {isAppTrayOpen && (
+            <>
+              {/* Overlay to close */}
+              <div 
+                className="fixed inset-0 z-[140] bg-slate-900/10 backdrop-blur-xs" 
+                onClick={() => setIsAppTrayOpen(false)}
+              />
+              <motion.div
+                initial={{ opacity: 0, y: 50, x: '-50%', scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, x: '-50%', scale: 1 }}
+                exit={{ opacity: 0, y: 50, x: '-50%', scale: 0.95 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 220 }}
+                className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[145] w-[95%] max-w-lg bg-white border border-slate-200 rounded-[35px] shadow-[0_30px_70px_rgba(0,0,0,0.18)] p-6 overflow-hidden flex flex-col"
+              >
+                <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-rounded text-blue-600 text-[20px]">widgets</span>
+                    <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider">BizOS Workspace Apps</h3>
+                  </div>
+                  <span className="text-[9px] font-black bg-slate-100 text-slate-400 px-2 py-0.5 rounded-full uppercase">Right click to pin</span>
+                </div>
+
+                {/* Grid of Apps */}
+                <div className="grid grid-cols-4 gap-4 max-h-[300px] overflow-y-auto pr-1 no-scrollbar">
+                  {ALL_APPS.filter(app => {
+                    if (app.isApp) {
+                      if (app.id === 'billease') return installedApps.includes('billease') || installedApps.includes('billbook');
+                      if (app.id === 'billbook') return installedApps.includes('billbook') || installedApps.includes('bizbook');
+                      if (app.id === 'crm') return installedApps.includes('crm');
+                    }
+                    return true;
+                  }).map(app => {
+                    const pinned = pinnedApps.includes(app.id);
+                    return (
+                      <button
+                        key={app.id}
+                        onClick={() => {
+                          setActiveTopNav('bizdesk');
+                          setActiveTab(app.id as any);
+                          setIsAppTrayOpen(false);
+                        }}
+                        onContextMenu={(e) => {
+                          e.preventDefault();
+                          setTrayContextMenu({
+                            x: e.clientX,
+                            y: e.clientY - 40,
+                            appId: app.id,
+                            mode: 'tray'
+                          });
+                        }}
+                        className="flex flex-col items-center gap-1.5 p-3 rounded-2xl hover:bg-slate-50 transition-all group relative border border-transparent hover:border-slate-100"
+                      >
+                        <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-2xl group-hover:scale-105 transition-all group-hover:bg-white shadow-xs">
+                          {app.icon}
+                        </div>
+                        <span className="text-[10px] font-bold text-slate-700 text-center truncate w-full group-hover:text-blue-600">
+                          {app.label}
+                        </span>
+
+                        {pinned && (
+                          <span className="absolute top-2 right-2 w-2 h-2 bg-blue-500 rounded-full" title="Pinned to dock" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+
+        {/* CONTEXT MENU FOR PINNING/UNPINNING */}
+        <AnimatePresence>
+          {trayContextMenu && (
+            <>
+              <div 
+                className="fixed inset-0 z-[160]" 
+                onClick={() => setTrayContextMenu(null)}
+                onContextMenu={(e) => { e.preventDefault(); setTrayContextMenu(null); }}
+              />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                style={{ top: trayContextMenu.y, left: trayContextMenu.x }}
+                className="fixed z-[165] bg-slate-950/95 backdrop-blur-md text-white border border-white/10 rounded-xl shadow-xl p-1.5 min-w-[140px]"
+              >
+                {trayContextMenu.mode === 'dock' || pinnedApps.includes(trayContextMenu.appId) ? (
+                  <button
+                    onClick={() => {
+                      handleUnpinApp(trayContextMenu.appId);
+                      setTrayContextMenu(null);
+                    }}
+                    className="w-full text-left p-2 rounded-lg hover:bg-white/10 text-xs font-bold text-rose-400 flex items-center gap-2"
+                  >
+                    <span className="material-symbols-rounded text-sm">keep_off</span>
+                    Unpin from BizHub
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      handlePinApp(trayContextMenu.appId);
+                      setTrayContextMenu(null);
+                    }}
+                    className="w-full text-left p-2 rounded-lg hover:bg-white/10 text-xs font-bold text-blue-400 flex items-center gap-2"
+                  >
+                    <span className="material-symbols-rounded text-sm">keep</span>
+                    Pin to BizHub
+                  </button>
+                )}
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
 
         {/* ARKLE - Floating Neural Window (Global) */}
         <AnimatePresence>

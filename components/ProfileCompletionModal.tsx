@@ -99,6 +99,18 @@ const ProfileCompletionModal: React.FC<ProfileCompletionModalProps> = ({ isOpen,
                     if (error) console.warn("Background business sync info:", error);
                 });
             }
+
+            // Auto-install recommended apps based on sector
+            const recommendedApps = ['home'];
+            if (formData.sector === 'E-commerce & Retail' || formData.sector === 'SaaS & Technology' || formData.sector === 'Food & Hospitality') {
+                recommendedApps.push('billbook');
+                recommendedApps.push('crm');
+            } else if (formData.sector === 'Professional Services' || formData.sector === 'Creative & Media') {
+                recommendedApps.push('crm');
+            } else {
+                recommendedApps.push('billbook');
+            }
+            localStorage.setItem('setmybizz_installed_apps', JSON.stringify(recommendedApps));
             
             // Immediately invoke callback to enter OS dashboard view seamlessly
             onComplete({ ...formData, registeredId: uniqueId });

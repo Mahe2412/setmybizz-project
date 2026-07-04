@@ -15,6 +15,21 @@ type Message = {
    timestamp: Date;
 };
 
+type Conversation = {
+   id: string;
+   title: string;
+   messages: Message[];
+   timestamp: Date;
+};
+
+type GeneratedDoc = {
+   id: string;
+   name: string;
+   type: 'doc' | 'sheet' | 'pdf';
+   date: string;
+   content?: string;
+};
+
 const HUB_APPS = [
    { id: 'biz', icon: 'business_center', label: 'BizDesk' },
    { id: 'vault', icon: 'account_balance_wallet', label: 'Vault' },
@@ -26,6 +41,31 @@ const NEURAL_NOTIFICATIONS = [
    { id: 1, text: "GST Filing due in 2 days. Arkle has prepared the draft.", type: "alert" },
    { id: 2, text: "New funding scheme detected: NITI Aayog Seed Fund ₹50L.", type: "opportunity" },
    { id: 3, text: "Business health score increased to 84%.", type: "info" }
+];
+
+const AVAILABLE_SHORTCUTS = [
+  // CRM
+  { id: 'crm_dash', label: 'CRM Dashboard', icon: 'dashboard', color: 'text-blue-600', bg: 'bg-blue-50', app: 'crm', category: 'CRM', subtab: 'dashboard' },
+  { id: 'crm_leads', label: 'Lead Sheet', icon: 'group', color: 'text-indigo-600', bg: 'bg-indigo-50', app: 'crm', category: 'CRM', subtab: 'leads' },
+  { id: 'crm_pipeline', label: 'Sales Pipeline', icon: 'view_kanban', color: 'text-violet-600', bg: 'bg-violet-50', app: 'crm', category: 'CRM', subtab: 'pipeline' },
+  { id: 'crm_whatsapp', label: 'WhatsApp Inbox', icon: 'chat', color: 'text-green-600', bg: 'bg-green-50', app: 'crm', category: 'CRM', subtab: 'inbox' },
+  { id: 'crm_ai', label: 'Arkle AI Agent', icon: 'smart_toy', color: 'text-sky-600', bg: 'bg-sky-50', app: 'crm', category: 'CRM', subtab: 'ai' },
+  
+  // BizBook / FinLedger
+  { id: 'bizbook_dash', label: 'Ledger Dash', icon: 'insights', color: 'text-amber-600', bg: 'bg-amber-50', app: 'billbook', category: 'Finance', subtab: 'home' },
+  { id: 'invoice_create', label: 'GST Invoices', icon: 'receipt_long', color: 'text-emerald-600', bg: 'bg-emerald-50', app: 'billbook', category: 'Finance', subtab: 'invoice' },
+  { id: 'invoice_products', label: 'Inventory / Stock', icon: 'inventory_2', color: 'text-orange-600', bg: 'bg-orange-50', app: 'billbook', category: 'Finance', subtab: 'items' },
+  { id: 'invoice_parties', label: 'Parties Ledger', icon: 'recent_actors', color: 'text-teal-600', bg: 'bg-teal-50', app: 'billbook', category: 'Finance', subtab: 'parties' },
+  { id: 'invoice_expenses', label: 'Expenses', icon: 'payments', color: 'text-rose-600', bg: 'bg-rose-50', app: 'billbook', category: 'Finance', subtab: 'expenses' },
+  { id: 'bizbook_reports', label: 'Financial Reports', icon: 'summarize', color: 'text-fuchsia-600', bg: 'bg-fuchsia-50', app: 'billbook', category: 'Finance', subtab: 'reports' },
+  
+  // Third-Party Connectors
+  { id: 'google_sheets', label: 'Google Sheets', icon: 'table_view', color: 'text-emerald-700', bg: 'bg-emerald-50', app: 'google', category: 'Workspace', subtab: 'sheets' },
+  { id: 'google_docs', label: 'Google Docs', icon: 'description', color: 'text-blue-700', bg: 'bg-blue-50', app: 'google', category: 'Workspace', subtab: 'docs' },
+  { id: 'gmail', label: 'Gmail Inbox', icon: 'mail', color: 'text-red-600', bg: 'bg-red-50', app: 'google', category: 'Workspace', subtab: 'gmail' },
+  
+  // Others
+  { id: 'order_desk', label: 'Order Desk', icon: 'shopping_cart_checkout', color: 'text-pink-600', bg: 'bg-pink-50', app: 'orderdesk', category: 'Operations', subtab: 'home' },
 ];
 
 export default function HomeTab({
@@ -48,13 +88,104 @@ export default function HomeTab({
    const [input, setInput] = useState('');
    const [loading, setLoading] = useState(false);
    const [isSidebarOpen, setIsSidebarOpenLocal] = useState(false);
+   const [isMobile, setIsMobile] = useState(false);
+
+   useEffect(() => {
+      const checkMobile = () => {
+         const mobile = window.innerWidth < 768;
+         setIsMobile(mobile);
+         // Auto close sidebar by default on mobile, keep it closed
+         if (mobile) setIsSidebarOpenLocal(false);
+      };
+      checkMobile();
+      window.addEventListener('resize', checkMobile);
+      return () => window.removeEventListener('resize', checkMobile);
+   }, []);
+
    const [isNeuralMenuOpen, setIsNeuralMenuOpen] = useState(false);
    const [isBrainMenuOpen, setIsBrainMenuOpen] = useState(false);
    const [isModelMenuOpen, setIsModelMenuOpen] = useState(false);
    const [selectedContext, setSelectedContext] = useState("Arkle Brain");
    const [selectedModel, setSelectedModel] = useState("Gemini 1.5 Pro");
    const [tileIndex, setTileIndex] = useState(0);
-   const [isSpotlightOpen, setIsSpotlightOpen] = useState(false);
+    const [isSpotlightOpen, setIsSpotlightOpen] = useState(false);
+    const [activeSidebarTab, setActiveSidebarTab] = useState<'chats' | 'docs'>('chats');
+    const [selectedDoc, setSelectedDoc] = useState<GeneratedDoc | null>(null);
+    const [conversations, setConversations] = useState<Conversation[]>([
+       {
+          id: 'c-1',
+          title: 'Amazon Product Launch',
+          messages: [
+             { id: 'm1', role: 'user', content: 'What are the steps for launching on Amazon?', timestamp: new Date() },
+             { id: 'm2', role: 'assistant', content: 'Here is the Amazon onboarding plan: 1. Setup seller account, 2. Optimize Product SEO keywords, 3. Upload catalog.', timestamp: new Date() }
+          ],
+          timestamp: new Date(Date.now() - 3600000)
+       },
+       {
+          id: 'c-2',
+          title: 'GSTR-1 Tax Strategy',
+          messages: [
+             { id: 'm3', role: 'user', content: 'What is the penalty for filing late?', timestamp: new Date() },
+             { id: 'm4', role: 'assistant', content: 'Late filing penalty is ₹50/day. Let\'s file it today to avoid penalty accumulation.', timestamp: new Date() }
+          ],
+          timestamp: new Date(Date.now() - 7200000)
+       }
+    ]);
+    const [activeConversationId, setActiveConversationId] = useState<string | null>('c-1');
+    const [generatedDocs, setGeneratedDocs] = useState<GeneratedDoc[]>([
+       { id: 'd1', name: 'Amazon_Onboarding_Audit.pdf', type: 'pdf', date: '2 hours ago' },
+       { id: 'd2', name: 'GSTR-1_Filing_Summary.docx', type: 'doc', date: 'Yesterday' },
+       { id: 'd3', name: 'Q2_Financial_Projections.xlsx', type: 'sheet', date: 'June 15, 2026' }
+    ]);
+
+    const [shortcuts, setShortcuts] = useState<string[]>(['crm_dash', 'invoice_create', 'invoice_products', 'google_sheets', 'crm_whatsapp']);
+    const [isAddToolOpen, setIsAddToolOpen] = useState(false);
+
+   useEffect(() => {
+      if (typeof window !== 'undefined') {
+         const savedShortcuts = localStorage.getItem('setmybizz_quick_shortcuts');
+         if (savedShortcuts) {
+            try {
+               setShortcuts(JSON.parse(savedShortcuts));
+            } catch (e) {
+               console.error("Failed to load quick shortcuts", e);
+            }
+         }
+      }
+   }, []);
+
+   const toggleShortcut = (shortcutId: string) => {
+      setShortcuts(prev => {
+         const updated = prev.includes(shortcutId) 
+            ? prev.filter(id => id !== shortcutId) 
+            : [...prev, shortcutId];
+         localStorage.setItem('setmybizz_quick_shortcuts', JSON.stringify(updated));
+         return updated;
+      });
+   };
+
+   const handleLaunchShortcut = (shortcutId: string) => {
+      const shortcut = AVAILABLE_SHORTCUTS.find(s => s.id === shortcutId);
+      if (!shortcut) return;
+
+      if (shortcut.app === 'crm') {
+         window.dispatchEvent(new CustomEvent('open-os-tab', { detail: 'crm' }));
+         setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('open-crm-subtab', { detail: shortcut.subtab }));
+         }, 100);
+      } else if (shortcut.app === 'billbook') {
+         if (shortcut.subtab === 'invoice') {
+            onOpenBillEase?.(); // Billease handles raw/GST invoices
+         } else {
+            onOpenBillBook?.(); // Biz book handles others
+         }
+         setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('open-bizbook-subtab', { detail: shortcut.subtab }));
+         }, 100);
+      } else if (shortcut.app === 'google') {
+         onGmailClick?.();
+      }
+   };
 
    const [showReport, setShowReport] = useState(() => {
       if (typeof window !== 'undefined') {
@@ -120,102 +251,363 @@ export default function HomeTab({
    const nextTiles = () => { if (tileIndex + 4 < QUICK_TILES.length) setTileIndex(tileIndex + 1); };
    const prevTiles = () => { if (tileIndex > 0) setTileIndex(tileIndex - 1); };
 
-   const sendMessage = useCallback(async (text = input) => {
-      const q = text.trim();
-      if (!q || loading) return;
+   const handleNewChat = useCallback(() => {
+       const newId = 'c-' + Date.now().toString();
+       const newConv: Conversation = {
+          id: newId,
+          title: `New Session ${conversations.length + 1}`,
+          messages: [],
+          timestamp: new Date()
+       };
+       setConversations(prev => [newConv, ...prev]);
+       setActiveConversationId(newId);
+       setMsgs([]);
+       setConversationMode(true);
+       setSidebarOpen(false);
+    }, [conversations, setConversationMode, setSidebarOpen]);
 
-      let finalPrompt = q;
-      const mentionMatch = q.match(/@(\w+)/);
-      if (mentionMatch) {
-         const mention = mentionMatch[1].toLowerCase();
-         const contextMap: { [key: string]: string } = {
-            'bizdesk': 'BizBook',
-            'marketing': 'Global Market',
-            'launchpad': 'Launch Pad',
-            'workspace': 'Workspace',
-            'agents': 'Agent Mode',
-            'brain': 'Arkle Brain'
-         };
+    const handleSelectConversation = useCallback((id: string) => {
+       setActiveConversationId(id);
+       const conv = conversations.find(c => c.id === id);
+       if (conv) {
+          setMsgs(conv.messages);
+          setConversationMode(true);
+          setSidebarOpen(false);
+       }
+    }, [conversations, setConversationMode, setSidebarOpen]);
 
-         if (contextMap[mention]) {
-            setSelectedContext(contextMap[mention]);
-            finalPrompt = q.replace(`@${mention}`, '').trim();
-         }
-      }
+    const handleDeleteConversation = useCallback((id: string, e: React.MouseEvent) => {
+       e.stopPropagation();
+       setConversations(prev => prev.filter(c => c.id !== id));
+       if (activeConversationId === id) {
+          setActiveConversationId(null);
+          setMsgs([]);
+       }
+    }, [activeConversationId]);
 
-      setConversationMode(true);
-      setSidebarOpen(false);
+    const sendMessage = useCallback(async (text = input) => {
+       const q = text.trim();
+       if (!q || loading) return;
 
-      setInput('');
-      setMsgs(prev => [...prev, { id: Date.now().toString(), role: 'user', content: q, timestamp: new Date() }]);
-      setLoading(true);
-      try {
-         const resp = await fetch('/api/gemini', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-               prompt: finalPrompt,
-               context: selectedContext,
-               businessProfile: {
-                   registeredId: dbUser?.registeredId || 'Pending',
-                   businessName: dbBusiness?.business_name || data?.name || 'My Startup',
-                   industry: dbBusiness?.industry || data?.sector || 'General Business',
-                   performanceGaps: performanceGaps
-               },
-               messages: msgs.map(m => ({ role: m.role, content: m.content }))
-            })
-         });
-         const resData = await resp.json();
-         setMsgs(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content: resData.text, timestamp: new Date() }]);
-      } catch (e) { console.error(e); } finally { setLoading(false); }
-   }, [input, loading, msgs, setConversationMode, setSidebarOpen, selectedContext, dbUser, dbBusiness, performanceGaps, data]);
+       let finalPrompt = q;
+       const mentionMatch = q.match(/@(\w+)/);
+       if (mentionMatch) {
+          const mention = mentionMatch[1].toLowerCase();
+          const contextMap: { [key: string]: string } = {
+             'bizdesk': 'BizBook',
+             'marketing': 'Global Market',
+             'launchpad': 'Launch Pad',
+             'workspace': 'Workspace',
+             'agents': 'Agent Mode',
+             'brain': 'Arkle Brain'
+          };
 
-   useEffect(() => { scrollRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [msgs]);
+          if (contextMap[mention]) {
+             setSelectedContext(contextMap[mention]);
+             finalPrompt = q.replace(`@${mention}`, '').trim();
+          }
+       }
 
-   useEffect(() => {
-      if (conversationMode) {
-         setSidebarOpen(false);
-      }
-   }, [conversationMode, setSidebarOpen]);
+       setConversationMode(true);
+       setSidebarOpen(false);
+       setInput('');
+
+       const newUserMsg: Message = { id: Date.now().toString(), role: 'user', content: q, timestamp: new Date() };
+       let currentConvId = activeConversationId;
+       let updatedConversations = [...conversations];
+
+       if (!currentConvId || conversations.length === 0) {
+          currentConvId = 'c-' + Date.now().toString();
+          const newConv: Conversation = {
+             id: currentConvId,
+             title: q.length > 25 ? q.substring(0, 25) + '...' : q,
+             messages: [newUserMsg],
+             timestamp: new Date()
+          };
+          updatedConversations = [newConv, ...updatedConversations];
+          setConversations(updatedConversations);
+          setActiveConversationId(currentConvId);
+          setMsgs([newUserMsg]);
+       } else {
+          updatedConversations = conversations.map(c => {
+             if (c.id === currentConvId) {
+                const updatedMsgs = [...c.messages, newUserMsg];
+                setMsgs(updatedMsgs);
+                return { 
+                   ...c, 
+                   title: c.messages.length === 0 ? (q.length > 25 ? q.substring(0, 25) + '...' : q) : c.title,
+                   messages: updatedMsgs, 
+                   timestamp: new Date() 
+                };
+             }
+             return c;
+          });
+          setConversations(updatedConversations);
+       }
+
+       setLoading(true);
+       try {
+          const resp = await fetch('/api/gemini', {
+             method: 'POST',
+             headers: { 'Content-Type': 'application/json' },
+             body: JSON.stringify({
+                prompt: finalPrompt,
+                context: selectedContext,
+                businessProfile: {
+                    registeredId: dbUser?.registeredId || 'Pending',
+                    businessName: dbBusiness?.business_name || data?.name || 'My Startup',
+                    industry: dbBusiness?.industry || data?.sector || 'General Business',
+                    performanceGaps: performanceGaps
+                },
+                messages: msgs.map(m => ({ role: m.role, content: m.content }))
+             })
+          });
+          const resData = await resp.json();
+          const newAiMsg: Message = { id: (Date.now() + 1).toString(), role: 'assistant', content: resData.text, timestamp: new Date() };
+
+          // Automatically check if a new doc was generated in the response (mock check or based on JSON directives)
+          if (resData.text.includes("CREATE_GOOGLE_SHEET") || resData.text.includes("CREATE_INVOICE_DRAFT")) {
+             const docName = resData.text.includes("CREATE_GOOGLE_SHEET") ? "New_Spreadsheet.xlsx" : "Invoice_Draft.pdf";
+             const docType = resData.text.includes("CREATE_GOOGLE_SHEET") ? "sheet" : "pdf";
+             setGeneratedDocs(prev => [{ id: 'd-' + Date.now().toString(), name: docName, type: docType as any, date: 'Just now' }, ...prev]);
+          }
+          
+          setConversations(prev => prev.map(c => {
+             if (c.id === currentConvId) {
+                const updatedMsgs = [...c.messages, newAiMsg];
+                setMsgs(updatedMsgs);
+                return { ...c, messages: updatedMsgs, timestamp: new Date() };
+             }
+             return c;
+          }));
+       } catch (e) { 
+          console.error(e); 
+       } finally { 
+          setLoading(false); 
+       }
+    }, [input, loading, msgs, setConversationMode, setSidebarOpen, selectedContext, dbUser, dbBusiness, performanceGaps, data, activeConversationId, conversations]);
+
+    useEffect(() => { scrollRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [msgs]);
+
+    useEffect(() => {
+       if (conversationMode) {
+          setSidebarOpen(false);
+       }
+    }, [conversationMode, setSidebarOpen]);
 
    return (
       <div className="flex h-full bg-[#f8fafc] overflow-hidden relative no-scrollbar font-sans w-full">
-         {/* SIDEBAR (Hidden in Conversation Mode) */}
+         {/* MOBILE BACKDROP OVERLAY */}
          <AnimatePresence>
-            {!conversationMode && (
-               <motion.div
-                  key="arkle-sidebar"
-                  initial={{ width: 0, opacity: 0 }}
-                  animate={{ width: isSidebarOpen ? 280 : 78, opacity: 1 }}
-                  exit={{ width: 0, opacity: 0 }}
-                  onMouseEnter={() => setIsSidebarOpenLocal(true)}
-                  onMouseLeave={() => setIsSidebarOpenLocal(false)}
-                  className="arkle-sidebar h-full bg-white border-r border-slate-100 flex flex-col shrink-0 z-[100] shadow-2xl shadow-slate-200/50 overflow-hidden"
-               >
-                  <div className="flex flex-col h-full py-8">
-                     <div className="px-6 mb-12">
-                        <div className="flex items-center gap-4">
-                           <div className="w-10 h-10 rounded-2xl bg-slate-900 flex items-center justify-center shrink-0">
-                              <span className="material-symbols-rounded text-white text-[22px]">auto_awesome</span>
-                           </div>
-                           {isSidebarOpen && <span className="font-black text-slate-900 uppercase tracking-tighter text-[16px] whitespace-nowrap">Arkle Brain</span>}
-                        </div>
-                     </div>
-                     <div className="flex-1 px-4 space-y-3">
-                        <button onClick={() => setMsgs([])} className="w-full flex items-center gap-5 p-4 hover:bg-slate-50 rounded-2xl transition-all group overflow-hidden">
-                           <span className="material-symbols-outlined text-slate-400 group-hover:text-blue-600 transition-colors shrink-0">add_circle</span>
-                           {isSidebarOpen && <span className="text-[12px] font-black uppercase tracking-widest text-slate-500 group-hover:text-slate-900 whitespace-nowrap">New Session</span>}
-                        </button>
-                     </div>
-                  </div>
-               </motion.div>
+            {isMobile && isSidebarOpen && (
+               <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setIsSidebarOpenLocal(false)}
+                  className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-[105]"
+               />
             )}
          </AnimatePresence>
 
+         {/* UNIFIED LIGHT-THEMED SIDEBAR (ChatGPT Style, Hover Open/Close on Desktop, Slide-over Drawer on Mobile) */}
+         <motion.div 
+            onMouseEnter={() => !isMobile && setIsSidebarOpenLocal(true)}
+            onMouseLeave={() => !isMobile && setIsSidebarOpenLocal(false)}
+            animate={{ 
+               x: isMobile ? (isSidebarOpen ? 0 : -240) : 0, 
+               width: isMobile ? 240 : (isSidebarOpen ? 240 : 64) 
+            }}
+            transition={{ type: 'spring', damping: 22, stiffness: 200 }}
+            className={`h-full bg-white border-r border-slate-150 flex flex-col shrink-0 shadow-[10px_0_30px_rgba(0,0,0,0.01)] overflow-hidden ${
+               isMobile ? 'fixed inset-y-0 left-0 z-[110]' : 'relative z-[100]'
+            }`}
+         >
+            <div className="flex flex-col h-full py-8">
+               {/* Sidebar Header / Brand */}
+               <div className="px-4 mb-6 flex items-center justify-between min-h-8">
+                  {isSidebarOpen ? (
+                     <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="flex items-center gap-3"
+                     >
+                        <div className="w-8 h-8 rounded-xl bg-slate-900 flex items-center justify-center shrink-0">
+                           <span className="material-symbols-rounded text-white text-[18px]">auto_awesome</span>
+                        </div>
+                        <span className="font-black text-slate-900 text-[13px] uppercase tracking-wider whitespace-nowrap">Arkle Brain</span>
+                     </motion.div>
+                  ) : (
+                     <div className="w-full flex justify-center">
+                        <div className="w-8 h-8 rounded-xl bg-slate-900 flex items-center justify-center shrink-0">
+                           <span className="material-symbols-rounded text-white text-[18px]">auto_awesome</span>
+                        </div>
+                     </div>
+                  )}
+                  {isSidebarOpen && (
+                     <button 
+                        onClick={handleNewChat}
+                        className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-colors"
+                        title="New Chat"
+                     >
+                        <span className="material-symbols-rounded text-[18px]">add</span>
+                     </button>
+                  )}
+               </div>
+
+               {/* New Chat Button */}
+               <div className="px-3 mb-4">
+                  {isSidebarOpen ? (
+                     <button 
+                        onClick={handleNewChat}
+                        className="w-full flex items-center justify-center gap-2.5 py-3 rounded-2xl bg-slate-50 border border-slate-200 hover:bg-slate-100 transition-all text-slate-600 hover:text-slate-900 text-xs font-black uppercase tracking-wider whitespace-nowrap"
+                     >
+                        <span className="material-symbols-outlined text-[16px]">add_circle</span>
+                        New Session
+                     </button>
+                  ) : (
+                     <button 
+                        onClick={handleNewChat}
+                        className="w-10 h-10 mx-auto flex items-center justify-center rounded-full bg-slate-50 border border-slate-200 hover:bg-slate-100 transition-all text-slate-600 hover:text-slate-900"
+                        title="New Session"
+                     >
+                        <span className="material-symbols-outlined text-[18px]">add</span>
+                     </button>
+                  )}
+               </div>
+
+               {/* Tab Switcher */}
+               {isSidebarOpen && (
+                  <motion.div 
+                     initial={{ opacity: 0, y: -10 }}
+                     animate={{ opacity: 1, y: 0 }}
+                     className="px-3 mb-4"
+                  >
+                     <div className="grid grid-cols-2 bg-slate-50 p-1 rounded-xl border border-slate-200 text-[10px] font-black uppercase tracking-wider">
+                        <button 
+                           onClick={() => setActiveSidebarTab('chats')}
+                           className={`py-2 rounded-lg transition-all ${activeSidebarTab === 'chats' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                        >
+                           Chats
+                        </button>
+                        <button 
+                           onClick={() => setActiveSidebarTab('docs')}
+                           className={`py-2 rounded-lg transition-all ${activeSidebarTab === 'docs' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                        >
+                           Docs
+                        </button>
+                     </div>
+                  </motion.div>
+               )}
+
+               {/* Tab Contents */}
+               <div className="flex-1 overflow-y-auto no-scrollbar px-2.5 space-y-1">
+                  {activeSidebarTab === 'chats' ? (
+                     <div className="space-y-1">
+                        {conversations.map(conv => {
+                           const isActive = activeConversationId === conv.id && conversationMode;
+                           return (
+                              <div 
+                                 key={conv.id}
+                                 onClick={() => {
+                                    handleSelectConversation(conv.id);
+                                    if (isMobile) setIsSidebarOpenLocal(false);
+                                 }}
+                                 className={`group flex items-center p-2.5 rounded-2xl cursor-pointer transition-all ${
+                                    isActive 
+                                       ? 'bg-blue-50/60 border border-blue-100 text-blue-600' 
+                                       : 'hover:bg-slate-50 border border-transparent text-slate-600'
+                                 } ${isSidebarOpen ? 'justify-between' : 'justify-center'}`}
+                              >
+                                 <div className="flex items-center gap-2.5 min-w-0">
+                                    <span className={`material-symbols-rounded text-[16px] ${isActive ? 'text-blue-500' : 'text-slate-400'} shrink-0`}>chat_bubble</span>
+                                    {isSidebarOpen && (
+                                       <span className={`text-[12px] font-bold truncate ${isActive ? 'text-blue-700' : 'text-slate-700'}`}>{conv.title}</span>
+                                    )}
+                                 </div>
+                                 {isSidebarOpen && (
+                                    <button 
+                                       onClick={(e) => handleDeleteConversation(conv.id, e)}
+                                       className="opacity-0 group-hover:opacity-100 hover:text-red-600 p-1 rounded-md transition-all text-slate-400"
+                                       title="Delete Chat"
+                                    >
+                                       <span className="material-symbols-rounded text-sm">delete</span>
+                                    </button>
+                                 )}
+                              </div>
+                           );
+                        })}
+                     </div>
+                  ) : (
+                     <div className="space-y-1">
+                        {generatedDocs.map(doc => (
+                           <div 
+                              key={doc.id}
+                              onClick={() => {
+                                 setSelectedDoc(doc);
+                                 if (isMobile) setIsSidebarOpenLocal(false);
+                              }}
+                              className={`flex items-center p-2.5 rounded-2xl hover:bg-slate-50 cursor-pointer transition-all border border-transparent ${
+                                 isSidebarOpen ? 'gap-3' : 'justify-center'
+                              }`}
+                           >
+                              <span className={`material-symbols-rounded text-[18px] ${
+                                 doc.type === 'pdf' ? 'text-rose-500' : doc.type === 'sheet' ? 'text-emerald-500' : 'text-blue-500'
+                              } shrink-0`}>
+                                 {doc.type === 'pdf' ? 'picture_as_pdf' : doc.type === 'sheet' ? 'table_view' : 'description'}
+                              </span>
+                              {isSidebarOpen && (
+                                 <div className="min-w-0">
+                                    <span className="text-[12px] font-bold text-slate-700 block truncate">{doc.name}</span>
+                                    <span className="text-[9px] text-slate-400 block uppercase tracking-wider mt-0.5">{doc.type} • {doc.date}</span>
+                                 </div>
+                              )}
+                           </div>
+                        ))}
+                     </div>
+                  )}
+               </div>
+
+               {/* Exit segment */}
+               {conversationMode && (
+                  <div className="px-3 border-t border-slate-100 pt-4">
+                     {isSidebarOpen ? (
+                        <button 
+                           onClick={() => { setConversationMode(false); setSidebarOpen(true); }}
+                           className="w-full flex items-center justify-center gap-2.5 py-3 rounded-2xl bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition-all text-xs font-black uppercase tracking-wider whitespace-nowrap"
+                        >
+                           <span className="material-symbols-rounded text-sm">arrow_back</span>
+                           Exit Chat
+                        </button>
+                     ) : (
+                        <button 
+                           onClick={() => { setConversationMode(false); setSidebarOpen(true); }}
+                           className="w-10 h-10 mx-auto flex items-center justify-center rounded-full bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-600 hover:text-slate-900"
+                           title="Exit Chat"
+                        >
+                           <span className="material-symbols-rounded text-[18px]">arrow_back</span>
+                        </button>
+                     )}
+                  </div>
+               )}
+            </div>
+         </motion.div>
+
          {/* MAIN CONTENT */}
          <div className="flex-1 flex flex-col min-w-0 bg-white overflow-y-auto scrollbar-hide relative pb-40 w-full">
-            <div className="h-16 border-b border-slate-100 px-10 flex items-center justify-between sticky top-0 z-50 bg-white/80 backdrop-blur-md">
-               <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">Neural Core Active</span>
+            <div className="h-16 border-b border-slate-100 px-4 md:px-10 flex items-center justify-between sticky top-0 z-50 bg-white/80 backdrop-blur-md">
+               <div className="flex items-center gap-2">
+                  {isMobile && (
+                     <button 
+                        onClick={() => setIsSidebarOpenLocal(true)} 
+                        className="w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-500 mr-1"
+                        title="Open History"
+                     >
+                        <span className="material-symbols-rounded text-[20px]">menu</span>
+                     </button>
+                  )}
+                  <span className="text-[10px] font-black text-slate-350 uppercase tracking-[0.3em] whitespace-nowrap">Neural Core Active</span>
+               </div>
                {conversationMode && (
                   <button
                      onClick={() => { setConversationMode(false); setSidebarOpen(true); }}
@@ -230,10 +622,10 @@ export default function HomeTab({
             <div className={`px-4 md:px-20 ${conversationMode ? 'py-4' : 'pt-4 pb-12 md:pt-6 md:pb-16'} flex flex-col items-center flex-1 relative w-full`}>
                {!conversationMode && (
                   <div className="flex flex-col items-center mb-6 text-center">
-                     <h3 className="text-[54px] md:text-[68px] font-black text-slate-900 tracking-tighter leading-none mb-4">
+                     <h3 className="text-[38px] md:text-[68px] font-black text-slate-900 tracking-tighter leading-none mb-4">
                         Arkle <span className="text-blue-600">Brain</span>
                      </h3>
-                     <p className="text-slate-400 font-black text-[10px] uppercase tracking-[0.5em] opacity-50">Autonomous AI Business Operating System</p>
+                     <p className="text-slate-450 font-black text-[9px] uppercase tracking-[0.4em] opacity-60">Autonomous AI Business Operating System</p>
                   </div>
                )}
 
@@ -251,8 +643,51 @@ export default function HomeTab({
                      <div ref={scrollRef} className="h-20" />
                   </div>
                )}
+                {/* Visual Background: Flying Paper Plane with Thin & Glossy Pencil Sketch Effect */}
+                {!conversationMode && (
+                   <div className="absolute inset-0 pointer-events-none overflow-hidden z-0 flex items-center justify-center">
+                      <svg width="850" height="400" viewBox="0 0 850 400" className="opacity-60" fill="none" style={{ transform: 'translateY(-205px) translateX(-20px)' }}>
+                         <defs>
+                            {/* Filter to simulate fine hand-drawn pencil sketch lines */}
+                            <filter id="pencil-sketch" x="-10%" y="-10%" width="120%" height="120%">
+                               <feTurbulence type="fractalNoise" baseFrequency="0.09" numOctaves="4" result="noise" />
+                               <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.5" xChannelSelector="R" yChannelSelector="G" />
+                            </filter>
+                            {/* Glossy metallic/graphite gradient */}
+                            <linearGradient id="glossy-pencil" x1="0%" y1="100%" x2="100%" y2="0%">
+                               <stop offset="0%" stopColor="#524337" />
+                               <stop offset="60%" stopColor="#827060" />
+                               <stop offset="90%" stopColor="#b5c8d4" /> {/* Silver sheen */}
+                               <stop offset="100%" stopColor="#ffffff" /> {/* Shiny peak */}
+                            </linearGradient>
+                         </defs>
+                         
+                         {/* Dashed flight path with a loop */}
+                         <path 
+                            d="M 50 300 C 200 320, 300 170, 220 230 C 150 280, 250 370, 420 230 C 550 120, 680 130, 770 90" 
+                            stroke="url(#glossy-pencil)"
+                            strokeWidth="1.6" 
+                            strokeDasharray="5 5" 
+                            strokeLinecap="round" 
+                            filter="url(#pencil-sketch)"
+                            style={{ filter: 'drop-shadow(0px 1px 1px rgba(255,255,255,0.9)) url(#pencil-sketch)' }}
+                         />
+                         
+                         {/* Paper Plane Group with Sketch filter & Glossy Highlight */}
+                         <g 
+                            transform="translate(770, 90) rotate(-15) scale(1.5)" 
+                            stroke="url(#glossy-pencil)"
+                            style={{ filter: 'drop-shadow(0px 1px 1px rgba(255,255,255,0.9)) url(#pencil-sketch)' }}
+                         >
+                            <path d="M 0 0 L -40 -15 L -25 15 Z" strokeWidth="1.2" strokeLinejoin="round" />
+                            <path d="M 0 0 L -40 -15 L -25 0 Z" strokeWidth="1.2" strokeLinejoin="round" />
+                            <path d="M 0 0 L -25 15 L -25 0 Z" strokeWidth="1.2" strokeLinejoin="round" />
+                         </g>
+                      </svg>
+                   </div>
+                )}
 
-                <div className={`w-full transition-all duration-500 z-50 ${conversationMode ? 'fixed bottom-6 left-1/2 -translate-x-1/2 max-w-[788px] px-4' : 'max-w-[705px] mx-auto relative -translate-y-8'}`}>
+                <div className={`w-full transition-all duration-500 z-50 ${conversationMode ? 'fixed bottom-6 left-1/2 -translate-x-1/2 max-w-[788px] px-4' : 'max-w-[705px] mx-auto relative translate-y-2'}`}>
 
                   {/* Suggestions Menu */}
                   <AnimatePresence>
@@ -282,9 +717,9 @@ export default function HomeTab({
                      <button onClick={() => setActiveChatTab('ask')} className={`w-[105px] h-[33px] flex items-center justify-center transition-all duration-300 font-black relative z-30 ${activeChatTab === 'ask' ? 'rounded-tr-[20px] rounded-tl-none rounded-b-none bg-gradient-to-r from-violet-600 to-blue-600 text-white shadow-[0_-5px_15px_rgba(124,58,237,0.25)]' : 'rounded-none bg-transparent text-slate-400 hover:text-slate-600'}`}><span className="relative z-10 uppercase tracking-[0.2em] text-[10px]">Ask</span></button>
                      <button onClick={() => setActiveChatTab('agents')} className={`w-[105px] h-[33px] flex items-center justify-center transition-all duration-300 font-black relative z-30 ${activeChatTab === 'agents' ? 'rounded-tl-[20px] rounded-tr-none rounded-b-none bg-gradient-to-r from-violet-600 to-blue-600 text-white shadow-[0_-5px_15px_rgba(124,58,237,0.25)]' : 'rounded-none bg-transparent text-slate-400 hover:text-slate-600'}`}><span className="relative z-10 uppercase tracking-[0.2em] text-[10px]">Agent</span></button>
                   </div>
-                  <div className="relative p-[4px] rounded-tr-[42px] rounded-br-[42px] rounded-bl-[42px] rounded-tl-none bg-gradient-to-r from-purple-600 via-rose-500 to-indigo-600 shadow-[0_30px_70px_-20px_rgba(79,70,229,0.25)] z-10">
-                     <div className="bg-white rounded-tr-[39px] rounded-br-[39px] rounded-bl-[39px] rounded-tl-none flex flex-col overflow-visible">
-                        <textarea ref={textareaRef} value={input} onChange={handleInput} rows={1} className="w-full bg-white border-none outline-none focus:outline-none focus:ring-0 text-slate-400 text-[15px] md:text-[21px] font-normal px-6 md:px-12 pt-6 pb-2 resize-none no-scrollbar placeholder:text-slate-300 placeholder:font-light rounded-[39px] min-h-[60px]" placeholder="Ask Arkle or type @topic for deep research..." />
+                  <div className="relative p-[2px] rounded-tr-[40px] rounded-br-[40px] rounded-bl-[40px] rounded-tl-none bg-gradient-to-r from-purple-600 via-rose-500 to-indigo-600 shadow-[0_30px_70px_-20px_rgba(79,70,229,0.25)] z-10">
+                     <div className="bg-white rounded-tr-[38px] rounded-br-[38px] rounded-bl-[38px] rounded-tl-none flex flex-col overflow-visible">
+                        <textarea ref={textareaRef} value={input} onChange={handleInput} rows={1} className="w-full bg-transparent border-none outline-none focus:outline-none focus:ring-0 text-slate-400 text-[15px] md:text-[21px] font-normal px-6 md:px-12 pt-6 pb-2 resize-none no-scrollbar placeholder:text-slate-300 placeholder:font-light min-h-[60px]" placeholder="Ask Arkle or type @topic for deep research..." />
                         <div className="flex items-center justify-between px-4 md:px-10 pb-4 md:pb-6 pt-4 bg-white border-none rounded-b-[39px]">
                            <div className="flex items-center gap-1.5 md:flex-row flex-col items-start gap-y-2 mt-2 w-full md:w-auto">
                               <div className="flex items-center gap-2">
@@ -352,43 +787,110 @@ export default function HomeTab({
                      </div>
 
                      <div className="w-full max-w-[850px] mx-auto mt-16 px-4 md:px-0">
-                        <div className="flex items-center gap-3 mb-8">
-                           <div className="w-2 h-2 rounded-full bg-blue-600 shadow-[0_0_10px_rgba(37,99,235,0.5)]" />
-                           <h3 className="text-[12px] font-black text-slate-900 uppercase tracking-[0.3em]">Quick Workspace Hub</h3>
-                        </div>
-                        <div className="grid grid-cols-6 gap-2 md:gap-4">
-                           {[
-                              { label: 'Bill Book', icon: 'menu_book', color: 'text-violet-600', bg: 'bg-violet-50', action: 'billease' as const },
-                              { label: 'Biz Book', icon: 'auto_awesome', color: 'text-amber-600', bg: 'bg-amber-50', action: 'billbook' as const },
-                              { label: 'Order Desk', icon: 'chat', color: 'text-pink-600', bg: 'bg-pink-50', action: 'orderdesk' as const },
-                              { label: 'GLOBAL', icon: 'public', color: 'text-sky-600', bg: 'bg-sky-50', action: undefined },
-                              { label: 'EXCEL', icon: 'table_chart', color: 'text-emerald-600', bg: 'bg-emerald-50', action: undefined },
-                              { label: 'DOCS', icon: 'description', color: 'text-indigo-600', bg: 'bg-indigo-50', action: undefined },
-                           ].map((item) => (
-                              <button
-                                 key={item.label}
-                                 type="button"
-                                 onClick={() => {
-                                    if (item.action === 'billease') onOpenBillEase?.();
-                                    else if (item.action === 'billbook') onOpenBillBook?.();
-                                    else if (item.action === 'orderdesk') onOpenOrderDesk?.();
-                                 }}
-                                 className="flex flex-col items-center gap-4 group cursor-pointer border-0 bg-transparent p-0"
-                              >
-                                 <div className={`w-16 h-16 rounded-full ${item.bg} flex items-center justify-center border-2 border-white shadow-sm group-hover:shadow-xl group-hover:-translate-y-1 transition-all duration-300`}>
-                                    <span className={`material-symbols-rounded text-[28px] ${item.color}`}>{item.icon}</span>
-                                 </div>
-                                <span className="text-[9px] font-black text-blue-600 uppercase tracking-widest text-center">{item.label}</span>
-                              </button>
-                           ))}
-                           <div className="flex flex-col items-center gap-4 group cursor-pointer">
-                              <div className="w-16 h-16 rounded-full border-2 border-dashed border-slate-200 flex items-center justify-center bg-slate-50/30 group-hover:border-blue-400 group-hover:bg-blue-50/30 transition-all duration-300">
-                                 <span className="material-symbols-rounded text-blue-600 text-[28px]">add</span>
+                         <div className="flex items-center gap-3 mb-8">
+                            <div className="w-2 h-2 rounded-full bg-blue-600 shadow-[0_0_10px_rgba(37,99,235,0.5)]" />
+                            <h3 className="text-[12px] font-black text-slate-900 uppercase tracking-[0.3em]">Quick Workspace Hub</h3>
+                         </div>
+                         <div className="grid grid-cols-6 gap-2 md:gap-4">
+                            {shortcuts.map(shortcutId => {
+                               const item = AVAILABLE_SHORTCUTS.find(s => s.id === shortcutId);
+                               if (!item) return null;
+                               return (
+                                  <button
+                                     key={item.id}
+                                     type="button"
+                                     onClick={() => handleLaunchShortcut(item.id)}
+                                     className="flex flex-col items-center gap-4 group cursor-pointer border-0 bg-transparent p-0"
+                                  >
+                                     <div className={`w-16 h-16 rounded-full ${item.bg} flex items-center justify-center border-2 border-white shadow-sm group-hover:shadow-xl group-hover:-translate-y-1 transition-all duration-300`}>
+                                        <span className={`material-symbols-rounded text-[28px] ${item.color}`}>{item.icon}</span>
+                                     </div>
+                                     <span className="text-[9px] font-black text-blue-600 uppercase tracking-widest text-center">{item.label}</span>
+                                  </button>
+                               );
+                            })}
+                            <button
+                               type="button"
+                               onClick={() => setIsAddToolOpen(true)}
+                               className="flex flex-col items-center gap-4 group cursor-pointer border-0 bg-transparent p-0"
+                            >
+                               <div className="w-16 h-16 rounded-full border-2 border-dashed border-slate-200 flex items-center justify-center bg-slate-50/30 group-hover:border-blue-400 group-hover:bg-blue-50/30 transition-all duration-300">
+                                  <span className="material-symbols-rounded text-blue-600 text-[28px]">add</span>
+                               </div>
+                               <span className="text-[9px] font-black text-blue-600 uppercase tracking-widest text-center">ADD TOOL</span>
+                            </button>
+                         </div>
+                      </div>
+
+                      {/* ADD TOOL POPUP MODAL */}
+                      <AnimatePresence>
+                        {isAddToolOpen && (
+                          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-[9999] animate-in fade-in duration-200">
+                            <motion.div 
+                              initial={{ scale: 0.95, opacity: 0 }}
+                              animate={{ scale: 1, opacity: 1 }}
+                              exit={{ scale: 0.95, opacity: 0 }}
+                              className="bg-white rounded-[2rem] shadow-2xl w-full max-w-lg p-6 border border-slate-100 max-h-[80vh] flex flex-col"
+                            >
+                              <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4 shrink-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="material-symbols-rounded text-blue-600">settings</span>
+                                  <h3 className="text-sm font-black uppercase text-slate-800 tracking-wider">Configure Workspace Hub</h3>
+                                </div>
+                                <button 
+                                  onClick={() => setIsAddToolOpen(false)}
+                                  className="w-8 h-8 rounded-full bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors"
+                                >
+                                  <span className="material-symbols-rounded text-sm">close</span>
+                                </button>
                               </div>
-                              <span className="text-[9px] font-black text-blue-600 uppercase tracking-widest text-center">ADD TOOL</span>
-                           </div>
-                        </div>
-                     </div>
+
+                              <div className="overflow-y-auto no-scrollbar flex-1 space-y-4 pr-1">
+                                <p className="text-slate-500 text-xs font-semibold leading-relaxed">
+                                  Select the tools and specific sub-features you want to display on your quick-access dashboard.
+                                </p>
+                                
+                                <div className="space-y-6">
+                                  {Array.from(new Set(AVAILABLE_SHORTCUTS.map(s => s.category))).map(category => (
+                                    <div key={category}>
+                                      <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-100 pb-2">{category}</h4>
+                                      <div className="grid grid-cols-2 gap-3">
+                                        {AVAILABLE_SHORTCUTS.filter(item => item.category === category).map(item => {
+                                          const isAdded = shortcuts.includes(item.id);
+                                          return (
+                                            <button
+                                              key={item.id}
+                                              onClick={() => toggleShortcut(item.id)}
+                                              className={`p-3 rounded-2xl border text-left flex items-center gap-3 transition-all ${
+                                                isAdded 
+                                                  ? 'border-blue-500 bg-blue-50/20 ring-1 ring-blue-500/20' 
+                                                  : 'border-slate-100 hover:border-slate-200 hover:bg-slate-50/50'
+                                              }`}
+                                            >
+                                              <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${item.bg}`}>
+                                                <span className={`material-symbols-rounded text-lg ${item.color}`}>{item.icon}</span>
+                                              </div>
+                                              <div className="min-w-0 flex-1">
+                                                <span className="text-[10px] font-black text-slate-900 block truncate">{item.label}</span>
+                                                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">{item.app}</span>
+                                              </div>
+                                              <div className={`w-5 h-5 rounded-full flex items-center justify-center border transition-all ${
+                                                isAdded ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 bg-white text-transparent'
+                                              }`}>
+                                                <span className="material-symbols-rounded text-[12px] font-bold">check</span>
+                                              </div>
+                                            </button>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </motion.div>
+                          </div>
+                        )}
+                      </AnimatePresence>
 
                      <div className="w-full max-w-[850px] mx-auto mt-16 px-4 md:px-0">
                         <div onClick={() => setIsNeuralMenuOpen(!isNeuralMenuOpen)} className="bg-slate-50/50 backdrop-blur-xl border border-slate-100 p-5 rounded-[28px] flex items-center justify-between cursor-pointer group hover:bg-white hover:shadow-2xl transition-all">
@@ -466,16 +968,6 @@ export default function HomeTab({
             }
          }} />
 
-         {/* BOTTOM HUB - HIDE IN CONVERSATION MODE */}
-         {!conversationMode && (
-            <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[150] flex items-center gap-3 p-3 bg-white/70 backdrop-blur-2xl rounded-[32px] border border-white shadow-[0_20px_50px_rgba(0,0,0,0.1)] hover:scale-105 transition-all duration-500">
-               <div className="flex items-center gap-2 px-3 border-r border-slate-200 mr-2"><span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" /><span className="text-[9px] font-black uppercase tracking-widest text-slate-400">BizHub</span></div>
-               {HUB_APPS.map(app => (<button key={app.id} className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group/hub"><span className="material-symbols-outlined text-[22px] text-slate-600 group-hover/hub:text-blue-600">{app.icon}</span></button>))}
-               <div className="w-px h-8 bg-slate-200 mx-2" />
-               <button className="w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center hover:scale-110 transition-all shadow-lg"><span className="material-symbols-outlined text-[22px]">grid_view</span></button>
-            </div>
-         )}
-
          <WhiteboardPanel isOpen={isWhiteboardOpen} onClose={() => setIsWhiteboardOpen(false)} />
 
          {/* Arkle AI Report Popup Overlay (70% - 75% screen width, centered) */}
@@ -495,6 +987,62 @@ export default function HomeTab({
                      />
                   </motion.div>
                </div>
+            )}
+         </AnimatePresence>
+
+         {/* Document Preview Overlay */}
+         <AnimatePresence>
+            {selectedDoc && (
+               <>
+                  <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[300]" onClick={() => setSelectedDoc(null)} />
+                  <motion.div 
+                     initial={{ opacity: 0, scale: 0.95 }}
+                     animate={{ opacity: 1, scale: 1 }}
+                     exit={{ opacity: 0, scale: 0.95 }}
+                     className="fixed inset-10 md:inset-20 z-[310] bg-white border border-slate-200 rounded-[32px] overflow-hidden flex flex-col shadow-2xl"
+                  >
+                     <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 shrink-0">
+                        <div className="flex items-center gap-3">
+                           <span className={`material-symbols-rounded text-2xl ${
+                              selectedDoc.type === 'pdf' ? 'text-rose-500' : selectedDoc.type === 'sheet' ? 'text-emerald-500' : 'text-blue-500'
+                           }`}>
+                              {selectedDoc.type === 'pdf' ? 'picture_as_pdf' : selectedDoc.type === 'sheet' ? 'table_view' : 'description'}
+                           </span>
+                           <div>
+                              <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider">{selectedDoc.name}</h3>
+                              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Generated by Arkle AI</p>
+                           </div>
+                        </div>
+                        <button onClick={() => setSelectedDoc(null)} className="w-8 h-8 rounded-full hover:bg-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors">
+                           <span className="material-symbols-rounded text-sm">close</span>
+                        </button>
+                     </div>
+                     <div className="flex-1 p-8 overflow-y-auto no-scrollbar bg-slate-50/30">
+                        {/* Mock doc details */}
+                        <div className="max-w-2xl mx-auto bg-white p-8 md:p-12 border border-slate-150 rounded-2xl shadow-xs space-y-6">
+                           <div className="flex justify-between border-b border-slate-100 pb-4">
+                              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Document Registry</span>
+                              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{selectedDoc.date}</span>
+                           </div>
+                           <h1 className="text-xl font-bold text-slate-900">{selectedDoc.name.replace(/\.[^/.]+$/, "")}</h1>
+                           <div className="text-xs text-slate-600 leading-relaxed space-y-4">
+                              <p>This document was compiled and formatted autonomously by Arkle AI Core based on operational directives.</p>
+                              <p className="font-bold text-slate-800">Operational Summary:</p>
+                              <ul className="list-disc pl-5 space-y-2">
+                                 <li>Verified business entities and compliance frameworks.</li>
+                                 <li>Analyzed revenue flows and generated accounting projections.</li>
+                                 <li>Drafted and finalized legal clauses for party review.</li>
+                              </ul>
+                              <p>Status: <span className="px-2 py-0.5 bg-green-50 text-green-700 rounded-full font-bold text-[9px] border border-green-100 ml-1">SECURE & ARCHIVED</span></p>
+                           </div>
+                           <div className="border-t border-slate-100 pt-6 flex justify-end gap-3">
+                              <button className="px-4 py-2 border border-slate-200 rounded-xl hover:bg-slate-50 text-[11px] font-bold text-slate-600 uppercase transition-all">Download</button>
+                              <button onClick={() => setSelectedDoc(null)} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all">Close Preview</button>
+                           </div>
+                        </div>
+                     </div>
+                  </motion.div>
+               </>
             )}
          </AnimatePresence>
       </div>
