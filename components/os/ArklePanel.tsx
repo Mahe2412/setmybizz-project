@@ -242,14 +242,17 @@ export default function ArklePanel({ onClose, selectedLang = 'en-IN' }: { onClos
       
       let aiResponse = data.text;
       
-      // Parse Neural Directives: [DIRECTIVE: ACTION {payload}]
-      const directiveRegex = /\[DIRECTIVE:\s*(\w+)\s*({.*?})\]/g;
+      // Bug fix: Use SEPARATE regex instances to avoid stateful /g flag issue.
+      // One instance for the while-loop execution, one for the .replace() cleanup.
+      const directiveExecRegex = /\[DIRECTIVE:\s*(\w+)\s*({.*?})\]/g;
+      const directiveCleanRegex = /\[DIRECTIVE:\s*(\w+)\s*({.*?})\]/g;
       let match;
-      while ((match = directiveRegex.exec(aiResponse)) !== null) {
+      let lastDocGenerated: { name: string; type: 'doc' | 'sheet' | 'pdf' } | null = null;
+
+      while ((match = directiveExecRegex.exec(aiResponse)) !== null) {
         const action = match[1];
         try {
           const payload = JSON.parse(match[2]);
-          console.log(`Neural Execution: ${action}`, payload);
           
           if (action === 'NOTIFY') {
             // Future: Toast notification
@@ -267,6 +270,9 @@ export default function ArklePanel({ onClose, selectedLang = 'en-IN' }: { onClos
               setTimeout(sendToIframe, 500);
               setTimeout(sendToIframe, 1500);
             }
+            // Track in docs sidebar using actual payload title
+            const invoiceName = payload.partyName ? `Invoice_${payload.partyName.replace(/\s+/g, '_')}.pdf` : 'Invoice_Draft.pdf';
+            lastDocGenerated = { name: invoiceName, type: 'pdf' };
           } else if (action === 'ADD_CRM_LEAD') {
             fetch('/api/crm/leads', {
               method: 'POST',
@@ -294,37 +300,41 @@ export default function ArklePanel({ onClose, selectedLang = 'en-IN' }: { onClos
             }).then(() => {
               window.dispatchEvent(new CustomEvent('crm-leads-updated'));
             });
-          } else if (
-            action === 'SEND_EMAIL' ||
-            action === 'CREATE_GOOGLE_DOC' ||
-            action === 'CREATE_GOOGLE_SHEET' ||
-            action === 'CREATE_CALENDAR_EVENT'
-          ) {
+          } else if (action === 'CREATE_GOOGLE_DOC') {
             fetch('/api/integrations/google', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                action,
-                payload
-              })
-            }).then(() => {
-              window.dispatchEvent(new CustomEvent('crm-leads-updated'));
-            });
+              body: JSON.stringify({ action, payload })
+            }).then(() => window.dispatchEvent(new CustomEvent('crm-leads-updated')));
+            const docTitle = payload.title ? `${payload.title.replace(/\s+/g, '_')}.docx` : 'AI_Document.docx';
+            lastDocGenerated = { name: docTitle, type: 'doc' };
+          } else if (action === 'CREATE_GOOGLE_SHEET') {
+            fetch('/api/integrations/google', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action, payload })
+            }).then(() => window.dispatchEvent(new CustomEvent('crm-leads-updated')));
+            const sheetTitle = payload.title ? `${payload.title.replace(/\s+/g, '_')}.xlsx` : 'AI_Sheet.xlsx';
+            lastDocGenerated = { name: sheetTitle, type: 'sheet' };
+          } else if (action === 'SEND_EMAIL' || action === 'CREATE_CALENDAR_EVENT') {
+            fetch('/api/integrations/google', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action, payload })
+            }).then(() => window.dispatchEvent(new CustomEvent('crm-leads-updated')));
           }
         } catch (err) {
           console.error("Failed to parse directive payload:", err);
         }
       }
 
-      // Hide directives from the chat bubble for a cleaner UI
-      const cleanResponse = aiResponse.replace(directiveRegex, '').trim();
+      // Use the separate clean regex instance (not consumed by the loop)
+      const cleanResponse = aiResponse.replace(directiveCleanRegex, '').trim();
       const newAiMsg: Msg = { role: 'ai', text: cleanResponse, mode: activeMode };
 
-      // Automatically register generated doc to our sidebar docs tab
-      if (cleanResponse.includes("CREATE_GOOGLE_SHEET") || cleanResponse.includes("CREATE_INVOICE_DRAFT") || action === 'CREATE_GOOGLE_DOC') {
-         const docName = cleanResponse.includes("CREATE_GOOGLE_SHEET") ? "New_Spreadsheet.xlsx" : "Invoice_Draft.pdf";
-         const docType = cleanResponse.includes("CREATE_GOOGLE_SHEET") ? "sheet" : "pdf";
-         setGeneratedDocs(prev => [{ id: 'd-' + Date.now().toString(), name: docName, type: docType as any, date: 'Just now' }, ...prev]);
+      // Auto-register generated doc to the sidebar docs tab
+      if (lastDocGenerated) {
+         setGeneratedDocs(prev => [{ id: 'd-' + Date.now().toString(), name: lastDocGenerated!.name, type: lastDocGenerated!.type, date: 'Just now' }, ...prev]);
       }
       
       setConversations(prev => prev.map(c => {
@@ -337,7 +347,7 @@ export default function ArklePanel({ onClose, selectedLang = 'en-IN' }: { onClos
       }));
       speak(cleanResponse, selectedLang);
     } catch (error: any) {
-      console.error("ARKIA Brain Sync Error:", error);
+      console.error("Arkle Brain Sync Error:", error);
       const errAiMsg: Msg = { 
         role: 'ai', 
         text: `❌ Brain Sync Error: ${error.message}. Please check your connection.`, 
@@ -485,16 +495,29 @@ export default function ArklePanel({ onClose, selectedLang = 'en-IN' }: { onClos
 
             {/* Mode Hub */}
             <div className="grid grid-cols-4 gap-2">
-              {modes.map(m => (
-                <button 
-                  key={m.id}
-                  onClick={() => setActiveMode(m.id)}
-                  className={`p-2.5 rounded-xl flex flex-col items-center gap-1 transition-all border ${activeMode === m.id ? `bg-${m.color}-500/20 border-${m.color}-500/40 text-${m.color}-400 shadow-lg` : 'bg-white/5 border-white/5 text-white/40 hover:bg-white/10'}`}
-                >
-                  <span className="material-symbols-outlined text-[16px]">{m.icon}</span>
-                  <span className="text-[7px] font-black uppercase tracking-widest">{m.id}</span>
-                </button>
-              ))}
+              {modes.map(m => {
+                // Use static class maps to prevent Tailwind purge stripping dynamic class strings
+                const activeClsMap: Record<string, string> = {
+                  'Voice':    'bg-sky-500/20 border-sky-500/40 text-sky-400',
+                  'Autopilot':'bg-emerald-500/20 border-emerald-500/40 text-emerald-400',
+                  'Builder':  'bg-indigo-500/20 border-indigo-500/40 text-indigo-400',
+                  'Auditor':  'bg-amber-500/20 border-amber-500/40 text-amber-400',
+                };
+                return (
+                  <button 
+                    key={m.id}
+                    onClick={() => setActiveMode(m.id)}
+                    className={`p-2.5 rounded-xl flex flex-col items-center gap-1 transition-all border ${
+                      activeMode === m.id
+                        ? `${activeClsMap[m.id]} shadow-lg`
+                        : 'bg-white/5 border-white/5 text-white/40 hover:bg-white/10'
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-[16px]">{m.icon}</span>
+                    <span className="text-[7px] font-black uppercase tracking-widest">{m.id}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 

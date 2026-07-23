@@ -592,7 +592,7 @@ export default function OSPage() {
           </main>
 
           {/* Mobile Bottom Navigation */}
-          <nav className="fixed bottom-0 inset-x-0 h-16 bg-white/95 backdrop-blur-md border-t border-slate-150 flex items-center justify-around px-2 z-[150] shadow-[0_-5px_20px_rgba(0,0,0,0.02)]">
+          <nav className="fixed bottom-0 inset-x-0 bg-white/98 backdrop-blur-xl border-t border-slate-100 flex items-end justify-around px-1 z-[150] shadow-[0_-8px_32px_rgba(0,0,0,0.06)]" style={{ height: '68px', paddingBottom: 'env(safe-area-inset-bottom, 6px)' }}>
             {[
               { id: 'home', label: 'Arkle', icon: 'auto_awesome' },
               { id: 'crm', label: 'CRM', icon: 'group' },
@@ -604,18 +604,29 @@ export default function OSPage() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as OsTab)}
-                  className={`flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all ${
-                    isActive ? 'text-blue-600 scale-105' : 'text-slate-400'
-                  }`}
+                  className="flex flex-col items-center justify-center flex-1 h-full gap-0.5 transition-all relative pt-2 pb-1"
                 >
-                  <span className={`material-symbols-rounded text-[22px] transition-transform ${isActive ? '[font-variation-settings:"FILL"_1]' : ''}`}>
+                  {/* Active indicator pill */}
+                  {isActive && (
+                    <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-[3px] bg-blue-600 rounded-full" />
+                  )}
+                  <span
+                    className={`material-symbols-rounded text-[24px] transition-all duration-200 ${
+                      isActive
+                        ? 'text-blue-600 scale-110 [font-variation-settings:"FILL"_1]'
+                        : 'text-slate-400 scale-100'
+                    }`}
+                  >
                     {tab.icon}
                   </span>
-                  <span className="text-[9px] font-black uppercase tracking-wider">{tab.label}</span>
+                  <span className={`text-[9px] font-black uppercase tracking-wider transition-colors ${isActive ? 'text-blue-600' : 'text-slate-400'}`}>
+                    {tab.label}
+                  </span>
                 </button>
               );
             })}
           </nav>
+
         </div>
 
         {/* Global Modals */}
@@ -623,6 +634,9 @@ export default function OSPage() {
           <IntegrationsPanel 
             onClose={() => setIntegrationsOpen(false)} 
             initialTab={integrationsInitialTab}
+            installedApps={installedApps}
+            onInstallApp={handleInstallApp}
+            onUninstallApp={handleUninstallApp}
           />
         )}
       </ArkleCoreProvider>
@@ -972,8 +986,8 @@ export default function OSPage() {
                 }}
                 exit={{ x: -280, width: 0 }}
                 transition={{ type: 'spring', damping: 28, stiffness: 260 }}
-                onMouseEnter={() => setSidebarCollapsed(false)}
-                onMouseLeave={() => setSidebarCollapsed(true)}
+                onMouseEnter={() => { if (sidebarCollapsed) toggleSidebarCollapsed(); }}
+                onMouseLeave={() => { if (!sidebarCollapsed) toggleSidebarCollapsed(); }}
                 className={`fixed inset-y-0 left-0 z-40 flex h-full shrink-0 flex-col overflow-hidden border-r border-sky-100/60 bg-sky-50/90 shadow-2xl backdrop-blur-xl md:relative md:h-auto ${sidebarCollapsed ? 'md:w-[60px]' : 'md:w-[240px] w-[min(240px,88vw)]'
                   }`}
               >

@@ -363,14 +363,45 @@ export default function HomeTab({
              })
           });
           const resData = await resp.json();
-          const newAiMsg: Message = { id: (Date.now() + 1).toString(), role: 'assistant', content: resData.text, timestamp: new Date() };
-
-          // Automatically check if a new doc was generated in the response (mock check or based on JSON directives)
-          if (resData.text.includes("CREATE_GOOGLE_SHEET") || resData.text.includes("CREATE_INVOICE_DRAFT")) {
-             const docName = resData.text.includes("CREATE_GOOGLE_SHEET") ? "New_Spreadsheet.xlsx" : "Invoice_Draft.pdf";
-             const docType = resData.text.includes("CREATE_GOOGLE_SHEET") ? "sheet" : "pdf";
-             setGeneratedDocs(prev => [{ id: 'd-' + Date.now().toString(), name: docName, type: docType as any, date: 'Just now' }, ...prev]);
+          const rawText: string = resData.text || '';
+           
+          // Parse directives from raw response to execute + clean them
+          const directiveExecRegex = /\[DIRECTIVE:\s*(\w+)\s*({.*?})\]/g;
+          const directiveCleanRegex = /\[DIRECTIVE:\s*(\w+)\s*({.*?})\]/g;
+          let dirMatch;
+          while ((dirMatch = directiveExecRegex.exec(rawText)) !== null) {
+            const action = dirMatch[1];
+            try {
+              const payload = JSON.parse(dirMatch[2]);
+              if (action === 'CREATE_INVOICE_DRAFT' || action === 'ADD_LINE_ITEM' || action === 'SET_PARTY') {
+                window.dispatchEvent(new CustomEvent('open-billease'));
+                const sendToIframe = () => {
+                  const iframe = document.querySelector('iframe[title="BillEase"]') as HTMLIFrameElement;
+                  if (iframe && iframe.contentWindow) { iframe.contentWindow.postMessage({ action, data: payload }, "*"); return true; }
+                  return false;
+                };
+                if (!sendToIframe()) { setTimeout(sendToIframe, 500); setTimeout(sendToIframe, 1500); }
+                const iName = payload.partyName ? `Invoice_${payload.partyName.replace(/\s+/g, '_')}.pdf` : 'Invoice_Draft.pdf';
+                setGeneratedDocs(prev => [{ id: 'd-' + Date.now().toString(), name: iName, type: 'pdf', date: 'Just now' }, ...prev]);
+              } else if (action === 'ADD_CRM_LEAD') {
+                fetch('/api/crm/leads', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: payload.name, phone: payload.phone, note: payload.note, source: 'Arkle OS', category: 'Unknown', stage: 'New', priority: 'Medium' }) }).then(() => window.dispatchEvent(new CustomEvent('crm-leads-updated')));
+              } else if (action === 'CREATE_GOOGLE_DOC') {
+                fetch('/api/integrations/google', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, payload }) });
+                const dName = payload.title ? `${payload.title.replace(/\s+/g, '_')}.docx` : 'AI_Document.docx';
+                setGeneratedDocs(prev => [{ id: 'd-' + Date.now().toString(), name: dName, type: 'doc', date: 'Just now' }, ...prev]);
+              } else if (action === 'CREATE_GOOGLE_SHEET') {
+                fetch('/api/integrations/google', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, payload }) });
+                const sName = payload.title ? `${payload.title.replace(/\s+/g, '_')}.xlsx` : 'AI_Sheet.xlsx';
+                setGeneratedDocs(prev => [{ id: 'd-' + Date.now().toString(), name: sName, type: 'sheet', date: 'Just now' }, ...prev]);
+              } else if (action === 'SEND_EMAIL' || action === 'CREATE_CALENDAR_EVENT') {
+                fetch('/api/integrations/google', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, payload }) });
+              }
+            } catch {}
           }
+          
+          // Clean directives from visible chat text
+          const cleanText = rawText.replace(directiveCleanRegex, '').trim();
+          const newAiMsg: Message = { id: (Date.now() + 1).toString(), role: 'assistant', content: cleanText, timestamp: new Date() };
           
           setConversations(prev => prev.map(c => {
              if (c.id === currentConvId) {
