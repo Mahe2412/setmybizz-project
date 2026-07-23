@@ -1,5 +1,6 @@
 'use client';
 import React, { useState } from 'react';
+import LegalServiceTrigger from './LegalServiceTrigger';
 
 const PLATFORMS = [
   { id: 'amazon', name: 'Amazon India', icon: '🛒', color: 'border-orange-200 bg-orange-50 text-orange-600', active: true },
@@ -14,12 +15,11 @@ export default function SellCommerceTab() {
 
   // Mock checking what the user already has
   const checklist = [
-    { label: 'Pvt Ltd Registration', owned: true },
-    { label: 'GST Number', owned: true },
-    { label: 'Current Bank Account', owned: true },
-    { label: 'FSSAI / Appropriate License', owned: false },
-    { label: 'Product Imaging & Branding', owned: false },
-    { label: 'Tech & API Integration', owned: false },
+    { label: 'Pvt Ltd Registration', owned: true, key: 'incorporation' as const },
+    { label: 'GST Number', owned: false, key: 'gst' as const },
+    { label: 'Current Bank Account', owned: false, key: 'incorporation' as const },
+    { label: 'FSSAI / Appropriate License', owned: false, key: 'fssai' as const },
+    { label: 'Trademark Protection', owned: false, key: 'trademark' as const },
   ];
 
   if (selectedPlatform && showChecklist) {
@@ -43,7 +43,7 @@ export default function SellCommerceTab() {
                     {item.owned ? (
                       <span className="text-xs font-black text-green-600 bg-green-100 px-3 py-1 rounded-md">Owned</span>
                     ) : (
-                      <button className="text-xs font-black text-white bg-slate-900 hover:bg-slate-800 px-4 py-1.5 rounded-lg shadow-sm">Buy Now</button>
+                      <LegalServiceTrigger serviceKey={item.key} label="Get it now" />
                     )}
                  </div>
                ))}

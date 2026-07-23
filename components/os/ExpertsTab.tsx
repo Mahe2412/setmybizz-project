@@ -1,140 +1,492 @@
 'use client';
 import React, { useState } from 'react';
-import { EXPERTS } from '@/lib/mockBizData';
-import { DCard, SectionTitle, ActionBtn, GhostBtn, T } from '@/components/os/shared';
+import { motion, AnimatePresence } from 'framer-motion';
 
-const TYPE_TABS = ['All', 'CA', 'CS', 'Banking', 'Finance', 'Tech'];
+// ── Types & Constants ────────────────────────────────────────────────────────
+type BusinessStage = 'idea' | 'existing';
+type AdvisorPersona = 'CEO' | 'CMO' | 'CA' | 'Admin';
+
+const INCORPORATION_CHECKLIST = {
+  'pvt-ltd': [
+    { name: 'Director DSC & DIN Approval', desc: 'Digital signatures for promoters' },
+    { name: 'Name Approval (RUN)', desc: 'Reserve unique brand name via MCA' },
+    { name: 'MoA & AoA Drafting', desc: 'Define company charter and regulations' },
+    { name: 'Certificate of Incorporation', desc: 'Final MCA registration certificate' },
+    { name: 'PAN & TAN Issuance', desc: 'Tax identifiers generated' },
+  ],
+  'llp': [
+    { name: 'Partner DSC Approval', desc: 'Digital signature certificates' },
+    { name: 'Name Reservation', desc: 'MCA name clearance' },
+    { name: 'LLP Agreement Drafting', desc: 'Define mutual rights and duties' },
+    { name: 'LLP Incorporation Certificate', desc: 'Final registration certificate' },
+  ],
+  'proprietorship': [
+    { name: 'MSME Udyam Registration', desc: 'Official micro enterprise identifier' },
+    { name: 'GST Registration', desc: 'Required if turnover exceeds ₹40 Lakhs' },
+    { name: 'Current Account Setup', desc: 'Business banking activation' },
+  ]
+};
 
 export default function ExpertsTab() {
-  const [activeType, setActiveType] = useState('All');
-  const [hired, setHired]           = useState<number | null>(null);
+  const [stage, setStage] = useState<BusinessStage>('idea');
+  const [activePersona, setActivePersona] = useState<AdvisorPersona>('CEO');
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [aiOutput, setAiOutput] = useState('');
+  
+  // Idea Validation State
+  const [ideaText, setIdeaText] = useState('');
+  const [targetMarket, setTargetMarket] = useState('Tech / Digital');
+  const [validationScore, setValidationScore] = useState<number | null>(null);
+  const [businessCanvas, setBusinessCanvas] = useState<any | null>(null);
+  const [selectedStructure, setSelectedStructure] = useState<'pvt-ltd' | 'llp' | 'proprietorship'>('pvt-ltd');
+  const [uploadedDocs, setUploadedDocs] = useState<string[]>([]);
+  const [caReviewStatus, setCaReviewStatus] = useState<string | null>(null);
 
-  const visible = activeType === 'All' ? EXPERTS : EXPERTS.filter(e => e.type === activeType);
+  // Existing Business State
+  const [industry, setIndustry] = useState('SaaS / SaaS Platform');
+  const [bizSize, setBizSize] = useState('Micro (Under 50L)');
+  const [bizGoal, setBizGoal] = useState('Acquiring first 100 customers');
+  const [customQuery, setCustomQuery] = useState('');
+
+  // ── AI Idea Validation Call ───────────────────────────────────────────────
+  const handleValidateIdea = async () => {
+    if (!ideaText.trim()) return;
+    setIsAiLoading(true);
+    setValidationScore(null);
+    setBusinessCanvas(null);
+    try {
+      const res = await fetch('/api/gemini', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: `You are Arkle, an elite venture strategist and business incubator advisor.
+Validate this business idea: "${ideaText}" in sector: "${targetMarket}".
+Evaluate:
+1. Feasibility & Market Fit Score (out of 100)
+2. Value Proposition (USP)
+3. Target Audience
+4. Suggested Revenue Model
+5. Immediate 3 Launch Steps
+Return in JSON format: {"score": 85, "usp": "", "audience": "", "revenue": "", "roadmap": ["step1", "step2", "step3"]}`
+        })
+      });
+      const d = await res.json();
+      const parsed = JSON.parse(d.text.replace(/```json|```/g, '').trim());
+      setValidationScore(parsed.score || 80);
+      setBusinessCanvas(parsed);
+    } catch (e) {
+      setValidationScore(75);
+      setBusinessCanvas({
+        usp: "Innovative service/product addressing customer convenience in target market.",
+        audience: "Early tech adopters, local service seekes, or digital businesses.",
+        revenue: "Subscription model / Transaction fees / Direct sale",
+        roadmap: ["Register MSME / Udyam Certificate", "Build prototype website / landing page", "Collect first 10 beta customer feedback"]
+      });
+    }
+    setIsAiLoading(false);
+  };
+
+  // ── AI Advisor Persona Actions ──────────────────────────────────────────────
+  const handleConsultAdvisor = async (promptQuery?: string) => {
+    setIsAiLoading(true);
+    const finalPrompt = promptQuery || customQuery || `Provide tactical guidance.`;
+    setCustomQuery('');
+    try {
+      const res = await fetch('/api/gemini', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: `You are Arkle, acting as the business's ${activePersona} Advisor.
+Business context: Industry - ${industry}, Size - ${bizSize}, Current goal - ${bizGoal}.
+Task: ${finalPrompt}
+Answer like a world-class professional ${activePersona} with practical, direct guidance. Max 4 sentences. If appropriate, suggest a templates, tax optimization, or marketing playbook.`
+        })
+      });
+      const d = await res.json();
+      setAiOutput(d.text);
+    } catch {
+      setAiOutput('Arkle is syncing background metrics. Please try asking in a moment.');
+    }
+    setIsAiLoading(false);
+  };
+
+  const docUploadSimulate = (name: string) => {
+    setUploadedDocs(prev => [...prev, name]);
+    if (uploadedDocs.length >= 2) {
+      setCaReviewStatus('Waiting for OTP / Verification Link');
+    } else {
+      setCaReviewStatus('Document Checklist Updated');
+    }
+  };
+
+  const submitToExperts = () => {
+    setCaReviewStatus('Documents received. SetMyBizz CA team has initiated registration. Check status under Business Vault.');
+  };
 
   return (
-    <div className="space-y-5">
-      <SectionTitle icon="👥" title="Expert Marketplace" sub="Hire CA, CS, Finance & Tech professionals on demand" />
+    <div className="max-w-5xl mx-auto space-y-6 pb-24 animate-in fade-in zoom-in-95 duration-500 font-sans">
+      <style>{`
+        .adv-card { background: white; border-radius: 24px; border: 1px solid #e2e8f0; box-shadow: 0 4px 20px -2px rgba(0,0,0,0.03); }
+        .adv-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; padding: 12px 20px; border-radius: 14px; transition: all 0.2s; border: none; outline: none; cursor: pointer; }
+        .adv-btn-primary { background: #2563eb; color: white; }
+        .adv-btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); }
+        .adv-btn-ghost { background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; }
+        .adv-btn-ghost:hover { background: #f1f5f9; }
+        .adv-input { width: 100%; padding: 12px 16px; border: 1.5px solid #e2e8f0; border-radius: 12px; font-size: 12.5px; font-weight: 600; background: #f8fafc; outline: none; transition: all 0.2s; }
+        .adv-input:focus { border-color: #2563eb; background: white; box-shadow: 0 0 0 3px rgba(37,99,235,0.08); }
+        .adv-pill { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; padding: 6px 12px; border-radius: 9999px; transition: all 0.2s; }
+      `}</style>
 
-      {/* Banner */}
-      <div className="p-5 rounded-2xl flex flex-col md:flex-row items-start md:items-center gap-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100">
-        <span className="text-4xl">🤝</span>
-        <div className="flex-1">
-          <h3 className="font-black text-slate-900 text-base">Run your startup without a full-time team</h3>
-          <p className="text-[12px] text-slate-500 mt-1 leading-relaxed">Book proven CA, CS, finance advisors & tech consultants on-demand. Pay only per hour or monthly retainer.</p>
+      {/* ── HEADER ──────────────────────────────────────────────────── */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+            🧠 Arkle Advisor & Co-Founder Board
+          </h1>
+          <p className="text-slate-500 font-medium text-xs mt-1 uppercase tracking-wider">
+            Start, Run, Manage, and Operate your entire enterprise with AI guidance.
+          </p>
         </div>
-        <div className="flex-shrink-0 text-right">
-          <p className="text-[10px] text-slate-400">Starting from</p>
-          <p className="text-2xl font-black text-blue-600">₹500/hr</p>
-        </div>
-      </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {([
-          { label: 'Professionals', value: '120+',    color: T.blue   },
-          { label: 'Avg Rating',    value: '4.8 ★',   color: T.amber  },
-          { label: 'Sessions Done', value: '3,400+',  color: T.green  },
-          { label: 'Response Time', value: '< 2 hrs', color: T.purple },
-        ] as const).map(s => (
-          <div key={s.label} className="p-4 rounded-3xl text-center bg-white border border-slate-100 shadow-sm">
-            <p className="text-xl md:text-2xl font-black mb-0.5 whitespace-nowrap" style={{ color: s.color }}>{s.value}</p>
-            <p className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest">{s.label}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Filter Tabs */}
-      <div className="flex flex-wrap gap-2">
-        {TYPE_TABS.map(t => (
+        {/* Life cycle Stage Toggles */}
+        <div className="flex bg-slate-100 p-1 rounded-2xl border border-slate-200 shrink-0">
           <button
-            key={t}
-            onClick={() => setActiveType(t)}
-            className="text-[11px] font-bold px-3.5 py-1.5 rounded-full transition-all"
-            style={activeType === t ? { background: T.blue, color: 'white' } : { background: 'white', color: '#64748b', border: '1px solid #e2e8f0' }}
+            onClick={() => { setStage('idea'); setAiOutput(''); }}
+            className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all ${stage === 'idea' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
           >
-            {t === 'CA' ? '🧑‍💼 CA' : t === 'CS' ? '🏛️ CS' : t === 'Banking' ? '🏦 Banking' : t === 'Finance' ? '📈 Finance / CFO' : t === 'Tech' ? '💻 Tech' : '👥 All Experts'}
+            🌱 Start & Validate Idea
           </button>
-        ))}
+          <button
+            onClick={() => { setStage('existing'); setAiOutput(''); }}
+            className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all ${stage === 'existing' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+          >
+            🚀 Run & Scale Business
+          </button>
+        </div>
       </div>
 
-      {/* Expert Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {visible.map(expert => (
-          <DCard key={expert.id}>
-            <div className="flex items-start gap-3 mb-4">
-              <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center font-black text-sm flex-shrink-0"
-                style={{ background: `${expert.color}15`, color: expert.color }}
-              >
-                {expert.avatar}
+      {/* ═══════ STAGE 1: IDEA VALIDATION & INCUBATION ═══════ */}
+      {stage === 'idea' && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Inputs & Parameters */}
+          <div className="lg:col-span-5 space-y-4">
+            <div className="adv-card p-6 space-y-4">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-rounded text-blue-600">lightbulb</span>
+                <p className="text-[11px] font-black text-slate-900 uppercase tracking-wider">Idea Incubator</p>
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h4 className="font-black text-slate-900 text-sm">{expert.name}</h4>
-                  <span
-                    className="text-[9px] font-black px-2 py-0.5 rounded-full"
-                    style={{
-                      background: expert.badge === 'Top Rated' ? 'rgba(217,119,6,0.12)' : expert.badge === 'Premium' ? 'rgba(220,38,38,0.1)' : 'rgba(37,99,235,0.1)',
-                      color: expert.badge === 'Top Rated' ? T.amber : expert.badge === 'Premium' ? T.red : T.blue,
-                    }}
+
+              <div>
+                <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Briefly describe your idea</label>
+                <textarea
+                  className="adv-input resize-none"
+                  rows={4}
+                  value={ideaText}
+                  onChange={e => setIdeaText(e.target.value)}
+                  placeholder="Example: Tech platform for rural farmers to rent agriculture tools from local vendors nearby..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Business Sector</label>
+                <select className="adv-input" value={targetMarket} onChange={e => setTargetMarket(e.target.value)}>
+                  <option>Tech / SaaS platform</option>
+                  <option>Manufacturing & Retail</option>
+                  <option>Agri-processing & Farming</option>
+                  <option>E-commerce / D2C brand</option>
+                  <option>Services & Consulting</option>
+                </select>
+              </div>
+
+              <button
+                onClick={handleValidateIdea}
+                disabled={isAiLoading || !ideaText.trim()}
+                className="w-full adv-btn adv-btn-primary"
+              >
+                {isAiLoading ? 'Analyzing Idea...' : 'Validate Idea with Arkle →'}
+              </button>
+            </div>
+
+            {/* CA Legal Setup Forge */}
+            <div className="adv-card p-6 space-y-4">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-rounded text-blue-600">gavel</span>
+                <p className="text-[11px] font-black text-slate-900 uppercase tracking-wider">Legal Entity Forge</p>
+              </div>
+
+              <div>
+                <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Select Company Structure</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { id: 'pvt-ltd', label: 'Pvt Ltd' },
+                    { id: 'llp', label: 'LLP' },
+                    { id: 'proprietorship', label: 'Proprietor' }
+                  ].map(s => (
+                    <button
+                      key={s.id}
+                      onClick={() => setSelectedStructure(s.id as any)}
+                      className={`py-2 px-1 text-[10px] font-black uppercase rounded-xl border transition-all ${selectedStructure === s.id ? 'bg-slate-900 border-slate-900 text-white' : 'bg-slate-50 border-slate-200 text-slate-500'}`}
+                    >
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Dynamic steps roadmap based on selector */}
+              <div className="space-y-2.5">
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Legal steps</p>
+                {INCORPORATION_CHECKLIST[selectedStructure].map((step, idx) => (
+                  <div key={idx} className="flex items-start gap-2.5 p-2 rounded-xl bg-slate-50 border border-slate-100">
+                    <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] font-black shrink-0">{idx+1}</span>
+                    <div>
+                      <p className="text-[11px] font-bold text-slate-800 leading-none">{step.name}</p>
+                      <p className="text-[9px] text-slate-400 font-bold mt-0.5">{step.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Document dropzone */}
+              <div className="border-2 border-dashed border-slate-200 rounded-2xl p-4 text-center">
+                <span className="material-symbols-rounded text-slate-300 text-3xl">cloud_upload</span>
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-wider mt-1">Upload ID & Address Proof</p>
+                <p className="text-[8px] text-slate-400 mt-0.5">PAN, Aadhaar, Rental Agreement (Max 5MB)</p>
+                <div className="mt-3 flex justify-center gap-1.5">
+                  <button onClick={() => docUploadSimulate('PAN_Card.pdf')} className="px-2 py-1 bg-slate-100 text-slate-600 rounded text-[9px] font-black uppercase">PAN</button>
+                  <button onClick={() => docUploadSimulate('Aadhaar.pdf')} className="px-2 py-1 bg-slate-100 text-slate-600 rounded text-[9px] font-black uppercase">Aadhaar</button>
+                </div>
+                {uploadedDocs.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-1 justify-center">
+                    {uploadedDocs.map(d => <span key={d} className="px-2 py-0.5 bg-green-50 text-green-700 rounded text-[8px] font-black border border-green-200">✓ {d}</span>)}
+                  </div>
+                )}
+              </div>
+
+              {caReviewStatus && (
+                <div className="p-3 bg-blue-50 border border-blue-100 rounded-xl text-[10px] font-bold text-blue-700 leading-relaxed">
+                  📢 Status: {caReviewStatus}
+                </div>
+              )}
+
+              <button onClick={submitToExperts} disabled={uploadedDocs.length < 2} className="w-full adv-btn adv-btn-primary disabled:opacity-40">
+                Register Entity & GST →
+              </button>
+            </div>
+          </div>
+
+          {/* Validation Diagnostics Output */}
+          <div className="lg:col-span-7 space-y-4">
+            <AnimatePresence mode="wait">
+              {validationScore !== null ? (
+                <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="adv-card p-6 space-y-5">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                    <div>
+                      <h3 className="font-black text-slate-900 text-[15px] uppercase">Idea Validation Report</h3>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">Diagnosed by Arkle Strategist</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] text-slate-400 font-bold">VIBE SCORE</p>
+                      <p className={`text-3xl font-black ${validationScore >= 80 ? 'text-green-600' : 'text-amber-500'}`}>{validationScore}/100</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-3 bg-slate-50 border border-slate-100 rounded-2xl">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Value Proposition (USP)</p>
+                      <p className="text-[11px] text-slate-700 font-medium leading-relaxed">{businessCanvas?.usp}</p>
+                    </div>
+                    <div className="p-3 bg-slate-50 border border-slate-100 rounded-2xl">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Target Market</p>
+                      <p className="text-[11px] text-slate-700 font-medium leading-relaxed">{businessCanvas?.audience}</p>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-slate-50 border border-slate-100 rounded-2xl">
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Suggested Revenue Model</p>
+                    <p className="text-[11px] text-slate-700 font-medium leading-relaxed">{businessCanvas?.revenue}</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Launch Action Steps</p>
+                    {businessCanvas?.roadmap?.map((step: string, idx: number) => (
+                      <div key={idx} className="flex items-center gap-3 px-4 py-3 bg-blue-50/50 border border-blue-100/50 rounded-xl">
+                        <span className="material-symbols-rounded text-blue-600 text-sm">rocket_launch</span>
+                        <p className="text-[12px] text-slate-800 font-bold">{step}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="pt-2 flex justify-end gap-2">
+                    <button className="adv-btn adv-btn-ghost">Export Plan (PDF)</button>
+                    <button onClick={() => setStage('existing')} className="adv-btn adv-btn-primary">Launch & Setup Workspace</button>
+                  </div>
+                </motion.div>
+              ) : (
+                <div className="adv-card p-12 text-center text-slate-400 space-y-3">
+                  <span className="material-symbols-rounded text-slate-200 text-6xl">insights</span>
+                  <h3 className="font-black text-slate-700 text-base">Start-up Idea Validation Desk</h3>
+                  <p className="text-sm text-slate-400 max-w-sm mx-auto">Input your business idea on the left and let Arkle analyze its market potential, audience segmentation, and legal steps.</p>
+                </div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      )}
+
+      {/* ═══════ STAGE 2: EXISTING BUSINESS OPERATION & ADVISORY ═══════ */}
+      {stage === 'existing' && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Parameters & Goals */}
+          <div className="lg:col-span-5 space-y-4">
+            <div className="adv-card p-6 space-y-4">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-rounded text-blue-600">domain</span>
+                <p className="text-[11px] font-black text-slate-900 uppercase tracking-wider">Business Context</p>
+              </div>
+
+              <div>
+                <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Industry Sector</label>
+                <select className="adv-input" value={industry} onChange={e => setIndustry(e.target.value)}>
+                  <option>D2C & E-Commerce</option>
+                  <option>Retail Trade & Supermarkets</option>
+                  <option>Agriculture & Supply Chain</option>
+                  <option>SaaS / Tech platform</option>
+                  <option>Manufacturing & Logistics</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Business Size</label>
+                <select className="adv-input" value={bizSize} onChange={e => setBizSize(e.target.value)}>
+                  <option>Micro Enterprise (Turnover under 5Cr)</option>
+                  <option>Small Enterprise (Turnover 5Cr - 75Cr)</option>
+                  <option>Medium Enterprise (Turnover 75Cr - 250Cr)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Immediate Business Goal</label>
+                <select className="adv-input" value={bizGoal} onChange={e => setBizGoal(e.target.value)}>
+                  <option>Expanding customer acquisition & marketing</option>
+                  <option>Filing GST, tax saving and audit compliance</option>
+                  <option>Hiring first team members & setup payroll</option>
+                  <option>Raising bank loans / Seed grants</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Strategic Advisory Personas */}
+            <div className="adv-card p-6 space-y-3">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="material-symbols-rounded text-blue-600">groups</span>
+                <p className="text-[11px] font-black text-slate-900 uppercase tracking-wider">Advisor Boardroom</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { id: 'CEO', label: 'CEO Strategist', icon: 'psychology', desc: 'Growth & Roadmap' },
+                  { id: 'CMO', label: 'CMO Marketing', icon: 'campaign', desc: 'Leads & Marketing' },
+                  { id: 'CA', label: 'CA Accountant', icon: 'balance', desc: 'GST & Compliance' },
+                  { id: 'Admin', label: 'Admin Ops', icon: 'settings', desc: 'Legals & Agreements' }
+                ].map(p => (
+                  <button
+                    key={p.id}
+                    onClick={() => { setActivePersona(p.id as any); setAiOutput(''); }}
+                    className={`p-3 rounded-2xl border text-left transition-all hover:scale-[1.02] active:scale-95 ${activePersona === p.id ? 'bg-blue-600 text-white border-blue-600 shadow-lg' : 'bg-slate-50 border-slate-100 text-slate-700'}`}
                   >
-                    {expert.badge}
+                    <span className="material-symbols-rounded text-[18px] block mb-1">{p.icon}</span>
+                    <p className="text-[10px] font-black uppercase tracking-wider leading-none">{p.label}</p>
+                    <p className={`text-[8px] font-bold mt-1 ${activePersona === p.id ? 'text-blue-100' : 'text-slate-400'}`}>{p.desc}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Interactive Advisory Output */}
+          <div className="lg:col-span-7 space-y-4">
+            <div className="adv-card p-6 space-y-4">
+              <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
+                <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600">
+                  <span className="material-symbols-rounded text-[20px]">
+                    {activePersona === 'CEO' ? 'psychology' : activePersona === 'CMO' ? 'campaign' : activePersona === 'CA' ? 'balance' : 'settings'}
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-400 mt-0.5">{expert.role}</p>
-                <div className="flex items-center gap-3 mt-1">
-                  <span className="text-[11px] text-amber-500">★ {expert.rating}</span>
-                  <span className="text-[10px] text-slate-400">({expert.reviews} reviews) · {expert.exp} exp</span>
+                <div>
+                  <h3 className="font-black text-slate-900 text-sm uppercase">Consulting Arkle {activePersona}</h3>
+                  <p className="text-[9px] text-slate-400 font-bold uppercase mt-0.5">Real-time business advice active</p>
                 </div>
               </div>
-              <div className="flex-shrink-0 text-right">
-                <p className="text-sm font-black text-slate-900">{expert.rate}</p>
-                {expert.available
-                  ? <span className="text-[10px] font-bold text-green-600">● Available</span>
-                  : <span className="text-[10px] font-bold text-slate-400">○ Busy</span>}
-              </div>
-            </div>
 
-            <div className="flex flex-wrap gap-1.5 mb-4">
-              {expert.tags.map(tag => (
-                <span key={tag} className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">{tag}</span>
-              ))}
-            </div>
+              {/* Persona Quick Actions Prompts */}
+              <div className="space-y-2">
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Recommended Actions</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {activePersona === 'CEO' && [
+                    { q: 'Suggest strategic roadmap for scaling revenue', label: '🗺️ Revenue Roadmap' },
+                    { q: 'Analyze potential business threats in this sector', label: '⚠️ Threat Analysis' }
+                  ].map(a => <button key={a.label} onClick={() => handleConsultAdvisor(a.q)} className="px-3 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-[10px] font-bold transition-all">{a.label}</button>)}
 
-            {hired === expert.id ? (
-              <div className="py-4 rounded-2xl text-center text-[10px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100 uppercase tracking-widest animate-in zoom-in-95">
-                ✅ Request Synced! Session upcoming.
+                  {activePersona === 'CMO' && [
+                    { q: 'Create 5 Instagram & WhatsApp promotional captions', label: '📱 Social Media Campaign' },
+                    { q: 'Suggest offline marketing strategies for rural hubs', label: '📢 Rural Marketing Plan' }
+                  ].map(a => <button key={a.label} onClick={() => handleConsultAdvisor(a.q)} className="px-3 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-[10px] font-bold transition-all">{a.label}</button>)}
+
+                  {activePersona === 'CA' && [
+                    { q: 'Explain GST exemption thresholds and filing guidelines', label: '⚖️ GST Compliance Check' },
+                    { q: 'Draft tax-saving strategies for this micro startup', label: '💰 Tax Optimization Tips' }
+                  ].map(a => <button key={a.label} onClick={() => handleConsultAdvisor(a.q)} className="px-3 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-[10px] font-bold transition-all">{a.label}</button>)}
+
+                  {activePersona === 'Admin' && [
+                    { q: 'Generate draft terms for founder equity split', label: '📝 Founder Agreement Template' },
+                    { q: 'Create a contractor hire template for this sector', label: '🤝 Contractor Hire Template' }
+                  ].map(a => <button key={a.label} onClick={() => handleConsultAdvisor(a.q)} className="px-3 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-[10px] font-bold transition-all">{a.label}</button>)}
+                </div>
               </div>
-            ) : (
-              <div className="flex flex-col sm:flex-row gap-2">
+
+              {/* Direct query box */}
+              <div className="flex gap-2">
+                <input
+                  value={customQuery}
+                  onChange={e => setCustomQuery(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleConsultAdvisor()}
+                  placeholder={`Ask Arkle ${activePersona} anything...`}
+                  className="adv-input flex-1"
+                />
                 <button
-                  onClick={() => setHired(expert.id)}
-                  disabled={!expert.available}
-                  className="flex-1 py-3.5 rounded-2xl text-[10px] font-black transition-all shadow-xl hover:scale-[1.02] active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed text-white uppercase tracking-widest"
-                  style={{ background: expert.available ? `linear-gradient(135deg,${T.blue},#0284c7)` : '#e2e8f0', boxShadow: expert.available ? '0 8px 16px -6px rgba(37,99,235,0.4)' : 'none' }}
+                  onClick={() => handleConsultAdvisor()}
+                  disabled={isAiLoading || !customQuery.trim()}
+                  className="adv-btn adv-btn-primary px-5"
                 >
-                  {expert.available ? 'Book Session →' : 'Waitlist'}
+                  Ask
                 </button>
-                <div className="sm:w-32 shrink-0">
-                   <GhostBtn label="Profile" />
-                </div>
               </div>
-            )}
-          </DCard>
-        ))}
-      </div>
 
-      {/* Post Requirement */}
-      <DCard>
-        <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-          <span className="text-4xl">📢</span>
-          <div className="flex-1">
-            <h3 className="font-bold text-slate-900">Can&apos;t find the right expert?</h3>
-            <p className="text-[12px] text-slate-400 mt-0.5">Post your requirement and we&apos;ll match you with a verified professional within 24 hours. Free matching.</p>
+              {/* AI Advice Output */}
+              <AnimatePresence mode="wait">
+                {(aiOutput || isAiLoading) && (
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="p-5 rounded-2xl bg-blue-50 border border-blue-100/50 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" />
+                      <p className="text-[9px] font-black text-blue-700 uppercase tracking-widest">{activePersona} Response</p>
+                    </div>
+                    {isAiLoading ? (
+                      <div className="flex gap-1.5 items-center py-2 text-slate-400 text-xs font-bold">
+                        <div className="w-3.5 h-3.5 border-2 border-slate-200 border-t-blue-600 rounded-full animate-spin" />
+                        Generating expert advisory advice...
+                      </div>
+                    ) : (
+                      <div className="text-[12px] text-slate-700 font-medium leading-relaxed whitespace-pre-wrap">{aiOutput}</div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
-          <ActionBtn label="Post Requirement →" color={T.amber} />
         </div>
-      </DCard>
+      )}
     </div>
   );
 }
+

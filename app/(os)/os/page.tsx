@@ -58,6 +58,7 @@ const BIZDESK_SIDEBAR: SidebarSection[] = [
     section: 'NEURAL OPERATOR',
     items: [
       { id: 'home', icon: '🧠', label: 'Arkle Control', badge: 'Live' },
+      { id: 'experts', icon: '🎯', label: 'AI Advisor', badge: 'New' },
     ],
   },
   {
@@ -140,6 +141,7 @@ const LEARN_SIDEBAR: SidebarSection[] = [
 
 const ALL_APPS = [
   { id: 'home', label: 'Arkle Control', icon: '🧠' },
+  { id: 'experts', label: 'AI Advisor', icon: '🎯' },
   { id: 'company', label: 'Business Vault', icon: '🛡️' },
   { id: 'banking', label: 'Financial Desk', icon: '💳' },
   { id: 'sales', label: 'Sales Desk', icon: '💼' },
@@ -509,6 +511,7 @@ export default function OSPage() {
       case 'billease': return <BilleaseTab />;
       case 'crm': return <CRMTab />;
       case 'orderdesk': return <OrderDeskTab />;
+      case 'experts': return <ExpertsTab />;
       case 'learn':
         return (
           <StartupStoreTab 

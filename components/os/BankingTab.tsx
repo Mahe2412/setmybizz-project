@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { T } from '@/components/os/shared';
+import LegalServiceTrigger from './LegalServiceTrigger';
 
 const BANK_FEATURES = [
   {
@@ -292,9 +293,18 @@ export default function BankingTab() {
                 <p className="text-[9px] font-black text-slate-350 uppercase tracking-[0.2em] mb-3 text-center sm:text-left">Workflow Sequence</p>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   {f.steps.map((step, si) => (
-                    <div key={si} className="flex items-center gap-3 p-3 bg-slate-50/50 rounded-2xl border border-slate-100/50 hover:bg-white hover:border-blue-100 transition-all">
-                      <span className="w-5 h-5 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] font-black flex-shrink-0 shadow-md">{si + 1}</span>
-                      <p className="text-[11px] text-slate-700 font-semibold leading-snug">{step}</p>
+                    <div key={si} className="flex flex-col gap-2 p-3 bg-slate-50/50 rounded-2xl border border-slate-100/50 hover:bg-white hover:border-blue-100 transition-all justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="w-5 h-5 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] font-black flex-shrink-0 shadow-md">{si + 1}</span>
+                        <p className="text-[11px] text-slate-700 font-semibold leading-snug">{step}</p>
+                      </div>
+                      {step.includes('GST') && (
+                        <div className="flex flex-wrap items-center gap-1.5 pl-8 mt-1">
+                          <span className="text-[9px] text-slate-400 font-bold">No GST/Company?</span>
+                          <LegalServiceTrigger serviceKey="gst" label="Get GST" />
+                          <LegalServiceTrigger serviceKey="incorporation" label="Get Pvt Ltd" />
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
