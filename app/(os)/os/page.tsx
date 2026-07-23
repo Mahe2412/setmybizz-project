@@ -26,6 +26,7 @@ import StartupStoreTab from '@/components/os/StartupStoreTab';
 import RetailerTab from '@/components/os/RetailerTab';
 import SalesTab from '@/components/os/SalesTab';
 import BillBookTab from '@/components/os/BillBookTab';
+import SmartBillBook from '@/components/os/SmartBillBook';
 import dynamic from 'next/dynamic';
 
 const BilleaseTab = dynamic(() => import('@/components/os/BilleaseTab'), {
@@ -64,32 +65,19 @@ const BIZDESK_SIDEBAR: SidebarSection[] = [
   {
     section: 'OPERATIONAL CORE',
     items: [
-      { id: 'company', icon: '🛡️', label: 'Business Vault' },
+      { id: 'crm', icon: '👥', label: 'CRM Desk' },
+      { id: 'billbook', icon: '📒', label: 'Bill Book' },
       { id: 'banking', icon: '💳', label: 'Financial Desk' },
-      { id: 'sales', icon: '💼', label: 'Sales Desk' },
-      { id: 'billease', icon: '📒', label: 'Bill Book' },
-      { id: 'billbook', icon: '🚀', label: 'Biz Book' },
-      { id: 'crm', icon: '🎯', label: 'CRM Desk' },
-    ],
-  },
-  {
-    section: 'MARKETPLACE',
-    items: [
-      { id: 'learn', icon: '🛒', label: 'Startup Store', badge: 'New' },
+      { id: 'company', icon: '🛡️', label: 'Business Vault' },
     ],
   },
   {
     section: 'EXPANSION ENGINE',
     items: [
       { id: 'sell-commerce', icon: '📦', label: 'Commerce OS' },
-      { id: 'suppliers', icon: '🏭', label: 'Supply Chain' },
       { id: 'global', icon: '🌐', label: 'Global Gateway' },
-    ],
-  },
-  {
-    section: 'ARKLE ECOSYSTEM',
-    items: [
       { id: 'bharat-support', icon: '🇮🇳', label: 'Bharat Startup' },
+      { id: 'learn', icon: '🛒', label: 'Startup Store', badge: 'New' },
     ],
   },
 ];
@@ -507,7 +495,7 @@ export default function OSPage() {
       case 'company': return <CompanyTab />;
       case 'banking': return <BankingTab />;
       case 'sales': return <SalesTab />;
-      case 'billbook': return <BillBookTab />;
+      case 'billbook': return <SmartBillBook />;
       case 'billease': return <BilleaseTab />;
       case 'crm': return <CRMTab />;
       case 'orderdesk': return <OrderDeskTab />;
