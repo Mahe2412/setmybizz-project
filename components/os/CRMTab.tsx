@@ -4,8 +4,10 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { 
   Users, MessageSquare, LayoutDashboard, GitPullRequest, 
   Settings as SettingsIcon, ShieldAlert, Cpu, Share2, 
-  Plus, Upload, Send, HelpCircle, CheckCircle2, Play
+  Plus, Upload, Send, HelpCircle, CheckCircle2, Play, ShoppingBag, Package
 } from 'lucide-react';
+import OmniSalesTab from './OmniSalesTab';
+import OperationsTab from './OperationsTab';
 
 // ── Palette & design tokens ──────────────────────────────────────────────────
 const C = {
@@ -49,6 +51,10 @@ const STAGE_META: Record<string, BadgeConfig> = {
   Interested: { color: C.green,   bg: C.greenLight,  icon: "★" },
   "Follow-up":{ color: C.purple,  bg: C.purpleLight, icon: "↺" },
   Closed:     { color: C.gray600, bg: C.gray200,     icon: "✓" },
+  // E-Commerce specific stages
+  Paid:       { color: C.green,   bg: C.greenLight,  icon: "₹" },
+  "Pending Dispatch": { color: C.amber, bg: C.amberLight, icon: "📦" },
+  Dispatched: { color: C.brand,   bg: C.brandLight,  icon: "🚚" }
 };
 
 const CAT_META: Record<string, BadgeConfig> = {
@@ -56,6 +62,7 @@ const CAT_META: Record<string, BadgeConfig> = {
   MSME:     { color: C.amber,  bg: C.amberLight  },
   Retail:   { color: C.teal,   bg: C.tealLight   },
   Service:  { color: C.green,  bg: C.greenLight  },
+  "E-Commerce": { color: C.brand, bg: C.brandLight },
   Unknown:  { color: C.gray600,bg: C.gray200     },
 };
 
@@ -116,10 +123,9 @@ const SEED_LEADS: Lead[] = [
   { id:"l3", name:"Arjun Shah",   phone:"+91 91234 56789", category:"Retail",   stage:"Messaged",   priority:"Medium", source:"WA Group",   note:"Runs a grocery store chain", score:60, added:"2025-06-18" },
   { id:"l4", name:"Sneha Patel",  phone:"+91 98001 77654", category:"Service",  stage:"Interested", priority:"High",   source:"Direct DM",  note:"Salon owner, needs GST registration", score:91, added:"2025-06-17" },
   { id:"l5", name:"Kiran Rao",    phone:"+91 99887 23456", category:"Startup",  stage:"Follow-up",  priority:"Medium", source:"WA Group",   note:"SaaS product idea, co-founder search", score:55, added:"2025-06-16" },
-  { id:"l6", name:"Meera Nair",   phone:"+91 97654 32109", category:"MSME",     stage:"New",        priority:"Medium", source:"Website",    note:"Export business, Udyam registration needed", score:68, added:"2025-06-15" },
-  { id:"l7", name:"Suresh Babu",  phone:"+91 99000 11223", category:"Retail",   stage:"Closed",     priority:"Low",    source:"Manual",     note:"Converted — Pvt Ltd registration done", score:100, added:"2025-06-14" },
-  { id:"l8", name:"Vinod Teja",   phone:"+91 98765 00001", category:"Service",  stage:"New",        priority:"Low",    source:"Direct DM",  note:"IT consultant, freelance setup", score:41, added:"2025-06-13" },
-  { id:"l9", name:"Lakshmi D",    phone:"+91 91111 22333", category:"Startup",  stage:"Messaged",   priority:"Medium", source:"WA Group",   note:"Edtech startup idea", score:63, added:"2025-06-12" },
+  { id:"l10", name:"Rahul Instagram", phone:"+91 88888 11111", category:"E-Commerce", stage:"New", priority:"High", source:"Instagram WA", note:"Hi! Do you have RetroSweets in stock?", score:95, added:"2025-06-20" },
+  { id:"l11", name:"Vikram D2C", phone:"+91 88888 22222", category:"E-Commerce", stage:"Paid", priority:"High", source:"Website", note:"Order #1042 verified via PhonePe webhook", score:100, added:"2025-06-20" },
+  { id:"l12", name:"Anita Orders", phone:"+91 88888 33333", category:"E-Commerce", stage:"Pending Dispatch", priority:"High", source:"WhatsApp", note:"Order #1030 paid. Needs shipping label.", score:100, added:"2025-06-19" },
 ];
 
 const SEED_CONVOS: Record<string, Message[]> = {
@@ -134,6 +140,15 @@ const SEED_CONVOS: Record<string, Message[]> = {
     { role:"ai",   text:"Got it! For salons, GST applies once turnover crosses ₹20L. We can get your GSTIN in 3–5 working days. I'll also help you understand input tax credit on salon supplies. Want to start?", ts:"9:31 AM" },
     { role:"lead", text:"Yes please! How much does it cost?", ts:"9:45 AM" },
   ],
+  l10: [
+    { role: "lead", text: "Hi! Do you have RetroSweets in stock?", ts: "11:00 AM" },
+    { role: "ai", text: "Hi there! Welcome to our store 🛍️ Yes, RetroSweets are in stock. They are ₹450 per box. Shall I generate a payment link for you to order?", ts: "11:01 AM" },
+  ],
+  l11: [
+    { role: "lead", text: "Hi, I want to order 2 units.", ts: "9:00 AM" },
+    { role: "ai", text: "Great! That will be ₹900. Pay via UPI here: https://pay.setmybizz.in/upi-dynamic-link", ts: "9:01 AM" },
+    { role: "ai", text: "✅ Payment received automatically! Your order is confirmed and will be dispatched today. No need to send screenshots.", ts: "9:05 AM" },
+  ]
 };
 
 const SEED_WORKFLOWS: Workflow[] = [
@@ -169,6 +184,7 @@ function initials(name: string) {
 }
 function classify(note: string) {
   const n = note.toLowerCase();
+  if (/order|buy|purchase|stock|sweet|product|cart|shipping|delivery/.test(n)) return "E-Commerce";
   if (/idea|startup|app|tech|saas|launch|found|mvp|build|fintech|edtech|product/.test(n)) return "Startup";
   if (/shop|kirana|store|trader|retail|showroom|wholesale/.test(n)) return "Retail";
   if (/manufactur|factory|msme|sme|unit|export|production|garment/.test(n)) return "MSME";
@@ -187,6 +203,7 @@ function aiScore(cat: string, stage: string) {
 function firstMsg(name: string, cat: string) {
   const n = name && name !== "Unknown" ? name.split(" ")[0] : "there";
   const msgs: Record<string, string> = {
+    "E-Commerce": `Hi ${n} 👋 Welcome to our WhatsApp Store! How can we help you with your order today?`,
     Startup: `Hi ${n} 👋 We help startups get legally registered fast — Pvt Ltd, LLP, Sole Prop. Are you working on an idea or planning to register your startup?`,
     MSME:    `Hi ${n} 👋 We support MSMEs with Udyam registration, GST, funding links and compliance. Can I learn about your business?`,
     Retail:  `Hi ${n} 👋 We help retail businesses with GST, trade licences and compliance. Are you looking to formalise or grow your business?`,
@@ -439,6 +456,8 @@ Never use markdown. Use simple text and 1 emoji max per message.`;
 
   const pages = [
     { id:"dashboard",    label:"Dashboard",     icon: <LayoutDashboard size={18} /> },
+    { id:"sales",        label:"Omni-Sales",    icon: <ShoppingBag size={18} /> },
+    { id:"operations",   label:"Operations",    icon: <Package size={18} /> },
     { id:"leads",        label:"Leads",         icon: <Users size={18} /> },
     { id:"pipeline",     label:"Pipeline",      icon: <GitPullRequest size={18} /> },
     { id:"inbox",        label:"Inbox",         icon: <MessageSquare size={18} /> },
@@ -513,6 +532,8 @@ Never use markdown. Use simple text and 1 emoji max per message.`;
         {/* Pages */}
         <main style={{ flex:1, overflow:"auto", padding:16 }}>
           {activePage === "dashboard"    && <Dashboard leads={leads} convRate={convRate} newLeads={newLeads} activeLeads={activeLeads} closedLeads={closedLeads} hotLeads={hotLeads} setActivePage={setActivePage} setActiveLead={setActiveLead} />}
+          {activePage === "sales"        && <OmniSalesTab />}
+          {activePage === "operations"   && <OperationsTab />}
           {activePage === "leads"        && <Leads leads={leads} updateLead={updateLead} setActiveLead={setActiveLead} setActivePage={setActivePage} notify={notify} />}
           {activePage === "pipeline"     && <Pipeline leads={leads} updateLead={updateLead} setActiveLead={setActiveLead} setActivePage={setActivePage} />}
           {activePage === "inbox"        && <Inbox leads={leads} convos={convos} activeLead={activeLead} setActiveLead={setActiveLead} sendAIMessage={sendAIMessage} aiTyping={aiTyping} bizProfile={bizProfile} updateLead={updateLead} notify={notify} />}
@@ -539,17 +560,8 @@ function Dashboard({ leads, convRate, newLeads, activeLeads, closedLeads, hotLea
     { label:"Closed",         val:closedLeads,  sub:"deals won",        color:C.teal },
   ];
 
-  const stageOrder = ["New","Messaged","Replied","Interested","Follow-up","Closed"];
+  const stageOrder = ["New","Messaged","Replied","Interested","Paid","Pending Dispatch","Dispatched","Follow-up","Closed"];
   const pipelineLeads = stageOrder.map(s => ({ stage:s, leads:leads.filter(l=>l.stage===s) }));
-
-  const aiLog = [
-    { icon:"✦", text:"Sent first message to Ravi Kumar (Startup — WA Group)", time:"2m ago" },
-    { icon:"↩", text:"Replied to Sneha Patel — answered GST question, moved to Interested", time:"1h ago" },
-    { icon:"↺", text:"Day 3 follow-up sent to Kiran Rao — no reply since Day 1", time:"3h ago" },
-    { icon:"📊", text:"Imported 87 leads from WA group export — classified and queued", time:"Yesterday" },
-    { icon:"✉", text:"Email enquiry from website → captured as lead → Lakshmi D", time:"Yesterday" },
-  ];
-
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
       {/* Metrics */}
@@ -564,53 +576,32 @@ function Dashboard({ leads, convRate, newLeads, activeLeads, closedLeads, hotLea
         ))}
       </div>
 
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 300px", gap:16 }}>
-        {/* Pipeline snapshot */}
-        <div style={{ background:C.white, border:`1px solid ${C.gray200}`, borderRadius:10, padding:16 }}>
-          <div style={{ fontSize:12, fontWeight:600, color:C.gray600, textTransform:"uppercase", letterSpacing:.5, marginBottom:12 }}>
-            Pipeline snapshot
-          </div>
-          <div style={{ display:"flex", gap:8, overflowX:"auto", paddingBottom:4 }}>
-            {pipelineLeads.map(({ stage, leads:sl }) => {
-              const meta = STAGE_META[stage];
-              return (
-                <div key={stage} style={{ minWidth:130, flex:1 }}>
-                  <div style={{ fontSize:11, fontWeight:600, color:meta.color, marginBottom:6,
-                    display:"flex", justifyContent:"space-between" }}>
-                    <span>{stage}</span><span style={{ color:C.gray400 }}>{sl.length}</span>
-                  </div>
-                  {sl.slice(0,2).map(l => (
-                    <div key={l.id} onClick={() => { setActiveLead(l.id); setActivePage("inbox"); }}
-                      style={{ background:C.gray50, border:`1px solid ${C.gray200}`, borderRadius:6,
-                        padding:"6px 8px", marginBottom:4, cursor:"pointer" }}>
-                      <div style={{ fontSize:12, fontWeight:500, color:C.gray800 }}>{l.name}</div>
-                      <div style={{ marginTop:3 }}><Badge label={l.category} {...CAT_META[l.category]} /></div>
-                    </div>
-                  ))}
-                  {sl.length > 2 && <div style={{ fontSize:11, color:C.gray400, textAlign:"center", marginTop:2 }}>+{sl.length-2} more</div>}
-                </div>
-              );
-            })}
-          </div>
+      {/* Pipeline snapshot */}
+      <div style={{ background:C.white, border:`1px solid ${C.gray200}`, borderRadius:10, padding:16 }}>
+        <div style={{ fontSize:12, fontWeight:600, color:C.gray600, textTransform:"uppercase", letterSpacing:.5, marginBottom:12 }}>
+          Pipeline snapshot
         </div>
-
-        {/* AI activity */}
-        <div style={{ background:C.white, border:`1px solid ${C.gray200}`, borderRadius:10, padding:16 }}>
-          <div style={{ fontSize:12, fontWeight:600, color:C.gray600, textTransform:"uppercase", letterSpacing:.5, marginBottom:12 }}>
-            AI agent activity
-          </div>
-          <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-            {aiLog.map((a,i) => (
-              <div key={i} style={{ display:"flex", gap:8, padding:"6px 0",
-                borderBottom: i < aiLog.length-1 ? `1px solid ${C.gray100}` : "none" }}>
-                <span style={{ fontSize:14, color:C.brand, width:18, flexShrink:0 }}>{a.icon}</span>
-                <div style={{ flex:1 }}>
-                  <div style={{ fontSize:11, color:C.gray700, lineHeight:1.45 }}>{a.text}</div>
-                  <div style={{ fontSize:10, color:C.gray400, marginTop:2 }}>{a.time}</div>
+        <div style={{ display:"flex", gap:8, overflowX:"auto", paddingBottom:4 }}>
+          {pipelineLeads.map(({ stage, leads:sl }) => {
+            const meta = STAGE_META[stage];
+            return (
+              <div key={stage} style={{ minWidth:130, flex:1 }}>
+                <div style={{ fontSize:11, fontWeight:600, color:meta.color, marginBottom:6,
+                  display:"flex", justifyContent:"space-between" }}>
+                  <span>{stage}</span><span style={{ color:C.gray400 }}>{sl.length}</span>
                 </div>
+                {sl.slice(0,2).map(l => (
+                  <div key={l.id} onClick={() => { setActiveLead(l.id); setActivePage("inbox"); }}
+                    style={{ background:C.gray50, border:`1px solid ${C.gray200}`, borderRadius:6,
+                      padding:"6px 8px", marginBottom:4, cursor:"pointer" }}>
+                    <div style={{ fontSize:12, fontWeight:500, color:C.gray800 }}>{l.name}</div>
+                    <div style={{ marginTop:3 }}><Badge label={l.category} {...CAT_META[l.category]} /></div>
+                  </div>
+                ))}
+                {sl.length > 2 && <div style={{ fontSize:11, color:C.gray400, textAlign:"center", marginTop:2 }}>+{sl.length-2} more</div>}
               </div>
-            ))}
-          </div>
+            );
+          })}
         </div>
       </div>
 
@@ -736,8 +727,8 @@ function Leads({ leads, updateLead, setActiveLead, setActivePage, notify }: { le
   const [bulkMessage, setBulkMessage] = useState("");
   const [bulkSubject, setBulkSubject] = useState("");
 
-  const cats   = ["All","Startup","MSME","Retail","Service","Unknown"];
-  const stages = ["All","New","Messaged","Replied","Interested","Follow-up","Closed"];
+  const cats   = ["All","Startup","MSME","Retail","Service","E-Commerce","Unknown"];
+  const stages = ["All","New","Messaged","Replied","Interested","Paid","Pending Dispatch","Dispatched","Follow-up","Closed"];
   const pris   = ["All","High","Medium","Low"];
 
   const filtered = leads
@@ -854,6 +845,13 @@ function Leads({ leads, updateLead, setActiveLead, setActivePage, notify }: { le
               style={{ padding:"6px 12px", borderRadius:6, border:"none", background:"#25D366", color:"white", fontSize:11, fontWeight:600, cursor:"pointer" }}>
               💬 Bulk WhatsApp SMS
             </button>
+            <button onClick={() => {
+              notify(`🖨️ Generating A4 sheet with shipping labels for ${selectedLeads.length} orders...`);
+              setTimeout(() => window.print(), 1000);
+            }}
+              style={{ padding:"6px 12px", borderRadius:6, border:"none", background:C.gray900, color:"white", fontSize:11, fontWeight:600, cursor:"pointer" }}>
+              🖨️ Print Shipping Labels
+            </button>
             <button onClick={() => setShowBulkModal("email")}
               style={{ padding:"6px 12px", borderRadius:6, border:"none", background:C.brand, color:"white", fontSize:11, fontWeight:600, cursor:"pointer" }}>
               📧 Bulk Email Blast
@@ -898,8 +896,8 @@ function Leads({ leads, updateLead, setActiveLead, setActivePage, notify }: { le
 
 // ── PIPELINE ─────────────────────────────────────────────────────────────────
 function Pipeline({ leads, updateLead, setActiveLead, setActivePage }: { leads: Lead[]; updateLead: (id: string, p: Partial<Lead>) => void; setActiveLead: (v: string) => void; setActivePage: (v: string) => void }) {
-  const stages = ["New","Messaged","Replied","Interested","Follow-up","Closed"];
-  const dealValue: Record<string, number> = { New:0, Messaged:0, Replied:5000, Interested:15000, "Follow-up":8000, Closed:18000 };
+  const stages = ["New","Messaged","Replied","Interested","Paid","Pending Dispatch","Dispatched","Follow-up","Closed"];
+  const dealValue: Record<string, number> = { New:0, Messaged:0, Replied:5000, Interested:15000, Paid:20000, "Pending Dispatch":20000, Dispatched:20000, "Follow-up":8000, Closed:18000 };
   const totalPipeline = leads.reduce((s,l) => s + (dealValue[l.stage]||0), 0);
 
   return (
@@ -918,7 +916,7 @@ function Pipeline({ leads, updateLead, setActiveLead, setActivePage }: { leads: 
         ))}
       </div>
 
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(6,1fr)", gap:10, overflowX:"auto" }}>
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(9,1fr)", gap:10, overflowX:"auto" }}>
         {stages.map(stage => {
           const sl = leads.filter(l => l.stage === stage);
           const meta = STAGE_META[stage];

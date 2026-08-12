@@ -39,6 +39,8 @@ interface BizState {
     setLastVoiceCommand: (cmd: string | null) => void;
     liveTranscript: string;
     setLiveTranscript: (val: string) => void;
+    isInlineBarMode: boolean;
+    setIsInlineBarMode: (mode: boolean) => void;
     performanceGaps: any[];
     setPerformanceGaps: (gaps: any[]) => void;
 }
@@ -95,6 +97,8 @@ export const useBizStore = create<BizState>()(
             setLastVoiceCommand: (cmd) => set({ lastVoiceCommand: cmd }),
             liveTranscript: '',
             setLiveTranscript: (val) => set({ liveTranscript: val }),
+            isInlineBarMode: false,
+            setIsInlineBarMode: (mode) => set({ isInlineBarMode: mode }),
             performanceGaps: [],
             setPerformanceGaps: (gaps) => set({ performanceGaps: gaps }),
         }),

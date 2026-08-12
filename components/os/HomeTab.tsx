@@ -674,49 +674,6 @@ export default function HomeTab({
                      <div ref={scrollRef} className="h-20" />
                   </div>
                )}
-                {/* Visual Background: Flying Paper Plane with Thin & Glossy Pencil Sketch Effect */}
-                {!conversationMode && (
-                   <div className="absolute inset-0 pointer-events-none overflow-hidden z-0 flex items-center justify-center">
-                      <svg width="850" height="400" viewBox="0 0 850 400" className="opacity-60" fill="none" style={{ transform: 'translateY(-205px) translateX(-20px)' }}>
-                         <defs>
-                            {/* Filter to simulate fine hand-drawn pencil sketch lines */}
-                            <filter id="pencil-sketch" x="-10%" y="-10%" width="120%" height="120%">
-                               <feTurbulence type="fractalNoise" baseFrequency="0.09" numOctaves="4" result="noise" />
-                               <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.5" xChannelSelector="R" yChannelSelector="G" />
-                            </filter>
-                            {/* Glossy metallic/graphite gradient */}
-                            <linearGradient id="glossy-pencil" x1="0%" y1="100%" x2="100%" y2="0%">
-                               <stop offset="0%" stopColor="#524337" />
-                               <stop offset="60%" stopColor="#827060" />
-                               <stop offset="90%" stopColor="#b5c8d4" /> {/* Silver sheen */}
-                               <stop offset="100%" stopColor="#ffffff" /> {/* Shiny peak */}
-                            </linearGradient>
-                         </defs>
-                         
-                         {/* Dashed flight path with a loop */}
-                         <path 
-                            d="M 50 300 C 200 320, 300 170, 220 230 C 150 280, 250 370, 420 230 C 550 120, 680 130, 770 90" 
-                            stroke="url(#glossy-pencil)"
-                            strokeWidth="1.6" 
-                            strokeDasharray="5 5" 
-                            strokeLinecap="round" 
-                            filter="url(#pencil-sketch)"
-                            style={{ filter: 'drop-shadow(0px 1px 1px rgba(255,255,255,0.9)) url(#pencil-sketch)' }}
-                         />
-                         
-                         {/* Paper Plane Group with Sketch filter & Glossy Highlight */}
-                         <g 
-                            transform="translate(770, 90) rotate(-15) scale(1.5)" 
-                            stroke="url(#glossy-pencil)"
-                            style={{ filter: 'drop-shadow(0px 1px 1px rgba(255,255,255,0.9)) url(#pencil-sketch)' }}
-                         >
-                            <path d="M 0 0 L -40 -15 L -25 15 Z" strokeWidth="1.2" strokeLinejoin="round" />
-                            <path d="M 0 0 L -40 -15 L -25 0 Z" strokeWidth="1.2" strokeLinejoin="round" />
-                            <path d="M 0 0 L -25 15 L -25 0 Z" strokeWidth="1.2" strokeLinejoin="round" />
-                         </g>
-                      </svg>
-                   </div>
-                )}
 
                 <div className={`w-full transition-all duration-500 z-50 ${conversationMode ? 'fixed bottom-6 left-1/2 -translate-x-1/2 max-w-[788px] px-4' : 'max-w-[705px] mx-auto relative translate-y-2'}`}>
 

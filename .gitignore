@@ -60,3 +60,15 @@ tsc_output.txt
 .antigravity/
 OllamaSetup.exe
 
+# Database files - CRITICAL SECURITY
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+prisma/*.db
+prisma/*.sqlite
+
+# Security & Secrets
+.secrets
+*.key
+*.pem

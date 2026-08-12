@@ -15,14 +15,26 @@
 }
 
 html {
-  font-size: 80%; /* Scales down everything by 20% on mobile to keep it readable */
+  font-size: 75%;
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
 }
 
 @media (min-width: 768px) {
   html {
-    font-size: 75%; /* Scales down all rem sizes by 25% accurately on PC */
+    font-size: 68%;
+  }
+}
+
+@media (min-width: 1280px) {
+  html {
+    font-size: 63%;
+  }
+}
+
+@media (min-width: 1536px) {
+  html {
+    font-size: 60%;
   }
 }
 
@@ -50,6 +62,7 @@ body {
 
 /* Once font is loaded (recognized by the specific font-family being active), display the symbol color */
 @supports (font-variation-settings: normal) {
+
   .material-symbols-rounded,
   .material-symbols-outlined,
   .material-icons,
@@ -228,17 +241,27 @@ p {
 }
 
 @keyframes progress {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 @keyframes marquee {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
 }
 
 .animate-marquee {
-    animation: marquee 30s linear infinite;
+  animation: marquee 30s linear infinite;
 }
 
 .animate-marquee:hover {
@@ -267,7 +290,10 @@ p {
 .monday-gradient-border::before {
   content: '';
   position: absolute;
-  top: 0; right: 0; bottom: 0; left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   z-index: -1;
   margin: -2px;
   border-radius: inherit;
@@ -277,8 +303,13 @@ p {
 }
 
 @keyframes rainbow-border {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 100% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+
+  100% {
+    background-position: 100% 50%;
+  }
 }
 
 .monday-vibe-glow {
@@ -321,8 +352,17 @@ p {
 /* --- Advanced Voice & Neural Animations --- */
 
 @keyframes voice-wave {
-  0%, 100% { transform: scaleY(0.4); opacity: 0.4; }
-  50% { transform: scaleY(1.2); opacity: 1; }
+
+  0%,
+  100% {
+    transform: scaleY(0.4);
+    opacity: 0.4;
+  }
+
+  50% {
+    transform: scaleY(1.2);
+    opacity: 1;
+  }
 }
 
 .animate-voice-wave {
@@ -330,9 +370,20 @@ p {
 }
 
 @keyframes neural-pulse {
-  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
-  70% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(59, 130, 246, 0); }
-  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+  }
+
+  70% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 20px rgba(59, 130, 246, 0);
+  }
+
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
 }
 
 .animate-neural-pulse {
@@ -340,8 +391,15 @@ p {
 }
 
 @keyframes rocket-hover {
-  0%, 100% { transform: translateY(0) rotate(-12deg); }
-  50% { transform: translateY(-10px) rotate(0deg); }
+
+  0%,
+  100% {
+    transform: translateY(0) rotate(-12deg);
+  }
+
+  50% {
+    transform: translateY(-10px) rotate(0deg);
+  }
 }
 
 .animate-rocket-hover {
@@ -349,8 +407,15 @@ p {
 }
 
 @keyframes liquid-morph {
-  0%, 100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
-  50% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+
+  0%,
+  100% {
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+  }
+
+  50% {
+    border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
+  }
 }
 
 .animate-liquid {
@@ -358,18 +423,37 @@ p {
 }
 
 @keyframes rotate-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes rotate-reverse {
-  from { transform: rotate(360deg); }
-  to { transform: rotate(0deg); }
+  from {
+    transform: rotate(360deg);
+  }
+
+  to {
+    transform: rotate(0deg);
+  }
 }
 
 @keyframes pulse-glow {
-  0%, 100% { opacity: 0.4; transform: scale(1); }
-  50% { opacity: 0.7; transform: scale(1.1); }
+
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
 }
 
 .animate-rotate-slow {
@@ -390,19 +474,23 @@ p {
     background: #000000 !important;
     color: #ffffff !important;
   }
+
   body.printing-pitch-deck * {
     visibility: hidden;
   }
+
   body.printing-pitch-deck #slide-presentation-area,
   body.printing-pitch-deck #slide-presentation-area * {
     visibility: visible;
   }
+
   body.printing-pitch-deck #slide-presentation-area {
     position: absolute;
     left: 0;
     top: 0;
     width: 100vw;
-    height: 56.25vw; /* 16:9 Aspect Ratio */
+    height: 56.25vw;
+    /* 16:9 Aspect Ratio */
     margin: 0;
     padding: 3vw !important;
     border: none !important;
@@ -412,4 +500,4 @@ p {
     print-color-adjust: exact;
     z-index: 99999;
   }
-}
+}

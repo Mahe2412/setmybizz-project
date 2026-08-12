@@ -12,6 +12,7 @@ import CompanyTab from '@/components/os/CompanyTab';
 import BankingTab from '@/components/os/BankingTab';
 import GSTTab from '@/components/os/GSTTab';
 import ExpertsTab from '@/components/os/ExpertsTab';
+import WorkforceTab from '@/components/os/WorkforceTab';
 import RecordsTab from '@/components/os/RecordsTab';
 import GlobalTab from '@/components/os/GlobalTab';
 import NetworkingTab from '@/components/os/NetworkingTab';
@@ -59,7 +60,8 @@ const BIZDESK_SIDEBAR: SidebarSection[] = [
     section: 'NEURAL OPERATOR',
     items: [
       { id: 'home', icon: '🧠', label: 'Arkle Control', badge: 'Live' },
-      { id: 'experts', icon: '🎯', label: 'AI Advisor', badge: 'New' },
+      { id: 'workforce', icon: '👥', label: 'Workforce Hub', badge: 'New' },
+      { id: 'experts', icon: '🎯', label: 'AI Advisor' },
     ],
   },
   {
@@ -1160,6 +1162,7 @@ export default function OSPage() {
                         {activeTab === 'billbook' && <BillBookTab />}
                         {activeTab === 'billease' && <BilleaseTab />}
                         {activeTab === 'crm' && <CRMTab />}
+                        {activeTab === 'workforce' && <WorkforceTab />}
                         {activeTab === 'orderdesk' && <OrderDeskTab />}
                          {activeTab === 'learn' && (
                           <StartupStoreTab 
@@ -1258,6 +1261,13 @@ export default function OSPage() {
               )}
             </AnimatePresence>
           </main>
+
+          {/* ARKLE - Neural Panel (Split Layout next to main workspace) */}
+          <AnimatePresence>
+            {arkleOpen && (
+              <ArklePanel onClose={() => setArkleOpen(false)} selectedLang={globalLang} />
+            )}
+          </AnimatePresence>
         </div>
 
         {/* BIZHUB STICKY DOCK */}
@@ -1436,33 +1446,24 @@ export default function OSPage() {
           )}
         </AnimatePresence>
 
-        {/* ARKLE - Floating Neural Window (Global) */}
-        <AnimatePresence>
-          {arkleOpen && (
-            <div className="fixed inset-0 z-[150] pointer-events-none">
-              <div className="pointer-events-auto">
-                <ArklePanel onClose={() => setArkleOpen(false)} selectedLang={globalLang} />
-              </div>
-            </div>
-          )}
-        </AnimatePresence>
+
         {/* Arkle Floating Voice Launcher and Controls */}
-        <ArkleVoiceLauncher />
+        <ArkleVoiceLauncher setArkleOpen={setArkleOpen} />
       </div>
     </ArkleCoreProvider>
   );
 }
 
 // Inline component to keep page.tsx clean
-function ArkleVoiceLauncher() {
+function ArkleVoiceLauncher({ setArkleOpen }: { setArkleOpen?: (v: boolean) => void }) {
   const [isOpen, setIsOpen] = React.useState(false);
+  const [extraPopupOpen, setExtraPopupOpen] = React.useState(false);
+  const [popupTab, setPopupTab] = React.useState<'agents' | 'apps'>('agents');
+
   const isVoiceActive = useBizStore((state) => state.isVoiceActive);
   const setIsVoiceActive = useBizStore((state) => state.setIsVoiceActive);
   const isMuted = useBizStore((state) => state.isMuted);
   const setIsMuted = useBizStore((state) => state.setIsMuted);
-  const isPaused = useBizStore((state) => state.isPaused);
-  const setIsPaused = useBizStore((state) => state.setIsPaused);
-  const [screenShared, setScreenShared] = React.useState(false);
 
   // Synchronize when the global isVoiceActive is updated elsewhere (e.g. from HomeTab)
   React.useEffect(() => {
@@ -1476,152 +1477,237 @@ function ArkleVoiceLauncher() {
     setIsVoiceActive(newState);
     setIsOpen(newState);
     if (!newState) {
-      setIsPaused(false);
       setIsMuted(false);
-      setScreenShared(false);
     }
   };
 
   const handleClose = () => {
     setIsVoiceActive(false);
     setIsOpen(false);
-    setIsPaused(false);
     setIsMuted(false);
-    setScreenShared(false);
+    setExtraPopupOpen(false);
   };
 
   return (
-    <div className="fixed bottom-8 right-8 z-[200] flex items-center gap-3">
+    <div className="fixed bottom-8 right-8 z-[200] flex items-center gap-3 select-none">
       <AnimatePresence>
         {isOpen && (
           <motion.div
             initial={{ opacity: 0, x: 50, scale: 0.9 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: 50, scale: 0.9 }}
-            className="flex items-center gap-3 bg-slate-900/95 backdrop-blur-xl p-3 rounded-full border border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.3)]"
+            className="flex items-center gap-2 bg-white/95 backdrop-blur-xl px-2 py-2 rounded-full border border-slate-200/60 shadow-[0_12px_40px_rgba(0,0,0,0.12)] relative transition-all duration-300"
           >
-            {/* Left Side: Mic On/Off */}
+            {/* Top Toggle Handle */}
+            <button
+              onClick={() => setExtraPopupOpen(!extraPopupOpen)}
+              className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-0.5 rounded-full bg-white border border-slate-200 text-slate-500 hover:text-slate-800 transition-all shadow-sm text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 cursor-pointer hover:-translate-y-0.5 z-[60]"
+            >
+              <span className="material-symbols-rounded text-[14px]">{extraPopupOpen ? 'expand_more' : 'grid_view'}</span>
+            </button>
+
+            {/* Quick Agents & Apps Popup Drawer (Screenshot Style) */}
+            <AnimatePresence>
+              {extraPopupOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 15, scale: 0.95 }}
+                  transition={{ type: 'spring', damping: 25, stiffness: 280 }}
+                  className="absolute bottom-full mb-5 right-0 w-[360px] bg-white rounded-[28px] shadow-[0_20px_60px_rgba(0,0,0,0.15)] border border-slate-100 p-5 z-50 flex flex-col gap-5"
+                >
+                  {/* Header: Slider & Pin Button */}
+                  <div className="flex items-center justify-between gap-3">
+                    {/* First Button: Segmented Slider */}
+                    <div className="bg-slate-100/80 p-1 rounded-xl flex items-center relative flex-1 h-[34px]">
+                      <motion.div 
+                        className="absolute inset-y-1 bg-white rounded-[8px] shadow-sm"
+                        style={{ width: 'calc(50% - 4px)' }}
+                        animate={{ left: popupTab === 'agents' ? '4px' : 'calc(50%)' }}
+                        transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                      />
+                      <button
+                        onClick={() => setPopupTab('agents')}
+                        className={`flex-1 text-[10.5px] font-bold uppercase tracking-wider z-10 transition-colors ${popupTab === 'agents' ? 'text-slate-800' : 'text-slate-400 hover:text-slate-600'}`}
+                      >
+                        Agents
+                      </button>
+                      <button
+                        onClick={() => setPopupTab('apps')}
+                        className={`flex-1 text-[10.5px] font-bold uppercase tracking-wider z-10 transition-colors ${popupTab === 'apps' ? 'text-slate-800' : 'text-slate-400 hover:text-slate-600'}`}
+                      >
+                        Apps
+                      </button>
+                    </div>
+
+                    {/* Second Button: Pin (from screenshot) */}
+                    <button className="px-3 h-[34px] rounded-xl bg-slate-50/50 text-slate-400 font-medium border border-slate-100/80 text-[10px] uppercase tracking-wide hover:bg-slate-100 hover:text-slate-600 transition-colors whitespace-nowrap">
+                      Right Click to Pin
+                    </button>
+                  </div>
+
+                  {/* Grid Content */}
+                  <div className="relative min-h-[180px]">
+                    {/* Agents Grid */}
+                    <AnimatePresence mode="wait">
+                      {popupTab === 'agents' && (
+                        <motion.div 
+                          key="agents"
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: 10 }}
+                          transition={{ duration: 0.2 }}
+                          className="grid grid-cols-4 gap-y-6 gap-x-2"
+                        >
+                          {[
+                            { name: 'Sales AI', icon: 'campaign', color: 'text-amber-500', active: true },
+                            { name: 'Tax AI', icon: 'account_balance', color: 'text-emerald-500', active: false },
+                            { name: 'Onboard', icon: 'person_add', color: 'text-sky-500', active: true },
+                            { name: 'Support', icon: 'forum', color: 'text-rose-500', active: false },
+                            { name: 'Analyst', icon: 'query_stats', color: 'text-indigo-500', active: false }
+                          ].map((item, idx) => (
+                            <div key={idx} className="flex flex-col items-center gap-2 group cursor-pointer">
+                              <div className="relative">
+                                {/* Blue dot indicator like screenshot */}
+                                {item.active && (
+                                  <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-blue-500 rounded-full border-[2px] border-white z-10" />
+                                )}
+                                <div className="w-14 h-14 rounded-[18px] bg-white border border-slate-100 shadow-[0_4px_16px_rgba(0,0,0,0.04)] flex items-center justify-center group-hover:shadow-[0_6px_20px_rgba(0,0,0,0.08)] group-hover:-translate-y-1 transition-all">
+                                  <span className={`material-symbols-rounded text-[26px] ${item.color}`}>{item.icon}</span>
+                                </div>
+                              </div>
+                              <span className="text-[10px] font-bold text-slate-700 group-hover:text-slate-900 text-center truncate w-full px-1">{item.name}</span>
+                            </div>
+                          ))}
+                        </motion.div>
+                      )}
+                      
+                      {/* Apps Grid */}
+                      {popupTab === 'apps' && (
+                        <motion.div 
+                          key="apps"
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: 10 }}
+                          transition={{ duration: 0.2 }}
+                          className="grid grid-cols-4 gap-y-6 gap-x-2"
+                        >
+                          {[
+                            { name: 'Notes', icon: 'event_note', color: 'text-amber-500', active: false },
+                            { name: 'CRM', icon: 'group', color: 'text-sky-500', active: true },
+                            { name: 'Bill Book', icon: 'receipt_long', color: 'text-emerald-500', active: false },
+                            { name: 'Mail', icon: 'mail', color: 'text-indigo-500', active: true },
+                            { name: 'WhatsApp', icon: 'chat', color: 'text-green-500', active: false },
+                            { name: 'Draw', icon: 'draw', color: 'text-purple-500', active: false },
+                            { name: 'Drive', icon: 'cloud', color: 'text-blue-500', active: false }
+                          ].map((item, idx) => (
+                            <div key={idx} className="flex flex-col items-center gap-2 group cursor-pointer">
+                              <div className="relative">
+                                {item.active && (
+                                  <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-blue-500 rounded-full border-[2px] border-white z-10" />
+                                )}
+                                <div className="w-14 h-14 rounded-[18px] bg-white border border-slate-100 shadow-[0_4px_16px_rgba(0,0,0,0.04)] flex items-center justify-center group-hover:shadow-[0_6px_20px_rgba(0,0,0,0.08)] group-hover:-translate-y-1 transition-all">
+                                  <span className={`material-symbols-rounded text-[26px] ${item.color}`}>{item.icon}</span>
+                                </div>
+                              </div>
+                              <span className="text-[10px] font-bold text-slate-700 group-hover:text-slate-900 text-center truncate w-full px-1">{item.name}</span>
+                            </div>
+                          ))}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Mic Button */}
             <button
               onClick={() => setIsMuted(!isMuted)}
-              className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${isMuted ? 'text-orange-400 bg-orange-400/10 hover:bg-orange-400/20' : 'text-white/80 hover:text-white hover:bg-white/10'
-                }`}
+              className={`w-[42px] h-[42px] rounded-full flex items-center justify-center transition-all ${
+                isMuted 
+                  ? 'bg-red-50 text-red-500 hover:bg-red-100' 
+                  : 'bg-slate-50 text-slate-500 hover:bg-slate-100 hover:text-slate-700'
+              } hover:scale-105 active:scale-95`}
               title={isMuted ? 'Unmute Mic' : 'Mute Mic'}
             >
-              <span className="material-symbols-outlined text-[24px]">
+              <span className="material-symbols-outlined text-[20px]">
                 {isMuted ? 'mic_off' : 'mic'}
               </span>
             </button>
 
-            {/* Pause Button */}
-            <button
-              onClick={() => setIsPaused(!isPaused)}
-              className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${isPaused ? 'text-blue-400 bg-blue-400/10 hover:bg-blue-400/20' : 'text-white/80 hover:text-white hover:bg-white/10'
-                }`}
-              title={isPaused ? 'Resume Voice' : 'Pause Voice'}
-            >
-              <span className="material-symbols-outlined text-[24px]">
-                {isPaused ? 'play_arrow' : 'pause'}
-              </span>
-            </button>
-
-            {/* Center: Gemini Voice Style Liquid Blue Ball/Bubble Start/Stop Button */}
+            {/* Center Orb (Gemini Apple Intelligence Vibe) */}
             <button
               onClick={handleToggleVoice}
-              className="relative w-16 h-16 rounded-full flex items-center justify-center shadow-2xl border-2 border-white/20 active:scale-95 group overflow-hidden bg-slate-900"
-              title={isVoiceActive ? 'Stop Session' : 'Start Session'}
+              className="relative w-[50px] h-[50px] rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.25)] border-2 border-white active:scale-95 hover:scale-105 transition-all overflow-hidden bg-gradient-to-tr from-blue-500 to-indigo-500 group cursor-pointer mx-0.5"
+              title={isVoiceActive ? 'Stop Voice Session' : 'Start Voice Session'}
             >
               {/* Shifting background liquid gradient */}
               <div className="absolute inset-0 overflow-hidden opacity-90 pointer-events-none">
-                <div className="absolute inset-[-20%] bg-blue-600/30 animate-liquid [animation-duration:5s] mix-blend-screen blur-[25px] scale-150"></div>
-                <div className="absolute inset-[-30%] bg-indigo-600/30 animate-liquid [animation-duration:8s] [animation-delay:-1s] mix-blend-screen blur-[30px] scale-125"></div>
-                <div className="absolute inset-[-25%] bg-violet-600/30 animate-liquid [animation-duration:11s] [animation-delay:-3s] mix-blend-screen blur-[35px] scale-150"></div>
-                <div className="absolute inset-[-40%] bg-cyan-400/20 animate-liquid [animation-duration:14s] [animation-delay:-5s] mix-blend-screen blur-[45px] scale-175"></div>
+                <div className="absolute inset-[-20%] bg-gradient-to-tr from-cyan-300 via-blue-400 to-indigo-400 animate-liquid [animation-duration:4s] mix-blend-screen blur-[10px] scale-150"></div>
               </div>
 
-              {/* The Central Liquid Morphing Blob */}
-              <svg viewBox="0 0 200 200" className="absolute inset-0 w-full h-full scale-[1.3] z-10 opacity-70 mix-blend-overlay pointer-events-none">
-                <defs>
-                  <linearGradient id="launcherOrbGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style={{ stopColor: '#60a5fa', stopOpacity: 0.8 }} />
-                    <stop offset="100%" style={{ stopColor: '#4f46e5', stopOpacity: 0.8 }} />
-                  </linearGradient>
-                </defs>
-                <motion.path
-                  animate={{
-                    d: [
-                      "M100,10 Q160,10 180,80 T160,160 T100,190 T40,160 T20,80 T100,10",
-                      "M100,20 Q170,10 190,90 T170,170 T100,180 T30,170 T10,90 T100,20",
-                      "M100,10 Q160,10 180,80 T160,160 T100,190 T40,160 T20,80 T100,10"
-                    ]
-                  }}
-                  transition={{
-                    duration: 3,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                  fill="url(#launcherOrbGrad)"
-                />
-              </svg>
-
-              {/* Heart Pulse Visualizer / Equalizer */}
+              {/* Real-Time Voice Waveform Visualizer */}
               <div className="relative z-20 w-full h-full flex items-center justify-center">
                 {isVoiceActive ? (
-                  <div className="flex items-center gap-1 h-5 relative z-10">
-                    {[1, 2, 3, 4].map((i) => (
+                  <div className="flex items-center gap-[3px] h-4 relative z-10">
+                    {[1, 2, 3, 4, 5].map((i) => (
                       <div
                         key={i}
-                        className="w-0.5 bg-white rounded-full animate-voice-wave shadow-[0_0_8px_rgba(255,255,255,0.6)]"
+                        className="w-[2.5px] bg-white rounded-full animate-voice-wave shadow-sm"
                         style={{
-                          height: i === 1 || i === 4 ? '60%' : '100%',
-                          animationDelay: `${i * 0.15}s`
+                          height: i === 1 || i === 5 ? '40%' : i === 3 ? '100%' : '75%',
+                          animationDelay: `${i * 0.12}s`
                         }}
                       ></div>
                     ))}
                   </div>
                 ) : (
-                  <div className="w-2.5 h-2.5 rounded-full bg-white/80 animate-pulse shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-white animate-pulse shadow-sm" />
                 )}
               </div>
             </button>
 
-            {/* Right Side: Screen Share */}
+            {/* Open Arkle Panel */}
             <button
-              onClick={() => setScreenShared(!screenShared)}
-              className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${screenShared ? 'text-emerald-400 bg-emerald-400/10 hover:bg-emerald-400/20' : 'text-white/80 hover:text-white hover:bg-white/10'
-                }`}
-              title={screenShared ? 'Stop Sharing' : 'Share Screen'}
+              onClick={() => {
+                if (setArkleOpen) setArkleOpen(true);
+                handleClose();
+              }}
+              className="w-[42px] h-[42px] rounded-full bg-slate-50 hover:bg-blue-50 text-slate-500 hover:text-blue-500 transition-all hover:scale-105 active:scale-95 flex items-center justify-center"
+              title="Open Arkle AI Panel"
             >
-              <span className="material-symbols-outlined text-[24px]">
-                {screenShared ? 'stop_screen_share' : 'screen_share'}
+              <span className="material-symbols-outlined text-[20px]">
+                psychology
               </span>
             </button>
 
             {/* Cancel Button */}
             <button
               onClick={handleClose}
-              className="w-12 h-12 rounded-full flex items-center justify-center text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all"
-              title="Cancel Session"
+              className="w-[42px] h-[42px] rounded-full bg-slate-50 hover:bg-red-50 text-slate-400 hover:text-red-500 transition-all hover:scale-105 active:scale-95 flex items-center justify-center"
+              title="Close Floating Agent"
             >
-              <span className="material-symbols-outlined text-[24px]">close</span>
+              <span className="material-symbols-outlined text-[20px]">close</span>
             </button>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Floating launcher button */}
+      {/* Floating launcher button (Closed State) */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="group relative w-16 h-16 bg-gradient-to-tr from-slate-900 to-blue-900 rounded-full flex items-center justify-center shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-white/20 hover:scale-110 active:scale-95 transition-all"
+          className="group relative w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-[0_12px_30px_rgba(0,0,0,0.12)] border border-slate-100 hover:scale-110 active:scale-95 transition-all cursor-pointer"
           title="Open Arkle Voice Agent"
         >
           {/* Pulsing ring */}
-          <div className="absolute inset-0 bg-blue-600/20 rounded-full animate-ping duration-1000 scale-125"></div>
+          <div className="absolute inset-0 bg-blue-100/50 rounded-full animate-ping duration-1000 scale-125"></div>
 
-          <span className="material-symbols-outlined text-white text-[28px] animate-pulse">psychology</span>
+          <span className="material-symbols-outlined text-blue-500 text-[26px] animate-pulse">psychology</span>
 
           {/* Online active green indicator */}
-          <div className="absolute top-0 right-0 w-4 h-4 bg-green-500 border-2 border-slate-950 rounded-full animate-bounce"></div>
+          <div className="absolute top-0 right-0 w-3.5 h-3.5 bg-emerald-400 border-2 border-white rounded-full animate-bounce"></div>
         </button>
       )}
     </div>

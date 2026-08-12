@@ -20,6 +20,7 @@ model Business {
   id              String         @id @default(cuid())
   name            String
   legalName       String?
+  industryType    String         @default("service") // service, ecommerce, manufacturing, kirana, restaurant, wholesale, hospital
   gstin           String?
   stateCode       String         @default("27")
   address         String?
@@ -54,6 +55,7 @@ model Business {
   crmLeads        CrmLead[]
   crmWorkflows    CrmWorkflow[]
   crmIntegrations CrmIntegration[]
+  voiceAgents     VoiceAgent[]
 }
 
 model Membership {
@@ -84,6 +86,7 @@ model Party {
   business        Business   @relation(fields: [businessId], references: [id], onDelete: Cascade)
   documents       Document[]
   payments        Payment[]
+  crmLeads        CrmLead[]
 
   @@index([businessId])
 }
@@ -303,12 +306,24 @@ model CrmLead {
   priority   String
   source     String
   note       String?
+  
+  // Omni-channel & E-commerce fields
+  orderId    String?  @unique
+  email      String?
+  address    String?
+  itemsList  String?  // JSON string of items ordered
+  paymentRef String?  // UPI / Razorpay reference
+  invoiceId  String?  // Linked to Document model
+  partyId    String?
+  party      Party?   @relation(fields: [partyId], references: [id])
+  
   score      Int      @default(0)
   addedAt    DateTime @default(now())
   updatedAt  DateTime @updatedAt
   messages   CrmMessage[]
 
   @@index([businessId])
+  @@index([partyId])
 }
 
 model CrmMessage {
@@ -348,5 +363,64 @@ model CrmIntegration {
 
   @@index([businessId])
 }
+// ─── Voice Agent System ─────────────────────────────────────────────────────
+// Represents a trained AI voice employee for a business
+model VoiceAgent {
+  id                  String      @id @default(cuid())
+  businessId          String?
+  business            Business?   @relation(fields: [businessId], references: [id], onDelete: Cascade)
 
+  // Identity
+  name                String      @default("Swara")
+  role                String      @default("sales")  // sales | support | reception | collections
+  ownerName           String?
+  ownerPhone          String?
+  
+  // Knowledge & Personality
+  businessDescription String?     // What does the business do?
+  faqKnowledge        String?     // FAQ pairs as plain text or JSON
+  systemPrompt        String?     // Auto-generated full system prompt
+  language            String      @default("tenglish") // tenglish | english | hindi | telugu
+  voiceId             String      @default("N2lVS1w4EtoT3dr4eOWO") // ElevenLabs voice ID
+  
+  // Status
+  status              String      @default("training") // training | active | paused
+  totalCalls          Int         @default(0)
+  totalMinutes        Float       @default(0)
+  
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+  calls               VoiceCall[]
 
+  @@index([businessId])
+}
+
+// Represents a single voice call made or received by a VoiceAgent
+model VoiceCall {
+  id            String      @id @default(cuid())
+  agentId       String
+  agent         VoiceAgent  @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  
+  // Call metadata
+  direction     String      @default("outbound")  // outbound | inbound
+  toPhone       String?
+  fromPhone     String?
+  durationSecs  Float       @default(0)
+  status        String      @default("initiated") // initiated | connected | completed | failed | no-answer
+  
+  // Content
+  transcript    String?     // Full conversation JSON array
+  summary       String?     // AI-generated summary after call ends
+  sentiment     String?     // positive | neutral | negative
+  outcome       String?     // interested | not-interested | callback | converted | unknown
+  
+  // CRM linkage
+  crmLeadId     String?
+  callerName    String?
+  
+  startedAt     DateTime    @default(now())
+  endedAt       DateTime?
+  createdAt     DateTime    @default(now())
+
+  @@index([agentId])
+}

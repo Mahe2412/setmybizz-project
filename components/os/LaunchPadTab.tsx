@@ -3439,12 +3439,7 @@ Revenue Model: ${model}`;
                             </div>
                         </div>
 
-                        {/* 2. Paper Rocket (Send) Icon - Screenshot Match */}
-                        <div className="absolute top-0 left-1/2 ml-[200px] -translate-y-1/2 z-30 group/rocket">
-                            <div className="relative">
-                                <span className="material-symbols-outlined text-[22px] text-blue-500/30 -rotate-12 group-hover/rocket:rotate-0 transition-all duration-500 cursor-pointer animate-rocket-hover">send</span>
-                            </div>
-                        </div>
+
 
                         {/* --- END TOP EMBEDDED COMPONENTS --- */}
 

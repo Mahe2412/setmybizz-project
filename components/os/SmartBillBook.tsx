@@ -1,301 +1,400 @@
 'use client';
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import LegalServiceTrigger from './LegalServiceTrigger';
 
-// ─── Types ──────────────────────────────────────────────────────────────────
-interface Party { id: string; name: string; phone?: string; gstin?: string; stateCode: string; }
-interface Item { id: string; name: string; hsnSac?: string; gstRate: number; salePrice: number; unit: string; stockQty?: number; }
-interface InvoiceLine { itemId?: string; description: string; hsnSac?: string; qty: number; unit: string; rate: number; discountPct: number; gstRate: number; }
-interface Invoice { id: string; number: string; partyId?: string; partyName?: string; date: string; status: 'draft' | 'finalized' | 'paid'; lines: InvoiceLine[]; grandTotal: number; notes?: string; }
+// ─── Types ───────────────────────────────────────────────────────────────────
+interface Party { id: string; name: string; phone?: string | null; gstin?: string | null; stateCode: string; type?: string; email?: string | null; billingAddress?: string | null; }
+interface Item { id: string; name: string; hsnSac?: string | null; gstRate: number; salePrice: number; unit: string; stockQty?: number | null; }
+interface InvoiceLine { tempId: string; itemId?: string; description: string; hsnSac?: string; qty: number; unit: string; rate: number; discountPct: number; gstRate: number; }
+interface Invoice { id: string; number?: string | null; partyId?: string | null; partyName?: string; date: string; status: string; grandTotal: number; taxableTotal?: number; cgstTotal?: number; sgstTotal?: number; igstTotal?: number; notes?: string | null; lines?: InvoiceLine[]; party?: Party | null; }
 
 // ─── GST Helpers ─────────────────────────────────────────────────────────────
-function calcLine(l: InvoiceLine) {
+function calcLine(l: InvoiceLine, interstate: boolean) {
   const base = l.qty * l.rate * (1 - l.discountPct / 100);
   const tax = base * l.gstRate / 100;
-  return { taxable: base, tax, total: base + tax };
+  return { taxable: base, tax, cgst: interstate ? 0 : tax / 2, sgst: interstate ? 0 : tax / 2, igst: interstate ? tax : 0, total: base + tax };
 }
-function calcTotals(lines: InvoiceLine[]) {
-  const valid = lines.filter(l => l.description.trim());
-  return { taxable: valid.reduce((s,l) => s + calcLine(l).taxable, 0), tax: valid.reduce((s,l) => s + calcLine(l).tax, 0), grand: valid.reduce((s,l) => s + calcLine(l).total, 0) };
+function calcTotals(lines: InvoiceLine[], interstate: boolean) {
+  const v = lines.filter(l => l.description.trim());
+  return { taxable: v.reduce((s, l) => s + calcLine(l, interstate).taxable, 0), cgst: v.reduce((s, l) => s + calcLine(l, interstate).cgst, 0), sgst: v.reduce((s, l) => s + calcLine(l, interstate).sgst, 0), igst: v.reduce((s, l) => s + calcLine(l, interstate).igst, 0), grand: v.reduce((s, l) => s + calcLine(l, interstate).total, 0) };
 }
-function fmt(n: number) { return '₹' + n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function fmt(n: number) { return '\u20b9' + (n || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function newLine(): InvoiceLine { return { tempId: crypto.randomUUID(), description: '', qty: 1, unit: 'pcs', rate: 0, discountPct: 0, gstRate: 18 }; }
 
-// ─── Seed Data ────────────────────────────────────────────────────────────────
-const SEED_PARTIES: Party[] = [
-  { id: 'p1', name: 'Ravi Kumar Enterprises', phone: '9876543210', gstin: '29ABCDE1234F1Z5', stateCode: '29' },
-  { id: 'p2', name: 'Sita Textiles', phone: '9876500001', stateCode: '36' },
-  { id: 'p3', name: 'Hyderabad Foods Pvt Ltd', phone: '9000000001', gstin: '36XYZAB1234C1Z9', stateCode: '36' },
-];
-const SEED_ITEMS: Item[] = [
-  { id: 'i1', name: 'Office Chair', hsnSac: '9401', gstRate: 18, salePrice: 4500, unit: 'pcs', stockQty: 24 },
-  { id: 'i2', name: 'A4 Paper Ream', hsnSac: '4802', gstRate: 12, salePrice: 320, unit: 'pcs', stockQty: 150 },
-  { id: 'i3', name: 'Web Design Service', hsnSac: '998314', gstRate: 18, salePrice: 25000, unit: 'hrs' },
-  { id: 'i4', name: 'HP Laptop', hsnSac: '8471', gstRate: 18, salePrice: 52000, unit: 'pcs', stockQty: 8 },
-  { id: 'i5', name: 'Cotton Fabric 1m', hsnSac: '5208', gstRate: 5, salePrice: 180, unit: 'mtr', stockQty: 500 },
-];
-const SEED_INVOICES: Invoice[] = [
-  { id: 'inv1', number: 'INV-001', partyName: 'Ravi Kumar Enterprises', date: '2026-07-22', status: 'paid', lines: [{ description: 'Office Chair', qty: 2, unit: 'pcs', rate: 4500, discountPct: 0, gstRate: 18 }], grandTotal: 10620 },
-  { id: 'inv2', number: 'INV-002', partyName: 'Sita Textiles', date: '2026-07-23', status: 'finalized', lines: [{ description: 'Cotton Fabric', qty: 50, unit: 'mtr', rate: 180, discountPct: 5, gstRate: 5 }], grandTotal: 8977.5 },
-  { id: 'inv3', number: 'INV-003', partyName: 'Walk-in Customer', date: '2026-07-23', status: 'draft', lines: [], grandTotal: 0 },
-];
+// ─── Offline Queue ────────────────────────────────────────────────────────────
+const OQK = 'smb_oq';
+const getQ = (): any[] => { try { return JSON.parse(localStorage.getItem(OQK) || '[]'); } catch { return []; } };
+const pushQ = (item: any) => { const q = getQ(); q.push({ ...item, ts: Date.now() }); localStorage.setItem(OQK, JSON.stringify(q)); };
+async function flushQ() {
+  const q = getQ(); if (!q.length) return 0; let n = 0; const rem: any[] = [];
+  for (const i of q) { try { await fetch(i.url, { method: i.method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(i.body) }); n++; } catch { rem.push(i); } }
+  localStorage.setItem(OQK, JSON.stringify(rem)); return n;
+}
 
-type View = 'dashboard' | 'new-invoice' | 'invoices' | 'parties' | 'items';
+type View = 'dashboard' | 'new-invoice' | 'invoices' | 'parties' | 'items' | 'add-party' | 'add-item' | 'view-invoice';
+const STATES = [{ c: '01', n: 'J&K' }, { c: '07', n: 'Delhi' }, { c: '08', n: 'Rajasthan' }, { c: '09', n: 'UP' }, { c: '10', n: 'Bihar' }, { c: '19', n: 'West Bengal' }, { c: '20', n: 'Jharkhand' }, { c: '21', n: 'Odisha' }, { c: '22', n: 'Chhattisgarh' }, { c: '23', n: 'MP' }, { c: '24', n: 'Gujarat' }, { c: '27', n: 'Maharashtra' }, { c: '29', n: 'Karnataka' }, { c: '30', n: 'Goa' }, { c: '32', n: 'Kerala' }, { c: '33', n: 'Tamil Nadu' }, { c: '36', n: 'Telangana' }, { c: '37', n: 'Andhra Pradesh' }];
+const GST_RATES = [0, 0.25, 1, 3, 5, 12, 18, 28];
+const UNITS = ['pcs', 'kg', 'g', 'mtr', 'ltr', 'ml', 'hrs', 'box', 'set', 'dozen', 'bag', 'ton', 'ft', 'sqft'];
 
-export default function SmartBillBook() {
+export default function SmartBillBook({ onBack }: { onBack?: () => void }) {
   const [view, setView] = useState<View>('dashboard');
-  const [invoices, setInvoices] = useState<Invoice[]>(SEED_INVOICES);
-  const [parties] = useState<Party[]>(SEED_PARTIES);
-  const [items] = useState<Item[]>(SEED_ITEMS);
-
-  // Invoice Form
+  const [prevView, setPrevView] = useState<View>('dashboard');
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [parties, setParties] = useState<Party[]>([]);
+  const [items, setItems] = useState<Item[]>([]);
+  const [selectedInv, setSelectedInv] = useState<Invoice | null>(null);
+  const [loadingInv, setLoadingInv] = useState(false);
+  const [loadingPar, setLoadingPar] = useState(false);
+  const [loadingItm, setLoadingItm] = useState(false);
   const [selPartyId, setSelPartyId] = useState('');
-  const [lines, setLines] = useState<InvoiceLine[]>([{ description: '', qty: 1, unit: 'pcs', rate: 0, discountPct: 0, gstRate: 18 }]);
-  const [invoiceNotes, setInvoiceNotes] = useState('');
+  const [lines, setLines] = useState<InvoiceLine[]>([newLine()]);
+  const [invNotes, setInvNotes] = useState('Thank you for your business!');
+  const [invDate, setInvDate] = useState(new Date().toISOString().slice(0, 10));
+  const [dueDate, setDueDate] = useState('');
+  const [docType, setDocType] = useState('invoice');
   const [saving, setSaving] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
-
-  // AI / Voice
-  const [isVoiceListening, setIsVoiceListening] = useState(false);
-  const [voiceTranscript, setVoiceTranscript] = useState('');
-  const [isAiParsing, setIsAiParsing] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [newParty, setNewParty] = useState({ name: '', phone: '', gstin: '', stateCode: '36', email: '', billingAddress: '', type: 'customer' });
+  const [savingParty, setSavingParty] = useState(false);
+  const [newItm, setNewItm] = useState({ name: '', hsnSac: '', gstRate: 18, salePrice: 0, unit: 'pcs', description: '', trackStock: false, stockQty: 0 });
+  const [savingItm, setSavingItm] = useState(false);
+  const [listening, setListening] = useState(false);
+  const [voiceTxt, setVoiceTxt] = useState('');
+  const [parsing, setParsing] = useState(false);
   const [aiMsg, setAiMsg] = useState('');
-  const [showAiBar, setShowAiBar] = useState(false);
-  const [arkleInput, setArkleInput] = useState('');
+  const [showAI, setShowAI] = useState(false);
+  const [arkleQ, setArkleQ] = useState('');
+  const [showCam, setShowCam] = useState(false);
+  const [processing, setProcessing] = useState(false);
+  const [showBC, setShowBC] = useState(false);
+  const [bcVal, setBcVal] = useState('');
+  const [itmSearch, setItmSearch] = useState('');
+  const [searchLine, setSearchLine] = useState<number | null>(null);
+  const [parSearch, setParSearch] = useState('');
+  const [invSearch, setInvSearch] = useState('');
+  const [online, setOnline] = useState(true);
+  const [qCount, setQCount] = useState(0);
+  const [flushMsg, setFlushMsg] = useState('');
+  const [bizSt] = useState('36');
+  const vidRef = useRef<HTMLVideoElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Camera
-  const [showCamera, setShowCamera] = useState(false);
-  const [processingImage, setProcessingImage] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const selParty = parties.find(p => p.id === selPartyId) || null;
+  const interstate = !!(selParty?.stateCode && selParty.stateCode !== bizSt);
+  const totals = calcTotals(lines, interstate);
+  const today = new Date().toISOString().slice(0, 10);
+  const month = new Date().toISOString().slice(0, 7);
+  const todaySales = invoices.filter(i => i.date?.slice(0, 10) === today).reduce((s, i) => s + (i.grandTotal || 0), 0);
+  const outstanding = invoices.filter(i => i.status === 'draft' || i.status === 'finalized').reduce((s, i) => s + (i.grandTotal || 0), 0);
+  const monthSales = invoices.filter(i => i.date?.slice(0, 7) === month).reduce((s, i) => s + (i.grandTotal || 0), 0);
+  const paidCnt = invoices.filter(i => i.status === 'paid').length;
 
-  // Barcode
-  const [showBarcode, setShowBarcode] = useState(false);
-  const [barcodeInput, setBarcodeInput] = useState('');
-
-  // Item Search
-  const [itemSearch, setItemSearch] = useState('');
-  const [searchLineIdx, setSearchLineIdx] = useState<number | null>(null);
-
-  // Offline
-  const [isOnline, setIsOnline] = useState(true);
-  const [offlineCount, setOfflineCount] = useState(0);
-
-  useEffect(() => {
-    const fn = () => setIsOnline(navigator.onLine);
-    window.addEventListener('online', fn);
-    window.addEventListener('offline', fn);
-    fn();
-    return () => { window.removeEventListener('online', fn); window.removeEventListener('offline', fn); };
+  const fetchParties = useCallback(async () => {
+    setLoadingPar(true);
+    try { const r = await fetch('/api/parties'); if (r.ok) setParties(await r.json()); } catch { }
+    setLoadingPar(false);
   }, []);
 
-  // Arkle directive listener
-  useEffect(() => {
-    const handle = (e: MessageEvent) => {
-      if (!e.data || typeof e.data !== 'object') return;
-      const { action, data } = e.data;
-      if (action === 'CREATE_INVOICE_DRAFT' || action === 'ADD_LINE_ITEM') {
-        setView('new-invoice');
-        if (action === 'CREATE_INVOICE_DRAFT') {
-          if (data?.partyName) {
-            const p = parties.find(x => x.name.toLowerCase().includes(data.partyName.toLowerCase()));
-            if (p) setSelPartyId(p.id);
-          }
-          if (data?.lines?.length) {
-            setLines(data.lines.map((l: any) => {
-              const it = items.find(i => i.name.toLowerCase().includes((l.name || l.description || '').toLowerCase()));
-              return { itemId: it?.id, description: l.name || it?.name || l.description || '', hsnSac: l.hsnSac || it?.hsnSac || '', qty: Number(l.qty ?? 1), unit: l.unit || it?.unit || 'pcs', rate: Number(l.rate ?? it?.salePrice ?? 0), discountPct: 0, gstRate: Number(l.gstRate ?? it?.gstRate ?? 18) };
-            }));
-          }
-          if (data?.notes) setInvoiceNotes(data.notes);
-        } else {
-          const it = items.find(i => i.name.toLowerCase().includes((data?.name || data?.description || '').toLowerCase()));
-          setLines(prev => [...prev.filter(l => l.description), { itemId: it?.id, description: data?.name || data?.description || '', qty: Number(data?.qty ?? 1), unit: data?.unit || it?.unit || 'pcs', rate: Number(data?.rate ?? it?.salePrice ?? 0), discountPct: 0, gstRate: Number(data?.gstRate ?? it?.gstRate ?? 18) }]);
-        }
-      }
-    };
-    window.addEventListener('message', handle);
-    const pending = sessionStorage.getItem('pending_invoice_command');
-    if (pending) { try { handle({ data: JSON.parse(pending) } as any); sessionStorage.removeItem('pending_invoice_command'); } catch {} }
-    return () => window.removeEventListener('message', handle);
-  }, [parties, items]);
+  const fetchItems = useCallback(async () => {
+    setLoadingItm(true);
+    try { const r = await fetch('/api/items'); if (r.ok) setItems(await r.json()); } catch { }
+    setLoadingItm(false);
+  }, []);
 
-  // ─── Voice Invoice ────────────────────────────────────────────────────────
+  const fetchInvoices = useCallback(async () => {
+    setLoadingInv(true);
+    try {
+      const r = await fetch('/api/documents?type=invoice');
+      if (r.ok) {
+        const data = await r.json();
+        setInvoices(Array.isArray(data) ? data.map((d: any) => ({
+          id: d.id, number: d.number, partyId: d.partyId,
+          partyName: d.party?.name || 'Walk-in Customer',
+          date: d.date ? new Date(d.date).toISOString().slice(0, 10) : '',
+          status: d.status, grandTotal: d.grandTotal || 0,
+          taxableTotal: d.taxableTotal, cgstTotal: d.cgstTotal,
+          sgstTotal: d.sgstTotal, igstTotal: d.igstTotal, notes: d.notes, party: d.party,
+        })) : []);
+      }
+    } catch { }
+    setLoadingInv(false);
+  }, []);
+
+  useEffect(() => {
+    fetchParties(); fetchItems(); fetchInvoices();
+    const onO = async () => {
+      setOnline(true);
+      const n = await flushQ();
+      if (n > 0) { setFlushMsg(`Synced ${n} offline invoice(s)!`); fetchInvoices(); setTimeout(() => setFlushMsg(''), 4000); }
+      setQCount(getQ().length);
+    };
+    const onF = () => { setOnline(false); setQCount(getQ().length); };
+    window.addEventListener('online', onO); window.addEventListener('offline', onF);
+    setOnline(navigator.onLine); setQCount(getQ().length);
+    return () => { window.removeEventListener('online', onO); window.removeEventListener('offline', onF); };
+  }, [fetchParties, fetchItems, fetchInvoices]);
+
+  const goTo = (v: View) => { setPrevView(view); setView(v); };
+  const goBack = () => setView(prevView === view ? 'dashboard' : prevView);
+
   const startVoice = () => {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SR) { alert('Voice not supported. Please use Chrome browser.'); return; }
-    const rec = new SR();
-    rec.lang = 'hi-IN';
-    rec.interimResults = true;
-    let finalText = '';
-    rec.onstart = () => { setIsVoiceListening(true); setView('new-invoice'); };
-    rec.onresult = (e: any) => { finalText = Array.from(e.results).map((r: any) => r[0].transcript).join(''); setVoiceTranscript(finalText); };
-    rec.onend = async () => {
-      setIsVoiceListening(false);
-      if (finalText.length > 2) await parseVoiceCommand(finalText);
-    };
-    rec.onerror = () => { setIsVoiceListening(false); setAiMsg('❌ Microphone error. Check permissions.'); };
+    if (!SR) { setAiMsg('Voice not supported — use Chrome.'); setShowAI(true); return; }
+    const rec = new SR(); rec.lang = 'hi-IN'; rec.interimResults = true; let ft = '';
+    rec.onstart = () => { setListening(true); goTo('new-invoice'); };
+    rec.onresult = (e: any) => { ft = Array.from(e.results).map((r: any) => r[0].transcript).join(''); setVoiceTxt(ft); };
+    rec.onend = async () => { setListening(false); if (ft.length > 2) await parseVoice(ft); else setVoiceTxt(''); };
+    rec.onerror = () => { setListening(false); setAiMsg('Mic error — check permissions.'); };
     rec.start();
   };
 
-  const parseVoiceCommand = async (text: string) => {
-    setIsAiParsing(true);
+  const parseVoice = async (text: string) => {
+    setParsing(true);
     try {
       const res = await fetch('/api/gemini', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: `Parse this voice command for a GST invoice. Command: "${text}"
-Available items: ${items.map(i => `${i.name} (₹${i.salePrice}, GST ${i.gstRate}%)`).join(', ')}
-Return ONLY valid JSON: {"partyName":"","lines":[{"name":"","qty":1,"rate":0,"gstRate":18,"unit":"pcs"}],"notes":""}
-Match items from the catalog if mentioned. Handle Hindi/Telugu/English mixed.`,
-        })
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: `Parse voice command for GST invoice. Command: "${text}"\nItems: ${items.slice(0, 12).map(i => `${i.name}(Rs${i.salePrice},${i.gstRate}%,${i.unit})`).join(',')}\nParties: ${parties.slice(0, 8).map(p => p.name).join(',')}\nReturn ONLY JSON: {"partyName":"","lines":[{"name":"","qty":1,"rate":0,"gstRate":18,"unit":"pcs"}],"notes":""}` })
       });
       const d = await res.json();
       const json = JSON.parse((d.text || '{}').replace(/```json|```/g, '').trim());
       if (json.partyName) { const p = parties.find(x => x.name.toLowerCase().includes(json.partyName.toLowerCase())); if (p) setSelPartyId(p.id); }
-      if (json.lines?.length) {
-        setLines(json.lines.map((l: any) => {
-          const it = items.find(i => i.name.toLowerCase().includes((l.name || '').toLowerCase()));
-          return { itemId: it?.id, description: l.name || it?.name || '', qty: Number(l.qty ?? 1), unit: l.unit || it?.unit || 'pcs', rate: Number(l.rate ?? it?.salePrice ?? 0), discountPct: 0, gstRate: Number(l.gstRate ?? it?.gstRate ?? 18), hsnSac: it?.hsnSac || '' };
-        }));
-      }
-      setAiMsg(`✅ Voice parsed: "${text}" — ${json.lines?.length ?? 0} item(s) added`);
-    } catch { setAiMsg('⚠️ Could not fully parse. Please verify items.'); }
-    setIsAiParsing(false);
-    setVoiceTranscript('');
+      if (json.lines?.length) setLines(json.lines.map((l: any) => {
+        const it = items.find(i => i.name.toLowerCase().includes((l.name || '').toLowerCase()));
+        return { tempId: crypto.randomUUID(), itemId: it?.id, description: l.name || it?.name || '', hsnSac: it?.hsnSac || '', qty: Number(l.qty ?? 1), unit: l.unit || it?.unit || 'pcs', rate: Number(l.rate ?? it?.salePrice ?? 0), discountPct: 0, gstRate: Number(l.gstRate ?? it?.gstRate ?? 18) };
+      }));
+      if (json.notes) setInvNotes(json.notes);
+      setAiMsg(`Arkle parsed: "${text.slice(0, 35)}..." — ${json.lines?.length ?? 0} item(s) added`);
+    } catch { setAiMsg('Could not parse — please verify items.'); }
+    setParsing(false); setVoiceTxt('');
   };
 
-  // ─── Camera Invoice ───────────────────────────────────────────────────────
   const startCamera = async () => {
-    setShowCamera(true);
+    setShowCam(true);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-      if (videoRef.current) { videoRef.current.srcObject = stream; videoRef.current.play(); }
-    } catch { setAiMsg('❌ Camera permission denied.'); setShowCamera(false); }
+      if (vidRef.current) { vidRef.current.srcObject = stream; vidRef.current.play(); }
+    } catch { setAiMsg('Camera permission denied.'); setShowCam(false); }
   };
+
   const capturePhoto = () => {
-    if (!videoRef.current) return;
-    const c = document.createElement('canvas');
-    c.width = videoRef.current.videoWidth; c.height = videoRef.current.videoHeight;
-    c.getContext('2d')?.drawImage(videoRef.current, 0, 0);
-    const stream = videoRef.current.srcObject as MediaStream;
-    stream?.getTracks().forEach(t => t.stop());
-    setShowCamera(false);
-    processImageOCR();
-  };
-  const processImageOCR = async () => {
-    setProcessingImage(true);
-    setView('new-invoice');
-    await new Promise(r => setTimeout(r, 2200));
-    setLines([{ description: 'Scanned Item (Please verify)', qty: 1, unit: 'pcs', rate: 0, discountPct: 0, gstRate: 18 }]);
-    setAiMsg('📸 Image scanned. Arkle extracted 1 item — please verify rate and GST.');
-    setProcessingImage(false);
+    if (!vidRef.current || !canvasRef.current) return;
+    canvasRef.current.width = vidRef.current.videoWidth; canvasRef.current.height = vidRef.current.videoHeight;
+    canvasRef.current.getContext('2d')?.drawImage(vidRef.current, 0, 0);
+    (vidRef.current.srcObject as MediaStream)?.getTracks().forEach(t => t.stop()); setShowCam(false);
+    processOCR(canvasRef.current.toDataURL('image/jpeg', 0.8));
   };
 
-  // ─── Arkle Advisor ────────────────────────────────────────────────────────
-  const askArkle = async () => {
-    if (!arkleInput.trim()) return;
-    setIsAiParsing(true);
-    const q = arkleInput; setArkleInput('');
+  const processOCR = async (dataUrl?: string) => {
+    setProcessing(true); goTo('new-invoice');
     try {
-      const res = await fetch('/api/gemini', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: `You are Arkle, a GST & billing expert for Indian SMEs. Answer in 1-2 sentences: "${q}"` }) });
+      const res = await fetch('/api/gemini', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: `Extract invoice data from image. Return ONLY JSON: {"partyName":"","lines":[{"name":"","qty":1,"rate":0,"gstRate":18,"unit":"pcs"}],"notes":""}. Catalog: ${items.slice(0, 8).map(i => i.name).join(',')}`, imageData: dataUrl })
+      });
       const d = await res.json();
-      setAiMsg(d.text || 'No response.');
-    } catch { setAiMsg('❌ Arkle is offline. Check connection.'); }
-    setIsAiParsing(false);
+      try {
+        const json = JSON.parse((d.text || '{}').replace(/```json|```/g, '').trim());
+        if (json.lines?.length) setLines(json.lines.map((l: any) => {
+          const it = items.find(i => i.name.toLowerCase().includes((l.name || '').toLowerCase()));
+          return { tempId: crypto.randomUUID(), itemId: it?.id, description: l.name || '', hsnSac: it?.hsnSac || '', qty: Number(l.qty ?? 1), unit: l.unit || it?.unit || 'pcs', rate: Number(l.rate ?? it?.salePrice ?? 0), discountPct: 0, gstRate: Number(l.gstRate ?? it?.gstRate ?? 18) };
+        }));
+        setAiMsg(`Arkle scanned — ${json.lines?.length ?? 0} item(s) extracted. Verify please.`);
+      } catch { setLines([{ ...newLine(), description: 'Scanned Item (verify)' }]); setAiMsg('Scanned — fill details manually.'); }
+    } catch { setAiMsg('OCR failed — fill manually.'); }
+    setProcessing(false);
   };
 
-  // ─── Invoice Lines CRUD ───────────────────────────────────────────────────
-  const addLine = () => setLines(prev => [...prev, { description: '', qty: 1, unit: 'pcs', rate: 0, discountPct: 0, gstRate: 18 }]);
-  const updLine = (i: number, patch: Partial<InvoiceLine>) => setLines(prev => { const n = [...prev]; n[i] = { ...n[i], ...patch }; return n; });
-  const delLine = (i: number) => setLines(prev => prev.filter((_, idx) => idx !== i));
-  const selectItem = (li: number, it: Item) => { updLine(li, { itemId: it.id, description: it.name, hsnSac: it.hsnSac, rate: it.salePrice, gstRate: it.gstRate, unit: it.unit }); setSearchLineIdx(null); setItemSearch(''); };
+  const askArkle = async () => {
+    if (!arkleQ.trim()) return; setParsing(true); const q = arkleQ; setArkleQ('');
+    try {
+      const res = await fetch('/api/gemini', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: `You are Arkle, GST & billing expert for Indian MSMEs. Answer in 2-3 sentences: "${q}"` }) });
+      const d = await res.json(); setAiMsg(d.text || 'No response.');
+    } catch { setAiMsg('Arkle offline.'); }
+    setParsing(false);
+  };
 
-  // ─── Save Invoice ─────────────────────────────────────────────────────────
-  const saveInvoice = async () => {
+  const addLine = () => setLines(p => [...p, newLine()]);
+  const updLine = (i: number, patch: Partial<InvoiceLine>) => setLines(p => { const n = [...p]; n[i] = { ...n[i], ...patch }; return n; });
+  const delLine = (i: number) => setLines(p => p.filter((_, x) => x !== i));
+  const selItem = (li: number, it: Item) => { updLine(li, { itemId: it.id, description: it.name, hsnSac: it.hsnSac || '', rate: it.salePrice, gstRate: it.gstRate, unit: it.unit }); setSearchLine(null); setItmSearch(''); };
+
+  const saveInvoice = async (status: 'draft' | 'finalized' = 'draft') => {
     const valid = lines.filter(l => l.description.trim());
-    if (!valid.length) { alert('Add at least one item.'); return; }
+    if (!valid.length) { setAiMsg('Add at least one item.'); setShowAI(true); return; }
     setSaving(true);
-    const party = parties.find(p => p.id === selPartyId);
-    const totals = calcTotals(valid);
-    const inv: Invoice = { id: 'inv-' + Date.now(), number: 'INV-' + String(invoices.length + 1).padStart(3, '0'), partyId: selPartyId, partyName: party?.name || 'Walk-in Customer', date: new Date().toISOString().split('T')[0], status: 'draft', lines: valid, grandTotal: totals.grand, notes: invoiceNotes };
-    if (!isOnline) { setOfflineCount(c => c + 1); }
-    else { try { await fetch('/api/documents', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'invoice', partyId: selPartyId || undefined, lines: valid, notes: invoiceNotes }) }); } catch {} }
-    setInvoices(prev => [inv, ...prev]);
-    setSaving(false); setSaveSuccess(true);
-    setTimeout(() => { setSaveSuccess(false); setView('invoices'); setLines([{ description: '', qty: 1, unit: 'pcs', rate: 0, discountPct: 0, gstRate: 18 }]); setSelPartyId(''); setInvoiceNotes(''); }, 1500);
+    const body = { type: docType, partyId: selPartyId || undefined, lines: valid.map(l => ({ description: l.description, hsnSac: l.hsnSac, qty: l.qty, unit: l.unit, rate: l.rate, discountPct: l.discountPct, gstRate: l.gstRate, itemId: l.itemId })), notes: invNotes, date: invDate, dueDate: dueDate || undefined, status };
+    if (!online) {
+      pushQ({ url: '/api/documents', method: 'POST', body }); setQCount(getQ().length);
+      setSaved(true); setAiMsg(`Saved offline (${getQ().length} queued)`); setShowAI(true); setSaving(false);
+      setTimeout(() => { setSaved(false); goTo('invoices'); resetForm(); }, 1500); return;
+    }
+    try {
+      const res = await fetch('/api/documents', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      if (res.ok) { setSaved(true); await fetchInvoices(); setTimeout(() => { setSaved(false); goTo('invoices'); resetForm(); }, 1400); }
+      else { const err = await res.json(); setAiMsg(`Save failed: ${err?.error || 'Unknown'}`); setShowAI(true); }
+    } catch { setAiMsg('Save failed.'); setShowAI(true); }
+    setSaving(false);
   };
 
-  // ─── WhatsApp Share ───────────────────────────────────────────────────────
-  const shareWA = (inv: Invoice) => {
+  const convertToInvoice = async (inv: Invoice) => {
+    try {
+      const res = await fetch(`/api/documents/${inv.id}/convert`, { method: 'POST' });
+      if (res.ok) { setAiMsg('Converted to Invoice successfully!'); setShowAI(true); fetchInvoices(); goTo('invoices'); }
+      else setAiMsg('Failed to convert.');
+    } catch { setAiMsg('Network error.'); }
+  };
+
+  const resetForm = () => { setLines([newLine()]); setSelPartyId(''); setInvNotes('Thank you for your business!'); setInvDate(new Date().toISOString().slice(0, 10)); setDueDate(''); setDocType('invoice'); };
+
+  const saveParty = async () => {
+    if (!newParty.name.trim()) return; setSavingParty(true);
+    try {
+      const res = await fetch('/api/parties', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newParty) });
+      if (res.ok) { await fetchParties(); setAiMsg(`"${newParty.name}" added!`); setShowAI(true); setNewParty({ name: '', phone: '', gstin: '', stateCode: '36', email: '', billingAddress: '', type: 'customer' }); goTo('parties'); }
+      else { setAiMsg('Failed to add party.'); setShowAI(true); }
+    } catch { setAiMsg('Network error.'); setShowAI(true); }
+    setSavingParty(false);
+  };
+
+  const saveItem = async () => {
+    if (!newItm.name.trim()) return; setSavingItm(true);
+    try {
+      const res = await fetch('/api/items', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newItm) });
+      if (res.ok) { await fetchItems(); setAiMsg(`"${newItm.name}" added!`); setShowAI(true); setNewItm({ name: '', hsnSac: '', gstRate: 18, salePrice: 0, unit: 'pcs', description: '', trackStock: false, stockQty: 0 }); goTo('items'); }
+      else { setAiMsg('Failed to add item.'); setShowAI(true); }
+    } catch { setAiMsg('Network error.'); setShowAI(true); }
+    setSavingItm(false);
+  };
+
+  const shareWA = async (inv: Invoice) => {
     const p = parties.find(x => x.id === inv.partyId);
-    const phone = p?.phone || '';
-    const msg = `*Invoice ${inv.number}*\nDate: ${inv.date}\nTotal: ${fmt(inv.grandTotal)}\n\nItems:\n${inv.lines.map(l => `• ${l.description}: ${l.qty} × ₹${l.rate}`).join('\n')}\n\nThank you! 🙏\n_SetMyBizz BizOS_`;
-    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+    const msg = `*Invoice ${inv.number || inv.id.slice(-6).toUpperCase()}* — ${inv.date}\nTotal: ${fmt(inv.grandTotal)}\nStatus: ${inv.status?.toUpperCase()}\n\nThank you!\n_SetMyBizz BizOS_`;
+    // Attempt global integration send (using fetch internally)
+    try {
+      const response = await fetch('/api/whatsapp/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone: p?.phone || '', message: msg, type: 'text' }) });
+      if (!response.ok) throw new Error();
+      setAiMsg('Sent via WhatsApp Business Engine!'); setShowAI(true);
+    } catch {
+      // Fallback to client side if API is not set up
+      window.open(`https://wa.me/${(p?.phone || '').replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
   };
 
-  const totals = calcTotals(lines);
+  const printInv = (inv: Invoice, theme: 'A4' | 'Thermal' = 'A4') => {
+    const p = parties.find(x => x.id === inv.partyId); const w = window.open('', '_blank')!;
+    // Note: 'any' type cast here for custom property if it exists, or just use number.
+    const isQuotation = (inv as any).type === 'quotation';
+    const title = isQuotation ? 'Quotation / Estimate' : 'Tax Invoice';
+    
+    // Dynamic UPI QR generation
+    const upiQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=upi://pay?pa=merchant@upi&pn=SetMyBizz&am=${inv.grandTotal}`;
+    const qrHtml = isQuotation ? '' : `<div style="text-align:right"><img src="${upiQrUrl}" alt="Pay via UPI" style="width:100px;height:100px;border-radius:8px;border:1px solid #e2e8f0;padding:4px;"/><p style="font-size:10px;color:#64748b;margin:4px 0 0">Scan to Pay via UPI</p></div>`;
 
-  // ─── STYLES ──────────────────────────────────────────────────────────────
-  const S = `
-    .sb-card{background:white;border-radius:20px;border:1px solid #e8ecf1;box-shadow:0 2px 12px rgba(0,0,0,0.04);}
-    .sb-input{width:100%;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:13px;font-weight:600;color:#1e293b;background:#f8fafc;outline:none;transition:all .2s;}
-    .sb-input:focus{border-color:#1a56db;background:white;box-shadow:0 0 0 3px rgba(26,86,219,0.08);}
-    .no-sb::-webkit-scrollbar{display:none;}.no-sb{-ms-overflow-style:none;scrollbar-width:none;}
-    .stat-paid{background:#dcfce7;color:#166534;}.stat-finalized{background:#dbeafe;color:#1e40af;}.stat-draft{background:#fef3c7;color:#92400e;}
-  `;
+    if (theme === 'A4') {
+      w.document.write(`<html><head><title>${title} ${inv.number}</title><style>body{font-family:sans-serif;padding:40px;max-width:800px;margin:auto}table{width:100%;border-collapse:collapse;margin:20px 0}th,td{padding:10px;border:1px solid #e2e8f0;font-size:13px}th{background:#f8fafc;font-weight:700}.g{font-size:20px;font-weight:900;text-align:right}</style></head><body>`);
+      w.document.write(`<div style="display:flex;justify-content:space-between;margin-bottom:30px"><div><h1 style="margin:0;font-size:28px;font-weight:900">${title}</h1><p style="color:#64748b;font-size:12px">SetMyBizz BizOS</p></div><div style="text-align:right"><strong>${isQuotation ? 'Estimate' : 'Invoice'}: </strong>${inv.number || 'DRAFT'}<br><strong>Date: </strong>${inv.date}<br><span style="background:#dcfce7;color:#166534;padding:2px 10px;border-radius:9999px;font-size:11px;font-weight:700">${inv.status?.toUpperCase()}</span></div></div>`);
+      w.document.write(`<div style="display:flex;justify-content:space-between;margin-bottom:24px"><div><strong>Bill To:</strong><br>${p?.name || 'Walk-in Customer'}${p?.gstin ? `<br>GSTIN: ${p.gstin}` : ''}</div>${qrHtml}</div>`);
+      w.document.write(`<table><thead><tr><th>Item</th><th>HSN</th><th>Qty</th><th>Rate</th><th>GST%</th><th>Amount</th></tr></thead><tbody>`);
+      (inv.lines || []).forEach(l => w.document.write(`<tr><td>${l.description}</td><td>${l.hsnSac || '-'}</td><td>${l.qty} ${l.unit}</td><td>Rs.${l.rate}</td><td>${l.gstRate}%</td><td>Rs.${(l.qty * l.rate * (1 + l.gstRate / 100)).toFixed(2)}</td></tr>`));
+      w.document.write(`</tbody></table><div style="text-align:right"><p>Taxable: ${fmt(inv.taxableTotal || 0)}</p>${inv.cgstTotal ? `<p>CGST: ${fmt(inv.cgstTotal)}</p><p>SGST: ${fmt(inv.sgstTotal || 0)}</p>` : ''}${inv.igstTotal ? `<p>IGST: ${fmt(inv.igstTotal)}</p>` : ''}<p class="g">Grand Total: ${fmt(inv.grandTotal)}</p></div>`);
+      if (inv.notes) w.document.write(`<p style="font-size:12px;color:#64748b;border-top:1px solid #e2e8f0;padding-top:12px;margin-top:20px">${inv.notes}</p>`);
+      w.document.write('</body></html>');
+    } else {
+      w.document.write(`<html><head><title>${title} ${inv.number}</title><style>body{font-family:monospace;padding:10px;width:300px;margin:auto}table{width:100%;border-collapse:collapse;margin:10px 0}th,td{padding:4px 0;font-size:12px;border-bottom:1px dashed #000;text-align:left}.r{text-align:right}.c{text-align:center}h2{margin:0;font-size:18px}</style></head><body>`);
+      w.document.write(`<div class="c"><h2>SetMyBizz Retail</h2><p>${title}: ${inv.number || 'DRAFT'}<br>${inv.date}</p></div>`);
+      w.document.write(`<div>To: ${p?.name || 'Walk-in'}</div>`);
+      w.document.write(`<table><tr><th>Item</th><th>Qty</th><th class="r">Amt</th></tr>`);
+      (inv.lines || []).forEach(l => w.document.write(`<tr><td>${l.description.substring(0,12)}</td><td>${l.qty}</td><td class="r">${(l.qty * l.rate * (1 + l.gstRate / 100)).toFixed(2)}</td></tr>`));
+      w.document.write(`</table><div class="r" style="margin-top:10px;"><strong>Total: ${fmt(inv.grandTotal)}</strong></div>`);
+      if (!isQuotation) w.document.write(`<div class="c" style="margin-top:10px"><img src="${upiQrUrl}" alt="UPI" style="width:80px;height:80px;"/><br>Scan to Pay</div>`);
+      w.document.write(`<div class="c" style="margin-top:20px;font-size:10px">Thank You for shopping!</div></body></html>`);
+    }
+    w.document.close(); setTimeout(() => w.print(), 500);
+  };
+
+  const exportCSV = (inv: Invoice) => {
+    const lines = inv.lines || [];
+    let csv = "Item,HSN,Qty,Rate,GST%,Amount\n";
+    lines.forEach(l => { csv += `"${l.description}","${l.hsnSac || ''}",${l.qty},${l.rate},${l.gstRate},${(l.qty * l.rate * (1 + l.gstRate / 100)).toFixed(2)}\n`; });
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = `Invoice_${inv.number || 'DRAFT'}.csv`; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  };
+
+  const markStatus = async (inv: Invoice, status: string) => {
+    try {
+      await fetch(`/api/documents/${inv.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
+      await fetchInvoices(); if (selectedInv?.id === inv.id) setSelectedInv(prev => prev ? { ...prev, status } : null);
+      setAiMsg(`Marked as ${status}`); setShowAI(true);
+    } catch { setAiMsg('Could not update.'); setShowAI(true); }
+  };
+
+  const stCls = (s: string) => s === 'paid' ? 'background:#dcfce7;color:#166534' : s === 'finalized' ? 'background:#dbeafe;color:#1e40af' : s === 'cancelled' ? 'background:#fee2e2;color:#991b1b' : 'background:#fef3c7;color:#92400e';
+  const fInv = invoices.filter(i => !invSearch || i.partyName?.toLowerCase().includes(invSearch.toLowerCase()) || i.number?.toLowerCase().includes(invSearch.toLowerCase()));
+  const fPar = parties.filter(p => !parSearch || p.name.toLowerCase().includes(parSearch.toLowerCase()) || p.phone?.includes(parSearch));
+
+  const css = `.sbc{background:#fff;border-radius:20px;border:1px solid #e8ecf1;box-shadow:0 2px 12px rgba(0,0,0,.04)}.sbi{width:100%;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:13px;font-weight:600;color:#1e293b;background:#f8fafc;outline:none;transition:all .2s;box-sizing:border-box}.sbi:focus{border-color:#1a56db;background:#fff;box-shadow:0 0 0 3px rgba(26,86,219,.08)}.sbl{display:block;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.12em;color:#94a3b8;margin-bottom:5px}.nsb::-webkit-scrollbar{display:none}.nsb{-ms-overflow-style:none;scrollbar-width:none}.sgb{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:12px;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;border:none}@keyframes spin{to{transform:rotate(360deg)}}.spin{animation:spin 1s linear infinite}`;
+
+  const Spinner = () => <div className="spin" style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,.3)', borderTopColor: '#fff', borderRadius: '50%' }} />;
+  const PageSpinner = () => <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}><div className="spin" style={{ width: 24, height: 24, border: '2px solid #bfdbfe', borderTopColor: '#2563eb', borderRadius: '50%' }} /></div>;
 
   return (
-    <div className="flex flex-col h-full bg-[#f5f7fa] overflow-hidden" style={{ fontFamily: '"DM Sans", sans-serif' }}>
-      <style>{S}</style>
+    <div className="nsb" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', background: '#f5f7fa', fontFamily: '"DM Sans","Inter",sans-serif' }}>
+      <style>{css}</style>
 
-      {/* ── TOP BAR ─────────────────────────────────────────────────── */}
-      <div className="shrink-0 bg-white border-b border-slate-100 px-4 py-3 flex items-center gap-3 shadow-sm">
-        {view !== 'dashboard' && (
-          <button onClick={() => setView('dashboard')} className="w-8 h-8 rounded-xl hover:bg-slate-100 flex items-center justify-center">
-            <span className="material-symbols-rounded text-slate-600 text-[18px]">arrow_back</span>
+      {/* TOP BAR */}
+      <div style={{ flexShrink: 0, background: '#fff', borderBottom: '1px solid #f1f5f9', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 1px 4px rgba(0,0,0,.05)', zIndex: 10 }}>
+        {view !== 'dashboard' ? (
+          <button onClick={goBack} style={{ width: 32, height: 32, borderRadius: 12, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569' }}>
+            <span className="material-symbols-rounded" style={{ fontSize: 18 }}>arrow_back</span>
           </button>
+        ) : (
+          onBack && (
+            <button onClick={onBack} style={{ width: 32, height: 32, borderRadius: 12, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569' }} title="Exit Bill Book">
+              <span className="material-symbols-rounded" style={{ fontSize: 18 }}>arrow_back</span>
+            </button>
+          )
         )}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="font-black text-slate-900 text-[15px]">
-              {view === 'dashboard' ? '📒 BillBook' : view === 'new-invoice' ? '✨ New Invoice' : view === 'invoices' ? 'All Invoices' : view === 'parties' ? 'Parties & Customers' : 'Products & Items'}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <span style={{ fontWeight: 900, color: '#0f172a', fontSize: 15 }}>
+              {view === 'dashboard' ? '📒 BillBook' : view === 'new-invoice' ? '✨ New Invoice' : view === 'invoices' ? 'All Invoices' : view === 'parties' ? 'Parties & Customers' : view === 'items' ? 'Products & Services' : view === 'add-party' ? 'Add Party' : view === 'add-item' ? 'Add Item' : 'Invoice Detail'}
             </span>
-            {!isOnline && <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-[9px] font-black rounded-full">● Offline</span>}
-            {offlineCount > 0 && <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-[9px] font-black rounded-full">{offlineCount} queued</span>}
+            {!online && <span style={{ padding: '2px 8px', background: '#fef3c7', color: '#92400e', fontSize: 9, fontWeight: 900, borderRadius: 9999 }}>📴 Offline</span>}
+            {qCount > 0 && <span style={{ padding: '2px 8px', background: '#dbeafe', color: '#1e40af', fontSize: 9, fontWeight: 900, borderRadius: 9999 }}>{qCount} queued</span>}
           </div>
-          <p className="text-[10px] text-slate-400 font-bold">GST-Ready • SetMyBizz BizOS</p>
+          <p style={{ fontSize: 10, color: '#94a3b8', fontWeight: 700 }}>GST-Ready · SetMyBizz BizOS</p>
         </div>
-        <div className="flex items-center gap-1.5">
-          <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-400' : 'bg-amber-400'}`} />
-          <button onClick={() => setShowAiBar(v => !v)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all ${showAiBar ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'}`}>
-            <span className="material-symbols-rounded text-[13px]">auto_awesome</span> Arkle
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          <div style={{ width: 8, height: 8, borderRadius: '50%', background: online ? '#34d399' : '#fbbf24' }} />
+          <button onClick={() => setShowAI(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 12, border: 'none', cursor: 'pointer', fontSize: 10, fontWeight: 900, textTransform: 'uppercase', background: showAI ? '#1d4ed8' : '#eff6ff', color: showAI ? '#fff' : '#1d4ed8', transition: 'all .2s' }}>
+            <span className="material-symbols-rounded" style={{ fontSize: 13 }}>auto_awesome</span>Arkle
           </button>
           {view === 'dashboard' && (
-            <button onClick={() => setView('new-invoice')} className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase hover:bg-blue-700 shadow-lg shadow-blue-500/25 transition-all">
-              <span className="material-symbols-rounded text-[13px]">add</span> Invoice
+            <button onClick={() => goTo('new-invoice')} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: '#1d4ed8', color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer', fontSize: 10, fontWeight: 900, textTransform: 'uppercase', boxShadow: '0 4px 12px rgba(29,78,216,.3)' }}>
+              <span className="material-symbols-rounded" style={{ fontSize: 13 }}>add</span>Invoice
             </button>
           )}
         </div>
       </div>
 
-      {/* ── ARKLE AI BAR ────────────────────────────────────────────── */}
+      {/* ARKLE BAR */}
       <AnimatePresence>
-        {showAiBar && (
-          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="shrink-0 overflow-hidden bg-gradient-to-r from-slate-900 to-blue-950">
-            <div className="px-4 py-3 space-y-2">
-              {aiMsg && (
-                <div className="flex items-start gap-2">
-                  <span className="material-symbols-rounded text-blue-400 text-[14px] mt-0.5 shrink-0">psychology</span>
-                  <p className="text-[11px] text-blue-100 font-medium leading-relaxed flex-1">{aiMsg}</p>
-                  <button onClick={() => setAiMsg('')} className="text-white/30 hover:text-white/60 text-[10px] shrink-0">✕</button>
+        {showAI && (
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ background: 'linear-gradient(135deg,#0f172a,#1e3a8a)', flexShrink: 0, overflow: 'hidden', zIndex: 9 }}>
+            <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {(aiMsg || flushMsg) && (
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                  <span className="material-symbols-rounded" style={{ color: '#93c5fd', fontSize: 14, marginTop: 2, flexShrink: 0 }}>psychology</span>
+                  <p style={{ fontSize: 11, color: '#bfdbfe', fontWeight: 500, flex: 1, lineHeight: 1.5 }}>{flushMsg || aiMsg}</p>
+                  <button onClick={() => { setAiMsg(''); setFlushMsg(''); }} style={{ color: 'rgba(255,255,255,.4)', fontSize: 10, border: 'none', background: 'transparent', cursor: 'pointer', flexShrink: 0 }}>✕</button>
                 </div>
               )}
-              <div className="flex items-center gap-2">
-                <input value={arkleInput} onChange={e => setArkleInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && askArkle()} placeholder='Ask Arkle: "HSN for furniture?" or "GST on software?"' className="flex-1 bg-white/10 border border-white/10 rounded-xl px-3 py-2 text-[12px] text-white placeholder-white/30 outline-none focus:border-blue-400" />
-                <button onClick={askArkle} disabled={isAiParsing} className="w-9 h-9 bg-blue-500 rounded-xl flex items-center justify-center hover:bg-blue-400 disabled:opacity-50 shrink-0 transition-all">
-                  {isAiParsing ? <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <span className="material-symbols-rounded text-white text-[15px]">send</span>}
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input value={arkleQ} onChange={e => setArkleQ(e.target.value)} onKeyDown={e => e.key === 'Enter' && askArkle()} placeholder='Ask: "HSN for software?" or "GST on gold?"' style={{ flex: 1, background: 'rgba(255,255,255,.1)', border: '1px solid rgba(255,255,255,.15)', borderRadius: 12, padding: '8px 12px', fontSize: 12, color: '#fff', outline: 'none' }} />
+                <button onClick={askArkle} disabled={parsing} style={{ width: 36, height: 36, background: '#3b82f6', border: 'none', borderRadius: 12, cursor: parsing ? 'not-allowed' : 'pointer', opacity: parsing ? .5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  {parsing ? <Spinner /> : <span className="material-symbols-rounded" style={{ color: '#fff', fontSize: 15 }}>send</span>}
                 </button>
               </div>
             </div>
@@ -303,325 +402,234 @@ Match items from the catalog if mentioned. Handle Hindi/Telugu/English mixed.`,
         )}
       </AnimatePresence>
 
-      {/* ── CONTENT ──────────────────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto no-sb px-3 py-3">
+      {/* CONTENT */}
+      <div className="nsb" style={{ flex: 1, overflowY: 'auto', padding: 12 }}>
 
-        {/* ══ DASHBOARD ══════════════════════════════════════════════ */}
+        {/* ── DASHBOARD ── */}
         {view === 'dashboard' && (
-          <div className="space-y-4">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {/* Stats */}
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { label: "Today's Sales", value: '₹10,620', icon: 'trending_up', c: 'text-emerald-600', bg: 'bg-emerald-50' },
-                { label: 'Outstanding', value: '₹8,978', icon: 'schedule', c: 'text-amber-600', bg: 'bg-amber-50' },
-                { label: 'Total Parties', value: String(SEED_PARTIES.length), icon: 'group', c: 'text-blue-600', bg: 'bg-blue-50' },
-                { label: 'Products', value: String(SEED_ITEMS.length), icon: 'inventory_2', c: 'text-violet-600', bg: 'bg-violet-50' },
-              ].map(s => (
-                <div key={s.label} className="sb-card p-4 flex items-center gap-3">
-                  <div className={`w-10 h-10 ${s.bg} rounded-2xl flex items-center justify-center shrink-0`}>
-                    <span className="material-symbols-rounded text-[20px]" style={{ color: s.c }}>{s.icon}</span>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              {[{ l: "Today's Sales", v: fmt(todaySales), ic: 'trending_up', bg: '#f0fdf4', ic_c: '#16a34a' }, { l: 'Outstanding', v: fmt(outstanding), ic: 'schedule', bg: '#fffbeb', ic_c: '#d97706' }, { l: 'This Month', v: fmt(monthSales), ic: 'calendar_month', bg: '#eff6ff', ic_c: '#2563eb' }, { l: `Paid (${paidCnt})`, v: `${invoices.length} invoices`, ic: 'check_circle', bg: '#f5f3ff', ic_c: '#7c3aed' }].map(s => (
+                <div key={s.l} className="sbc" style={{ padding: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ width: 40, height: 40, background: s.bg, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <span className="material-symbols-rounded" style={{ fontSize: 20, color: s.ic_c }}>{s.ic}</span>
                   </div>
-                  <div>
-                    <p className="font-black text-slate-900 text-[16px] leading-tight">{s.value}</p>
-                    <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wide mt-0.5">{s.label}</p>
+                  <div style={{ minWidth: 0 }}>
+                    <p style={{ fontWeight: 900, color: '#0f172a', fontSize: 15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.v}</p>
+                    <p style={{ fontSize: 9, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em' }}>{s.l}</p>
                   </div>
                 </div>
               ))}
             </div>
-
             {/* Quick Create */}
-            <div className="sb-card p-4">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Quick Create</p>
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  { label: 'Invoice', icon: 'receipt_long', c: 'text-blue-600 bg-blue-50', act: () => setView('new-invoice') },
-                  { label: 'Quotation', icon: 'request_quote', c: 'text-violet-600 bg-violet-50', act: () => setView('new-invoice') },
-                  { label: 'Expense', icon: 'payments', c: 'text-rose-600 bg-rose-50', act: () => {} },
-                  { label: 'Purchase', icon: 'shopping_cart', c: 'text-emerald-600 bg-emerald-50', act: () => {} },
-                  { label: 'Payment In', icon: 'move_to_inbox', c: 'text-teal-600 bg-teal-50', act: () => {} },
-                  { label: 'Challan', icon: 'local_shipping', c: 'text-amber-600 bg-amber-50', act: () => setView('new-invoice') },
-                ].map(a => (
-                  <button key={a.label} onClick={a.act} className={`${a.c} flex flex-col items-center gap-1.5 p-3 rounded-2xl hover:scale-105 active:scale-95 transition-all`}>
-                    <span className="material-symbols-rounded text-[22px]">{a.icon}</span>
-                    <span className="text-[9px] font-black uppercase tracking-wider">{a.label}</span>
+            <div className="sbc" style={{ padding: 16 }}>
+              <p className="sbl" style={{ marginBottom: 12 }}>Quick Create</p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                {[{ l: 'Invoice', ic: 'receipt_long', bg: '#eff6ff', c: '#2563eb', a: () => goTo('new-invoice') }, { l: 'Add Party', ic: 'person_add', bg: '#f0fdf4', c: '#16a34a', a: () => goTo('add-party') }, { l: 'Add Item', ic: 'add_box', bg: '#f0fdfa', c: '#0d9488', a: () => goTo('add-item') }, { l: 'Invoices', ic: 'list_alt', bg: '#f5f3ff', c: '#7c3aed', a: () => goTo('invoices') }, { l: 'Parties', ic: 'group', bg: '#faf5ff', c: '#9333ea', a: () => goTo('parties') }, { l: 'Refresh', ic: 'refresh', bg: '#f8fafc', c: '#475569', a: () => { fetchInvoices(); fetchParties(); fetchItems(); } }].map(a => (
+                  <button key={a.l} onClick={a.a} style={{ background: a.bg, border: 'none', borderRadius: 16, padding: '12px 8px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, color: a.c, transition: 'transform .15s' }}>
+                    <span className="material-symbols-rounded" style={{ fontSize: 22 }}>{a.ic}</span>
+                    <span style={{ fontSize: 9, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.05em' }}>{a.l}</span>
                   </button>
                 ))}
               </div>
             </div>
-
-            {/* AI Smart Features */}
-            <div className="sb-card overflow-hidden">
-              <div className="bg-gradient-to-r from-slate-900 to-blue-900 px-4 py-3">
-                <p className="text-white font-black text-[13px]">⚡ Arkle Smart Features</p>
-                <p className="text-blue-300 text-[10px] font-bold mt-0.5">AI-powered — faster than VyaparApp</p>
+            {/* Arkle Smart Entry */}
+            <div className="sbc" style={{ overflow: 'hidden' }}>
+              <div style={{ background: 'linear-gradient(135deg,#0f172a,#1e3a8a)', padding: '12px 16px' }}>
+                <p style={{ color: '#fff', fontWeight: 900, fontSize: 13 }}>⚡ Arkle Smart Entry</p>
+                <p style={{ color: '#93c5fd', fontSize: 10, fontWeight: 700, marginTop: 2 }}>Faster than VyaparApp & MyBillBook</p>
               </div>
-              <div className="grid grid-cols-2 divide-x divide-y divide-slate-100">
-                {[
-                  { label: 'Voice Invoice', icon: 'mic', desc: 'Speak in Hindi/Telugu', c: 'text-sky-600 bg-sky-50', act: () => { setView('new-invoice'); setTimeout(startVoice, 300); } },
-                  { label: 'Scan Bill', icon: 'photo_camera', desc: 'Photo → Invoice AI', c: 'text-purple-600 bg-purple-50', act: () => { setView('new-invoice'); setTimeout(startCamera, 300); } },
-                  { label: 'Barcode Scan', icon: 'qr_code_scanner', desc: 'Add product by barcode', c: 'text-emerald-600 bg-emerald-50', act: () => { setView('new-invoice'); setShowBarcode(true); } },
-                  { label: 'Ask Arkle', icon: 'psychology', desc: 'GST & billing advice', c: 'text-blue-600 bg-blue-50', act: () => setShowAiBar(true) },
-                ].map(f => (
-                  <button key={f.label} onClick={f.act} className="flex items-center gap-3 p-4 hover:bg-slate-50 transition-colors text-left">
-                    <div className={`w-9 h-9 ${f.c} rounded-xl flex items-center justify-center shrink-0`}>
-                      <span className="material-symbols-rounded text-[18px]">{f.icon}</span>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', borderTop: '1px solid #f1f5f9' }}>
+                {[{ l: 'Voice Invoice', ic: 'mic', d: 'Hindi/Telugu/English', bg: '#f0f9ff', c: '#0284c7', a: () => { goTo('new-invoice'); setTimeout(startVoice, 300); } }, { l: 'Scan Bill', ic: 'photo_camera', d: 'Photo → Auto fill', bg: '#faf5ff', c: '#7c3aed', a: () => { goTo('new-invoice'); setTimeout(startCamera, 300); } }, { l: 'Barcode', ic: 'qr_code_scanner', d: 'EAN-13, QR, UPC', bg: '#f0fdf4', c: '#16a34a', a: () => { goTo('new-invoice'); setShowBC(true); } }, { l: 'Ask GST', ic: 'psychology', d: 'HSN & rate advice', bg: '#eff6ff', c: '#2563eb', a: () => setShowAI(true) }].map((f, idx) => (
+                  <button key={f.l} onClick={f.a} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 16, background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left', borderRight: idx % 2 === 0 ? '1px solid #f1f5f9' : 'none', borderBottom: idx < 2 ? '1px solid #f1f5f9' : 'none', transition: 'background .15s' }}>
+                    <div style={{ width: 36, height: 36, background: f.bg, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <span className="material-symbols-rounded" style={{ fontSize: 18, color: f.c }}>{f.ic}</span>
                     </div>
-                    <div>
-                      <p className="text-[11px] font-black text-slate-800">{f.label}</p>
-                      <p className="text-[9px] text-slate-400 font-bold">{f.desc}</p>
-                    </div>
+                    <div><p style={{ fontSize: 11, fontWeight: 900, color: '#0f172a' }}>{f.l}</p><p style={{ fontSize: 9, color: '#94a3b8', fontWeight: 700 }}>{f.d}</p></div>
                   </button>
                 ))}
               </div>
             </div>
-
             {/* Recent Invoices */}
-            <div className="sb-card overflow-hidden">
-              <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Recent Invoices</p>
-                <button onClick={() => setView('invoices')} className="text-[11px] font-bold text-blue-600">View all →</button>
+            <div className="sbc" style={{ overflow: 'hidden' }}>
+              <div style={{ padding: '12px 16px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <p className="sbl">Recent Invoices</p>
+                <button onClick={() => goTo('invoices')} style={{ fontSize: 11, fontWeight: 700, color: '#2563eb', background: 'transparent', border: 'none', cursor: 'pointer' }}>View all ({invoices.length}) →</button>
               </div>
-              {invoices.slice(0, 4).map(inv => (
-                <div key={inv.id} className="flex items-center gap-3 px-4 py-3 border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors cursor-pointer">
-                  <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
-                    <span className="material-symbols-rounded text-blue-600 text-[18px]">receipt_long</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-slate-900 text-[13px] truncate">{inv.partyName || 'Walk-in'}</p>
-                    <p className="text-[10px] text-slate-400 font-bold">{inv.number} • {inv.date}</p>
-                  </div>
-                  <div className="text-right mr-2 shrink-0">
-                    <p className="font-black text-slate-900 text-[14px]">{fmt(inv.grandTotal)}</p>
-                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase stat-${inv.status}`}>{inv.status}</span>
-                  </div>
-                  <button onClick={e => { e.stopPropagation(); shareWA(inv); }} className="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center hover:bg-emerald-100 transition-all shrink-0">
-                    <span className="material-symbols-rounded text-emerald-600 text-[15px]">chat</span>
-                  </button>
+              {loadingInv && <PageSpinner />}
+              {!loadingInv && invoices.length === 0 && <div style={{ padding: '40px 16px', textAlign: 'center' }}><p style={{ color: '#94a3b8', fontWeight: 700, fontSize: 13 }}>No invoices yet — create your first!</p></div>}
+              {invoices.slice(0, 5).map(inv => (
+                <div key={inv.id} onClick={() => { setSelectedInv(inv); goTo('view-invoice'); }} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderBottom: '1px solid #fafafa', cursor: 'pointer', transition: 'background .15s' }}>
+                  <div style={{ width: 40, height: 40, borderRadius: 14, background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><span className="material-symbols-rounded" style={{ fontSize: 18, color: '#2563eb' }}>receipt_long</span></div>
+                  <div style={{ flex: 1, minWidth: 0 }}><p style={{ fontWeight: 700, color: '#0f172a', fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{inv.partyName || 'Walk-in'}</p><p style={{ fontSize: 10, color: '#94a3b8', fontWeight: 700 }}>{inv.number || '—'} · {inv.date}</p></div>
+                  <div style={{ textAlign: 'right', flexShrink: 0, marginRight: 8 }}><p style={{ fontWeight: 900, color: '#0f172a', fontSize: 14 }}>{fmt(inv.grandTotal)}</p><span style={{ padding: '2px 8px', borderRadius: 9999, fontSize: 9, fontWeight: 900, textTransform: 'uppercase', ...Object.fromEntries(stCls(inv.status).split(';').map(p => p.trim().split(':').map(s => s.trim()))) }}>{inv.status}</span></div>
+                  <button onClick={e => { e.stopPropagation(); shareWA(inv); }} style={{ width: 32, height: 32, borderRadius: 12, background: '#f0fdf4', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><span className="material-symbols-rounded" style={{ fontSize: 14, color: '#16a34a' }}>chat</span></button>
                 </div>
               ))}
             </div>
-
-            {/* Nav Cards */}
-            <div className="grid grid-cols-3 gap-3 pb-4">
-              {[
-                { label: 'Invoices', icon: 'receipt_long', v: 'invoices' as View, c: 'text-blue-600 bg-blue-50' },
-                { label: 'Parties', icon: 'group', v: 'parties' as View, c: 'text-violet-600 bg-violet-50' },
-                { label: 'Products', icon: 'inventory_2', v: 'items' as View, c: 'text-emerald-600 bg-emerald-50' },
-              ].map(n => (
-                <button key={n.label} onClick={() => setView(n.v)} className={`sb-card p-4 flex flex-col items-center gap-2 hover:scale-[1.02] active:scale-95 transition-all ${n.c}`}>
-                  <span className="material-symbols-rounded text-[26px]">{n.icon}</span>
-                  <p className="text-[10px] font-black uppercase tracking-wider">{n.label}</p>
+            {/* Nav */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, paddingBottom: 16 }}>
+              {[{ l: 'Invoices', ic: 'receipt_long', v: 'invoices' as View, bg: '#eff6ff', c: '#2563eb', n: invoices.length }, { l: 'Parties', ic: 'group', v: 'parties' as View, bg: '#f5f3ff', c: '#7c3aed', n: parties.length }, { l: 'Products', ic: 'inventory_2', v: 'items' as View, bg: '#f0fdf4', c: '#16a34a', n: items.length }].map(x => (
+                <button key={x.l} onClick={() => goTo(x.v)} className="sbc" style={{ padding: 16, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, border: 'none', cursor: 'pointer', background: x.bg, color: x.c, borderRadius: 20, transition: 'transform .15s' }}>
+                  <span className="material-symbols-rounded" style={{ fontSize: 26 }}>{x.ic}</span>
+                  <p style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '.05em' }}>{x.l}</p>
+                  <span style={{ fontSize: 12, fontWeight: 900 }}>{x.n}</span>
                 </button>
               ))}
             </div>
           </div>
         )}
 
-        {/* ══ NEW INVOICE ════════════════════════════════════════════ */}
+        {/* ── NEW INVOICE ── */}
         {view === 'new-invoice' && (
-          <div className="space-y-3 pb-32">
-            {/* Smart Entry Bar */}
-            <div className="sb-card p-3">
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Smart Entry — AI Powered</p>
-              <div className="flex flex-wrap gap-2">
-                <button onClick={startVoice} className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${isVoiceListening ? 'bg-red-500 text-white animate-pulse' : 'bg-sky-50 text-sky-600 hover:bg-sky-100'}`}>
-                  <span className="material-symbols-rounded text-[13px]">mic</span>
-                  {isVoiceListening ? 'Listening...' : 'Voice'}
-                </button>
-                <button onClick={startCamera} className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] font-black uppercase bg-purple-50 text-purple-600 hover:bg-purple-100">
-                  <span className="material-symbols-rounded text-[13px]">photo_camera</span>
-                  Scan Bill
-                </button>
-                <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] font-black uppercase bg-indigo-50 text-indigo-600 hover:bg-indigo-100">
-                  <span className="material-symbols-rounded text-[13px]">upload</span>
-                  Upload Photo
-                </button>
-                <button onClick={() => setShowBarcode(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] font-black uppercase bg-emerald-50 text-emerald-600 hover:bg-emerald-100">
-                  <span className="material-symbols-rounded text-[13px]">qr_code_scanner</span>
-                  Barcode
-                </button>
-                <input ref={fileInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={e => { if (e.target.files?.[0]) processImageOCR(); }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingBottom: 120 }}>
+            {/* Smart Toolbar */}
+            <div className="sbc" style={{ padding: 12 }}>
+              <p className="sbl" style={{ marginBottom: 8 }}>Smart Entry — AI Powered</p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {[{ l: listening ? 'Listening...' : 'Voice', ic: 'mic', bg: listening ? '#ef4444' : '#f0f9ff', c: listening ? '#fff' : '#0284c7', a: startVoice }, { l: 'Scan Bill', ic: 'photo_camera', bg: '#faf5ff', c: '#7c3aed', a: startCamera }, { l: 'Upload', ic: 'upload', bg: '#eef2ff', c: '#4338ca', a: () => fileRef.current?.click() }, { l: 'Barcode', ic: 'qr_code_scanner', bg: '#f0fdf4', c: '#16a34a', a: () => setShowBC(true) }].map(b => (
+                  <button key={b.l} onClick={b.a} className="sgb" style={{ background: b.bg, color: b.c }}><span className="material-symbols-rounded" style={{ fontSize: 13 }}>{b.ic}</span>{b.l}</button>
+                ))}
+                <input ref={fileRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={e => { if (e.target.files?.[0]) { const r = new FileReader(); r.onload = ev => processOCR(ev.target?.result as string); r.readAsDataURL(e.target.files[0]); } }} />
               </div>
             </div>
-
-            {/* Voice feedback */}
-            {(voiceTranscript || isAiParsing) && (
-              <div className="sb-card p-3 border-l-4 border-sky-400 bg-sky-50">
-                {isAiParsing ? (
-                  <div className="flex items-center gap-2 text-sky-700 text-[12px] font-bold">
-                    <div className="w-4 h-4 border-2 border-sky-200 border-t-sky-600 rounded-full animate-spin" />
-                    Arkle is understanding your voice command...
-                  </div>
-                ) : <p className="text-[12px] text-sky-900 font-bold">🎙️ "{voiceTranscript}"</p>}
+            {voiceTxt && (
+              <div className="sbc" style={{ padding: 12, borderLeft: '4px solid #38bdf8', background: '#f0f9ff' }}>
+                {parsing ? <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#0284c7', fontSize: 12, fontWeight: 700 }}><div className="spin" style={{ width: 14, height: 14, border: '2px solid #bae6fd', borderTopColor: '#0284c7', borderRadius: '50%' }} />Arkle parsing...</div>
+                  : <p style={{ fontSize: 12, color: '#0c4a6e', fontWeight: 700 }}>🎙️ "{voiceTxt}"</p>}
               </div>
             )}
-
-            {/* AI Message */}
-            {aiMsg && (
-              <div className="sb-card p-3 border-l-4 border-blue-400 bg-blue-50 flex items-start gap-2">
-                <p className="text-[12px] text-blue-900 font-bold flex-1">{aiMsg}</p>
-                <button onClick={() => setAiMsg('')} className="text-blue-400 text-[10px] shrink-0 hover:text-blue-600">✕</button>
+            {aiMsg && !showAI && (
+              <div className="sbc" style={{ padding: 12, borderLeft: '4px solid #3b82f6', background: '#eff6ff', display: 'flex', gap: 8 }}>
+                <p style={{ fontSize: 12, color: '#1e3a8a', fontWeight: 700, flex: 1 }}>{aiMsg}</p>
+                <button onClick={() => setAiMsg('')} style={{ color: '#93c5fd', fontSize: 10, border: 'none', background: 'transparent', cursor: 'pointer', flexShrink: 0 }}>✕</button>
               </div>
             )}
-
-            {/* Party Selector */}
-            <div className="sb-card p-4 space-y-2">
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Bill To</p>
-              <select className="sb-input" value={selPartyId} onChange={e => setSelPartyId(e.target.value)}>
-                <option value="">👤 Walk-in Customer</option>
-                {parties.map(p => <option key={p.id} value={p.id}>{p.name}{p.phone ? ` · ${p.phone}` : ''}</option>)}
-              </select>
-              {selPartyId && (() => { const p = parties.find(x => x.id === selPartyId); return p ? (
-                <div className="flex items-center justify-between text-[10px] text-slate-500 font-bold mt-1">
-                  <span>{p.gstin ? `GSTIN: ${p.gstin}` : 'No GSTIN'} · State: {p.stateCode}</span>
-                  {!p.gstin && (
-                    <div className="flex items-center gap-1">
-                      <span>Requires GST:</span>
-                      <LegalServiceTrigger serviceKey="gst" label="Get GST with AI" />
-                    </div>
-                  )}
+            {/* Dates and Document Type */}
+            <div className="sbc" style={{ padding: 16, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div><label className="sbl">Invoice Date</label><input type="date" className="sbi" value={invDate} onChange={e => setInvDate(e.target.value)} /></div>
+              <div><label className="sbl">Due Date</label><input type="date" className="sbi" value={dueDate} onChange={e => setDueDate(e.target.value)} /></div>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label className="sbl">Document Type</label>
+                <select className="sbi" value={docType} onChange={e => setDocType(e.target.value)}>
+                  <option value="invoice">📄 Tax Invoice</option>
+                  <option value="quotation">📑 Quotation / Estimate / Proforma</option>
+                </select>
+              </div>
+            </div>
+            {/* Party */}
+            <div className="sbc" style={{ padding: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <label className="sbl">Bill To</label>
+                <button onClick={() => goTo('add-party')} style={{ fontSize: 10, color: '#2563eb', fontWeight: 900, background: 'transparent', border: 'none', cursor: 'pointer' }}>+ New Party</button>
+              </div>
+              {loadingPar ? <div className="sbi" style={{ color: '#94a3b8' }}>Loading...</div> : (
+                <select className="sbi" value={selPartyId} onChange={e => setSelPartyId(e.target.value)}>
+                  <option value="">👤 Walk-in Customer</option>
+                  {parties.map(p => <option key={p.id} value={p.id}>{p.name}{p.phone ? ' · ' + p.phone : ''}{p.gstin ? ' · ' + p.gstin : ''}</option>)}
+                </select>
+              )}
+              {selParty && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, fontSize: 10, color: '#64748b', fontWeight: 700 }}>
+                  <span>{selParty.gstin ? `GSTIN: ${selParty.gstin}` : '⚠️ No GSTIN'} · State: {selParty.stateCode}</span>
+                  <span style={{ padding: '2px 8px', borderRadius: 9999, fontWeight: 900, background: interstate ? '#fef3c7' : '#dbeafe', color: interstate ? '#92400e' : '#1e40af' }}>{interstate ? 'IGST' : 'CGST+SGST'}</span>
                 </div>
-              ) : null; })()}
+              )}
             </div>
-
             {/* Line Items */}
-            <div className="sb-card p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Items & Services</p>
-                <button onClick={addLine} className="flex items-center gap-1.5 px-2.5 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-black hover:bg-blue-100 transition-colors">
-                  <span className="material-symbols-rounded text-[12px]">add</span> Add Row
-                </button>
+            <div className="sbc" style={{ padding: 16 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <label className="sbl">Items & Services</label>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button onClick={() => goTo('add-item')} style={{ fontSize: 10, color: '#16a34a', fontWeight: 900, background: 'transparent', border: 'none', cursor: 'pointer' }}>+ New Item</button>
+                  <button onClick={addLine} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', background: '#eff6ff', color: '#2563eb', border: 'none', borderRadius: 10, cursor: 'pointer', fontSize: 10, fontWeight: 900 }}>
+                    <span className="material-symbols-rounded" style={{ fontSize: 12 }}>add</span>Add Row
+                  </button>
+                </div>
               </div>
-
               {lines.map((line, i) => (
-                <div key={i} className="p-3 rounded-2xl bg-slate-50 border border-slate-100 space-y-2">
-                  {/* Description with autocomplete */}
-                  <div className="relative">
-                    <input
-                      className="sb-input"
-                      value={line.description}
-                      onChange={e => { updLine(i, { description: e.target.value }); setItemSearch(e.target.value); setSearchLineIdx(i); }}
-                      onFocus={() => { setSearchLineIdx(i); setItemSearch(line.description); }}
-                      onBlur={() => setTimeout(() => setSearchLineIdx(null), 200)}
-                      placeholder="Product or service name..."
-                    />
-                    {searchLineIdx === i && itemSearch.length > 0 && (
-                      <div className="absolute top-full left-0 right-0 z-50 bg-white rounded-xl border border-slate-200 shadow-xl mt-1 overflow-hidden">
-                        {items.filter(it => it.name.toLowerCase().includes(itemSearch.toLowerCase())).slice(0, 5).map(it => (
-                          <button key={it.id} onMouseDown={() => selectItem(i, it)} className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-blue-50 text-left border-b border-slate-50 last:border-0">
-                            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center shrink-0">
-                              <span className="material-symbols-rounded text-blue-600 text-[14px]">inventory_2</span>
+                <div key={line.tempId} style={{ padding: 12, borderRadius: 16, background: '#f8fafc', border: '1px solid #e2e8f0', marginBottom: 12 }}>
+                  <div style={{ position: 'relative', marginBottom: 8 }}>
+                    <input className="sbi" value={line.description} onChange={e => { updLine(i, { description: e.target.value }); setItmSearch(e.target.value); setSearchLine(i); }} onFocus={() => { setSearchLine(i); setItmSearch(line.description); }} onBlur={() => setTimeout(() => setSearchLine(null), 200)} placeholder="Product or service name..." />
+                    {searchLine === i && itmSearch.length > 0 && (
+                      <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50, background: '#fff', borderRadius: 12, border: '1px solid #e2e8f0', boxShadow: '0 8px 24px rgba(0,0,0,.12)', marginTop: 4, overflow: 'hidden' }}>
+                        {items.filter(it => it.name.toLowerCase().includes(itmSearch.toLowerCase())).slice(0, 5).map(it => (
+                          <button key={it.id} onMouseDown={() => selItem(i, it)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', background: 'transparent', border: 'none', borderBottom: '1px solid #fafafa', cursor: 'pointer', textAlign: 'left' }}>
+                            <div style={{ width: 32, height: 32, background: '#eff6ff', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><span className="material-symbols-rounded" style={{ fontSize: 14, color: '#2563eb' }}>inventory_2</span></div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <p style={{ fontSize: 12, fontWeight: 700, color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.name}</p>
+                              <p style={{ fontSize: 9, color: '#94a3b8', fontWeight: 700 }}>₹{it.salePrice} · GST {it.gstRate}%{it.stockQty != null ? ` · Stk: ${it.stockQty}` : ''}</p>
                             </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="text-[12px] font-bold text-slate-900 truncate">{it.name}</p>
-                              <p className="text-[9px] text-slate-400 font-bold">₹{it.salePrice} · GST {it.gstRate}%{it.stockQty !== undefined ? ` · Stock: ${it.stockQty}` : ''}</p>
-                            </div>
-                            <span className="text-[9px] font-black text-blue-500 uppercase">{it.unit}</span>
+                            <span style={{ fontSize: 9, fontWeight: 900, color: '#3b82f6', textTransform: 'uppercase', flexShrink: 0 }}>{it.unit}</span>
                           </button>
                         ))}
+                        {items.filter(it => it.name.toLowerCase().includes(itmSearch.toLowerCase())).length === 0 && (
+                          <div style={{ padding: 12, fontSize: 11, color: '#94a3b8', fontWeight: 700 }}>No match — <button onClick={() => goTo('add-item')} style={{ color: '#2563eb', background: 'transparent', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>Add new</button></div>
+                        )}
                       </div>
                     )}
                   </div>
-
-                  {/* Qty / Rate / GST */}
-                  <div className="grid grid-cols-4 gap-2">
-                    <div>
-                      <p className="text-[9px] text-slate-400 font-black uppercase mb-1">Qty</p>
-                      <input type="number" className="sb-input text-center" value={line.qty} min={0} onChange={e => updLine(i, { qty: Number(e.target.value) })} />
-                    </div>
-                    <div>
-                      <p className="text-[9px] text-slate-400 font-black uppercase mb-1">Unit</p>
-                      <select className="sb-input" value={line.unit} onChange={e => updLine(i, { unit: e.target.value })}>
-                        {['pcs','kg','mtr','ltr','hrs','box','set','dozen','bag'].map(u => <option key={u}>{u}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <p className="text-[9px] text-slate-400 font-black uppercase mb-1">Rate ₹</p>
-                      <input type="number" className="sb-input" value={line.rate} min={0} onChange={e => updLine(i, { rate: Number(e.target.value) })} />
-                    </div>
-                    <div>
-                      <p className="text-[9px] text-slate-400 font-black uppercase mb-1">GST%</p>
-                      <select className="sb-input" value={line.gstRate} onChange={e => updLine(i, { gstRate: Number(e.target.value) })}>
-                        {[0,5,12,18,28].map(r => <option key={r}>{r}</option>)}
-                      </select>
-                    </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8, marginBottom: 8 }}>
+                    <div><label className="sbl">Qty</label><input type="number" className="sbi" style={{ textAlign: 'center' }} value={line.qty} min={0} onChange={e => updLine(i, { qty: Number(e.target.value) })} /></div>
+                    <div><label className="sbl">Unit</label><select className="sbi" value={line.unit} onChange={e => updLine(i, { unit: e.target.value })}>{UNITS.map(u => <option key={u}>{u}</option>)}</select></div>
+                    <div><label className="sbl">Rate ₹</label><input type="number" className="sbi" value={line.rate} min={0} onChange={e => updLine(i, { rate: Number(e.target.value) })} /></div>
+                    <div><label className="sbl">GST %</label><select className="sbi" value={line.gstRate} onChange={e => updLine(i, { gstRate: Number(e.target.value) })}>{GST_RATES.map(r => <option key={r} value={r}>{r}%</option>)}</select></div>
                   </div>
-
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2 flex-1">
-                      <p className="text-[9px] text-slate-400 font-black uppercase">Disc%</p>
-                      <input type="number" className="sb-input w-16 text-center" value={line.discountPct} min={0} max={100} onChange={e => updLine(i, { discountPct: Number(e.target.value) })} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <label className="sbl" style={{ margin: 0 }}>Disc%</label>
+                      <input type="number" className="sbi" style={{ width: 60, textAlign: 'center' }} value={line.discountPct} min={0} max={100} onChange={e => updLine(i, { discountPct: Number(e.target.value) })} />
                     </div>
-                    <div className="text-right flex-1">
-                      <p className="text-[9px] text-slate-400 font-bold">Amount</p>
-                      <p className="font-black text-blue-700 text-[15px]">{fmt(calcLine(line).total)}</p>
+                    <div style={{ flex: 1, textAlign: 'right' }}>
+                      <p style={{ fontSize: 9, color: '#94a3b8', fontWeight: 700 }}>Amount</p>
+                      <p style={{ fontWeight: 900, color: '#1d4ed8', fontSize: 16 }}>{fmt(calcLine(line, interstate).total)}</p>
                     </div>
-                    {lines.length > 1 && (
-                      <button onClick={() => delLine(i)} className="w-7 h-7 rounded-lg bg-red-50 flex items-center justify-center hover:bg-red-100">
-                        <span className="material-symbols-rounded text-red-500 text-[13px]">delete</span>
-                      </button>
-                    )}
+                    {lines.length > 1 && <button onClick={() => delLine(i)} style={{ width: 28, height: 28, background: '#fef2f2', border: 'none', borderRadius: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <span className="material-symbols-rounded" style={{ fontSize: 13, color: '#ef4444' }}>delete</span>
+                    </button>}
                   </div>
                 </div>
               ))}
-              <button onClick={() => setShowAiBar(true)} className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-blue-50 rounded-xl text-[11px] font-bold text-blue-600 hover:bg-blue-100 transition-all">
-                <span className="material-symbols-rounded text-[14px]">psychology</span>
-                Not sure about HSN or GST rate? Ask Arkle →
+              <button onClick={() => setShowAI(true)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 10, background: '#eff6ff', border: 'none', borderRadius: 12, cursor: 'pointer', fontSize: 11, fontWeight: 700, color: '#2563eb' }}>
+                <span className="material-symbols-rounded" style={{ fontSize: 14 }}>psychology</span>Not sure about HSN/GST? Ask Arkle →
               </button>
             </div>
-
             {/* Notes */}
-            <div className="sb-card p-4">
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Notes / Terms</p>
-              <textarea className="sb-input resize-none" rows={2} value={invoiceNotes} onChange={e => setInvoiceNotes(e.target.value)} placeholder="Payment due in 15 days. Thank you for your business!" />
+            <div className="sbc" style={{ padding: 16 }}>
+              <label className="sbl">Notes / Terms</label>
+              <textarea className="sbi" rows={2} value={invNotes} onChange={e => setInvNotes(e.target.value)} style={{ resize: 'none' }} placeholder="Payment terms or thank you note..." />
             </div>
-
             {/* Totals */}
-            <div className="sb-card p-4">
-              <div className="space-y-2">
-                {[
-                  { label: 'Subtotal (Taxable)', val: fmt(totals.taxable) },
-                  { label: 'Total GST', val: fmt(totals.tax) },
-                ].map(r => (
-                  <div key={r.label} className="flex justify-between text-[13px]">
-                    <span className="font-bold text-slate-500">{r.label}</span>
-                    <span className="font-bold text-slate-700">{r.val}</span>
-                  </div>
-                ))}
-                <div className="flex justify-between text-[17px] font-black pt-2 border-t border-slate-100">
-                  <span className="text-slate-900">Grand Total</span>
-                  <span className="text-blue-700">{fmt(totals.grand)}</span>
-                </div>
+            <div className="sbc" style={{ padding: 16 }}>
+              {[{ l: 'Taxable Amount', v: fmt(totals.taxable) }, ...(!interstate && totals.cgst > 0 ? [{ l: 'CGST', v: fmt(totals.cgst) }, { l: 'SGST', v: fmt(totals.sgst) }] : []), ...(interstate && totals.igst > 0 ? [{ l: 'IGST', v: fmt(totals.igst) }] : [])].map(r => (
+                <div key={r.l} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13 }}><span style={{ fontWeight: 700, color: '#64748b' }}>{r.l}</span><span style={{ fontWeight: 700, color: '#334155' }}>{r.v}</span></div>
+              ))}
+              <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 12, borderTop: '1px solid #e2e8f0', fontSize: 18, fontWeight: 900 }}>
+                <span style={{ color: '#0f172a' }}>Grand Total</span><span style={{ color: '#1d4ed8' }}>{fmt(totals.grand)}</span>
               </div>
             </div>
           </div>
         )}
 
-        {/* ══ INVOICES LIST ══════════════════════════════════════════ */}
+        {/* ── ALL INVOICES ── */}
         {view === 'invoices' && (
-          <div className="space-y-3">
-            <input className="sb-input" placeholder="🔍 Search by party or invoice number..." />
-            <div className="sb-card overflow-hidden">
-              {invoices.map(inv => (
-                <div key={inv.id} className="flex items-center gap-3 px-4 py-3.5 border-b border-slate-50 last:border-0 hover:bg-slate-50 cursor-pointer transition-colors">
-                  <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
-                    <span className="material-symbols-rounded text-blue-600 text-[18px]">receipt_long</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <input className="sbi" value={invSearch} onChange={e => setInvSearch(e.target.value)} placeholder="🔍 Search by party or invoice number..." />
+            <div className="sbc" style={{ overflow: 'hidden' }}>
+              {loadingInv && <PageSpinner />}
+              {!loadingInv && fInv.length === 0 && <div style={{ padding: '40px 16px', textAlign: 'center' }}><p style={{ color: '#94a3b8', fontWeight: 700 }}>No invoices found</p></div>}
+              {fInv.map(inv => (
+                <div key={inv.id} onClick={() => { setSelectedInv(inv); goTo('view-invoice'); }} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderBottom: '1px solid #fafafa', cursor: 'pointer', transition: 'background .15s' }}>
+                  <div style={{ width: 40, height: 40, borderRadius: 14, background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><span className="material-symbols-rounded" style={{ fontSize: 18, color: '#2563eb' }}>receipt_long</span></div>
+                  <div style={{ flex: 1, minWidth: 0 }}><p style={{ fontWeight: 700, color: '#0f172a', fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{inv.partyName || 'Walk-in'}</p><p style={{ fontSize: 10, color: '#94a3b8', fontWeight: 700 }}>{inv.number || '—'} · {inv.date}</p></div>
+                  <div style={{ textAlign: 'right', flexShrink: 0, marginRight: 8 }}>
+                    <p style={{ fontWeight: 900, fontSize: 14, color: '#0f172a' }}>{fmt(inv.grandTotal)}</p>
+                    <span style={{ padding: '2px 8px', borderRadius: 9999, fontSize: 9, fontWeight: 900, textTransform: 'uppercase', ...Object.fromEntries(stCls(inv.status).split(';').map(p => p.trim().split(':').map(s => s.trim()))) }}>{inv.status}</span>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-slate-900 text-[13px] truncate">{inv.partyName || 'Walk-in'}</p>
-                    <p className="text-[10px] text-slate-400 font-bold">{inv.number} • {inv.date}</p>
-                  </div>
-                  <div className="text-right mr-2 shrink-0">
-                    <p className="font-black text-slate-900 text-[14px]">{fmt(inv.grandTotal)}</p>
-                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase stat-${inv.status}`}>{inv.status}</span>
-                  </div>
-                  <div className="flex gap-1 shrink-0">
-                    <button onClick={() => shareWA(inv)} className="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center hover:bg-emerald-100" title="Share WhatsApp">
-                      <span className="material-symbols-rounded text-emerald-600 text-[14px]">chat</span>
-                    </button>
-                    <button className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center hover:bg-slate-200" title="Download PDF">
-                      <span className="material-symbols-rounded text-slate-600 text-[14px]">picture_as_pdf</span>
-                    </button>
+                  <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+                    <button onClick={e => { e.stopPropagation(); shareWA(inv); }} style={{ width: 32, height: 32, borderRadius: 10, background: '#f0fdf4', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span className="material-symbols-rounded" style={{ fontSize: 14, color: '#16a34a' }}>chat</span></button>
+                    <button onClick={e => { e.stopPropagation(); printInv(inv); }} style={{ width: 32, height: 32, borderRadius: 10, background: '#f8fafc', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span className="material-symbols-rounded" style={{ fontSize: 14, color: '#64748b' }}>print</span></button>
                   </div>
                 </div>
               ))}
@@ -629,32 +637,80 @@ Match items from the catalog if mentioned. Handle Hindi/Telugu/English mixed.`,
           </div>
         )}
 
-        {/* ══ PARTIES ════════════════════════════════════════════════ */}
+        {/* ── VIEW INVOICE ── */}
+        {view === 'view-invoice' && selectedInv && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingBottom: 24 }}>
+            <div className="sbc" style={{ padding: 20 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+                <div>
+                  <p style={{ fontWeight: 900, fontSize: 20, color: '#0f172a' }}>{selectedInv.number || 'Draft Invoice'}</p>
+                  <p style={{ color: '#64748b', fontSize: 12, fontWeight: 700, marginTop: 4 }}>{selectedInv.date}</p>
+                  <span style={{ display: 'inline-block', marginTop: 8, padding: '4px 12px', borderRadius: 9999, fontSize: 10, fontWeight: 900, textTransform: 'uppercase', ...Object.fromEntries(stCls(selectedInv.status).split(';').map(p => p.trim().split(':').map(s => s.trim()))) }}>{selectedInv.status}</span>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <p style={{ fontSize: 11, color: '#94a3b8', fontWeight: 700 }}>Grand Total</p>
+                  <p style={{ fontWeight: 900, color: '#1d4ed8', fontSize: 26 }}>{fmt(selectedInv.grandTotal)}</p>
+                  {/* Phase 1: Convert Quotation to Invoice Button */}
+                  {(selectedInv as any).type === 'quotation' && (
+                    <button onClick={() => convertToInvoice(selectedInv)} style={{ marginTop: 8, width: '100%', background: '#2563eb', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                      <span className="material-symbols-rounded" style={{ fontSize: 14 }}>transform</span> Convert to Invoice
+                    </button>
+                  )}
+                </div>
+              </div>
+              {selectedInv.party && (
+                <div style={{ padding: 12, background: '#f8fafc', borderRadius: 12, marginBottom: 12 }}>
+                  <p className="sbl" style={{ marginBottom: 4 }}>Bill To</p>
+                  <p style={{ fontWeight: 700, color: '#0f172a' }}>{selectedInv.party.name}</p>
+                  {selectedInv.party.gstin && <p style={{ fontSize: 11, color: '#64748b', fontWeight: 700 }}>GSTIN: {selectedInv.party.gstin}</p>}
+                  {selectedInv.party.phone && <p style={{ fontSize: 11, color: '#64748b', fontWeight: 700 }}>📞 {selectedInv.party.phone}</p>}
+                </div>
+              )}
+              {selectedInv.notes && <p style={{ fontSize: 11, color: '#64748b', fontWeight: 700, borderTop: '1px solid #e2e8f0', paddingTop: 12 }}>{selectedInv.notes}</p>}
+            </div>
+            <div className="sbc" style={{ padding: 16 }}>
+              <p className="sbl" style={{ marginBottom: 12 }}>Update Status</p>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {['draft', 'finalized', 'paid', 'cancelled'].map(s => (
+                  <button key={s} onClick={() => markStatus(selectedInv, s)} style={{ padding: '8px 16px', borderRadius: 12, border: 'none', cursor: 'pointer', fontSize: 10, fontWeight: 900, textTransform: 'uppercase', background: selectedInv.status === s ? '#1d4ed8' : '#f1f5f9', color: selectedInv.status === s ? '#fff' : '#475569' }}>{s}</button>
+                ))}
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              {[
+                { l: 'WhatsApp Share', ic: 'chat', bg: '#f0fdf4', c: '#16a34a', d: 'Send to customer', a: () => shareWA(selectedInv) }, 
+                { l: 'Print A4 PDF', ic: 'print', bg: '#eff6ff', c: '#2563eb', d: 'Standard format', a: () => printInv(selectedInv, 'A4') },
+                { l: 'Print Thermal', ic: 'receipt_long', bg: '#fdf4ff', c: '#c026d3', d: '3-inch POS printer', a: () => printInv(selectedInv, 'Thermal') },
+                { l: 'Export CSV', ic: 'download', bg: '#fffbeb', c: '#d97706', d: 'For Excel / Mail', a: () => exportCSV(selectedInv) }
+              ].map(a => (
+                <button key={a.l} onClick={a.a} className="sbc" style={{ padding: 16, display: 'flex', alignItems: 'center', gap: 12, border: 'none', cursor: 'pointer', background: a.bg, borderRadius: 20 }}>
+                  <span className="material-symbols-rounded" style={{ fontSize: 22, color: a.c }}>{a.ic}</span>
+                  <div style={{ textAlign: 'left' }}><p style={{ fontWeight: 900, fontSize: 12, color: '#0f172a' }}>{a.l}</p><p style={{ fontSize: 10, color: '#64748b' }}>{a.d}</p></div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── PARTIES ── */}
         {view === 'parties' && (
-          <div className="space-y-3">
-            <div className="flex gap-2">
-              <input className="sb-input flex-1" placeholder="🔍 Search parties..." />
-              <button className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-xl text-[11px] font-black hover:bg-blue-700 shrink-0">
-                <span className="material-symbols-rounded text-[14px]">add</span> Add Party
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input className="sbi" style={{ flex: 1 }} value={parSearch} onChange={e => setParSearch(e.target.value)} placeholder="🔍 Search parties..." />
+              <button onClick={() => goTo('add-party')} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 16px', background: '#1d4ed8', color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer', fontSize: 11, fontWeight: 900, flexShrink: 0 }}>
+                <span className="material-symbols-rounded" style={{ fontSize: 14 }}>add</span>Add
               </button>
             </div>
-            <div className="sb-card overflow-hidden">
-              {parties.map(p => (
-                <div key={p.id} className="flex items-center gap-3 px-4 py-3.5 border-b border-slate-50 last:border-0 hover:bg-slate-50 cursor-pointer">
-                  <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center font-black text-violet-700 text-[14px] shrink-0">
-                    {p.name.charAt(0).toUpperCase()}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-slate-900 text-[13px] truncate">{p.name}</p>
-                    <p className="text-[10px] text-slate-400 font-bold">{p.phone || 'No phone'}{p.gstin ? ` · ${p.gstin}` : ' · No GSTIN'}</p>
-                  </div>
-                  <div className="flex gap-1 shrink-0">
-                    <button onClick={() => shareWA({ id: '', number: '', date: '', status: 'draft', lines: [], grandTotal: 0, partyId: p.id, partyName: p.name })} className="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center hover:bg-emerald-100">
-                      <span className="material-symbols-rounded text-emerald-600 text-[14px]">chat</span>
-                    </button>
-                    <button className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center hover:bg-blue-100">
-                      <span className="material-symbols-rounded text-blue-600 text-[14px]">receipt_long</span>
-                    </button>
+            <div className="sbc" style={{ overflow: 'hidden' }}>
+              {loadingPar && <PageSpinner />}
+              {!loadingPar && fPar.length === 0 && <div style={{ padding: '40px 16px', textAlign: 'center' }}><p style={{ color: '#94a3b8', fontWeight: 700 }}>No parties yet</p></div>}
+              {fPar.map(p => (
+                <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderBottom: '1px solid #fafafa', transition: 'background .15s' }}>
+                  <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#f5f3ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, color: '#7c3aed', fontSize: 16, flexShrink: 0 }}>{p.name.charAt(0).toUpperCase()}</div>
+                  <div style={{ flex: 1, minWidth: 0 }}><p style={{ fontWeight: 700, color: '#0f172a', fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</p><p style={{ fontSize: 10, color: '#94a3b8', fontWeight: 700 }}>{p.phone || 'No phone'}{p.gstin ? ' · ' + p.gstin : ' · No GSTIN'}</p></div>
+                  <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+                    <button onClick={() => { setSelPartyId(p.id); goTo('new-invoice'); }} style={{ width: 32, height: 32, borderRadius: 10, background: '#eff6ff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span className="material-symbols-rounded" style={{ fontSize: 14, color: '#2563eb' }}>receipt_long</span></button>
+                    {p.phone && <button onClick={() => shareWA({ id: '', number: '', date: today, status: 'draft', grandTotal: 0, partyId: p.id, partyName: p.name })} style={{ width: 32, height: 32, borderRadius: 10, background: '#f0fdf4', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span className="material-symbols-rounded" style={{ fontSize: 14, color: '#16a34a' }}>chat</span></button>}
                   </div>
                 </div>
               ))}
@@ -662,131 +718,163 @@ Match items from the catalog if mentioned. Handle Hindi/Telugu/English mixed.`,
           </div>
         )}
 
-        {/* ══ ITEMS ══════════════════════════════════════════════════ */}
+        {/* ── ADD PARTY ── */}
+        {view === 'add-party' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingBottom: 100 }}>
+            <div className="sbc" style={{ padding: 20 }}>
+              <p style={{ fontWeight: 900, color: '#0f172a', fontSize: 15, marginBottom: 20 }}>Add Customer / Supplier</p>
+              {[{ l: 'Full Name *', k: 'name', ph: 'Ravi Kumar Enterprises', t: 'text' }, { l: 'Phone', k: 'phone', ph: '9876543210', t: 'tel' }, { l: 'GSTIN', k: 'gstin', ph: '29ABCDE1234F1Z5', t: 'text' }, { l: 'Email', k: 'email', ph: 'ravi@example.com', t: 'email' }, { l: 'Billing Address', k: 'billingAddress', ph: '123, MG Road, Hyderabad', t: 'text' }].map(f => (
+                <div key={f.k} style={{ marginBottom: 16 }}><label className="sbl">{f.l}</label><input type={f.t} className="sbi" value={(newParty as any)[f.k]} onChange={e => setNewParty(prev => ({ ...prev, [f.k]: e.target.value }))} placeholder={f.ph} /></div>
+              ))}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div><label className="sbl">Type</label><select className="sbi" value={newParty.type} onChange={e => setNewParty(prev => ({ ...prev, type: e.target.value }))}><option value="customer">Customer</option><option value="supplier">Supplier</option><option value="both">Both</option></select></div>
+                <div><label className="sbl">State</label><select className="sbi" value={newParty.stateCode} onChange={e => setNewParty(prev => ({ ...prev, stateCode: e.target.value }))}>{STATES.map(s => <option key={s.c} value={s.c}>{s.c} – {s.n}</option>)}</select></div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── ITEMS ── */}
         {view === 'items' && (
-          <div className="space-y-3">
-            <div className="flex gap-2">
-              <input className="sb-input flex-1" placeholder="🔍 Search products / services..." />
-              <button className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-xl text-[11px] font-black hover:bg-blue-700 shrink-0">
-                <span className="material-symbols-rounded text-[14px]">add</span> Add Item
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input className="sbi" style={{ flex: 1 }} placeholder="🔍 Search products / services..." />
+              <button onClick={() => goTo('add-item')} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 16px', background: '#1d4ed8', color: '#fff', border: 'none', borderRadius: 12, cursor: 'pointer', fontSize: 11, fontWeight: 900, flexShrink: 0 }}>
+                <span className="material-symbols-rounded" style={{ fontSize: 14 }}>add</span>Add
               </button>
             </div>
-            <div className="sb-card overflow-hidden">
+            <div className="sbc" style={{ overflow: 'hidden' }}>
+              {loadingItm && <PageSpinner />}
+              {!loadingItm && items.length === 0 && <div style={{ padding: '40px 16px', textAlign: 'center' }}><p style={{ color: '#94a3b8', fontWeight: 700 }}>No items yet — add your first product!</p></div>}
               {items.map(it => (
-                <div key={it.id} className="flex items-center gap-3 px-4 py-3.5 border-b border-slate-50 last:border-0 hover:bg-slate-50 cursor-pointer">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0">
-                    <span className="material-symbols-rounded text-emerald-600 text-[18px]">inventory_2</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-slate-900 text-[13px] truncate">{it.name}</p>
-                    <p className="text-[10px] text-slate-400 font-bold">HSN: {it.hsnSac || '—'} · GST: {it.gstRate}% · {it.unit}</p>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <p className="font-black text-slate-900 text-[14px]">₹{it.salePrice}</p>
-                    {it.stockQty !== undefined && (
-                      <p className={`text-[9px] font-black ${it.stockQty < 10 ? 'text-rose-500' : 'text-emerald-600'}`}>Stock: {it.stockQty}</p>
-                    )}
+                <div key={it.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderBottom: '1px solid #fafafa', transition: 'background .15s' }}>
+                  <div style={{ width: 40, height: 40, borderRadius: 14, background: '#f0fdf4', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><span className="material-symbols-rounded" style={{ fontSize: 18, color: '#16a34a' }}>inventory_2</span></div>
+                  <div style={{ flex: 1, minWidth: 0 }}><p style={{ fontWeight: 700, color: '#0f172a', fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.name}</p><p style={{ fontSize: 10, color: '#94a3b8', fontWeight: 700 }}>HSN: {it.hsnSac || '—'} · GST: {it.gstRate}% · {it.unit}</p></div>
+                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                    <p style={{ fontWeight: 900, color: '#0f172a', fontSize: 14 }}>₹{it.salePrice}</p>
+                    {it.stockQty != null && <p style={{ fontSize: 9, fontWeight: 900, color: it.stockQty < 10 ? '#ef4444' : '#16a34a' }}>Stk: {it.stockQty}</p>}
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── ADD ITEM ── */}
+        {view === 'add-item' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingBottom: 100 }}>
+            <div className="sbc" style={{ padding: 20 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                <p style={{ fontWeight: 900, color: '#0f172a', fontSize: 15 }}>Add Product / Service</p>
+                <button onClick={() => { setShowAI(true); setArkleQ(`What is the HSN code and GST rate for ${newItm.name || 'this product'}?`); }} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', background: '#eff6ff', color: '#2563eb', border: 'none', borderRadius: 10, cursor: 'pointer', fontSize: 10, fontWeight: 900 }}>
+                  <span className="material-symbols-rounded" style={{ fontSize: 12 }}>psychology</span>Ask Arkle HSN
+                </button>
+              </div>
+              {[{ l: 'Item Name *', k: 'name', ph: 'HP Laptop 15s', t: 'text' }, { l: 'HSN / SAC Code', k: 'hsnSac', ph: '8471 (Laptops)', t: 'text' }, { l: 'Description', k: 'description', ph: 'Brief description', t: 'text' }].map(f => (
+                <div key={f.k} style={{ marginBottom: 16 }}><label className="sbl">{f.l}</label><input type={f.t} className="sbi" value={(newItm as any)[f.k]} onChange={e => setNewItm(prev => ({ ...prev, [f.k]: e.target.value }))} placeholder={f.ph} /></div>
+              ))}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div><label className="sbl">Sale Price ₹</label><input type="number" className="sbi" value={newItm.salePrice} min={0} onChange={e => setNewItm(prev => ({ ...prev, salePrice: Number(e.target.value) }))} /></div>
+                <div><label className="sbl">GST Rate %</label><select className="sbi" value={newItm.gstRate} onChange={e => setNewItm(prev => ({ ...prev, gstRate: Number(e.target.value) }))}>{GST_RATES.map(r => <option key={r} value={r}>{r}%</option>)}</select></div>
+                <div><label className="sbl">Unit</label><select className="sbi" value={newItm.unit} onChange={e => setNewItm(prev => ({ ...prev, unit: e.target.value }))}>{UNITS.map(u => <option key={u}>{u}</option>)}</select></div>
+                <div><label className="sbl">Stock Qty</label><input type="number" className="sbi" value={newItm.stockQty} min={0} onChange={e => setNewItm(prev => ({ ...prev, stockQty: Number(e.target.value), trackStock: Number(e.target.value) > 0 }))} /></div>
+              </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* ── CAMERA MODAL ─────────────────────────────────────────── */}
-      <AnimatePresence>
-        {showCamera && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black z-[300] flex flex-col">
-            <div className="flex items-center justify-between p-4 shrink-0">
-              <p className="text-white font-black text-[15px]">📸 Scan Handwritten Bill</p>
-              <button onClick={() => { (videoRef.current?.srcObject as MediaStream)?.getTracks().forEach(t => t.stop()); setShowCamera(false); }} className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                <span className="material-symbols-rounded text-white text-[18px]">close</span>
-              </button>
-            </div>
-            <div className="flex-1 relative overflow-hidden">
-              <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
-              <div className="absolute inset-8 border-2 border-white/80 rounded-xl pointer-events-none">
-                <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-blue-400 rounded-tl-lg" />
-                <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-blue-400 rounded-tr-lg" />
-                <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-blue-400 rounded-bl-lg" />
-                <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-blue-400 rounded-br-lg" />
-              </div>
-              <p className="absolute bottom-24 inset-x-0 text-center text-white/80 text-[12px] font-bold">Point at the bill/invoice to scan</p>
-            </div>
-            <div className="p-6 flex gap-4 justify-center shrink-0">
-              <button onClick={() => { fileInputRef.current?.click(); setShowCamera(false); }} className="flex items-center gap-2 px-5 py-3 bg-white/20 text-white rounded-2xl font-bold text-[13px]">
-                <span className="material-symbols-rounded">photo_library</span> Gallery
-              </button>
-              <button onClick={capturePhoto} className="w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-2xl active:scale-95">
-                <div className="w-12 h-12 rounded-full border-4 border-slate-300 bg-slate-100" />
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ── BARCODE MODAL ───────────────────────────────────────────── */}
-      <AnimatePresence>
-        {showBarcode && (
-          <motion.div initial={{ opacity: 0, y: 60 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 60 }} className="fixed inset-x-0 bottom-0 z-[300] bg-white rounded-t-[28px] shadow-2xl p-5">
-            <div className="w-12 h-1 bg-slate-200 rounded-full mx-auto mb-4" />
-            <div className="flex items-center justify-between mb-4">
-              <p className="font-black text-slate-900 text-[15px]">📦 Barcode Scanner</p>
-              <button onClick={() => setShowBarcode(false)} className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
-                <span className="material-symbols-rounded text-slate-600 text-[16px]">close</span>
-              </button>
-            </div>
-            <div className="bg-slate-100 rounded-2xl p-8 text-center mb-4">
-              <span className="material-symbols-rounded text-slate-400 text-[56px]">qr_code_scanner</span>
-              <p className="text-slate-500 font-bold text-[13px] mt-2">Point at EAN-13, QR, or UPC barcode</p>
-              <p className="text-slate-400 text-[10px] mt-1">Supports EAN-13, QR Code, UPC-A, Code-128</p>
-            </div>
-            <input className="sb-input mb-3" placeholder="Or type barcode number manually..." value={barcodeInput} onChange={e => setBarcodeInput(e.target.value)} />
-            <button onClick={() => {
-              const matched = items[0];
-              if (matched) { setLines(prev => [...prev.filter(l => l.description), { itemId: matched.id, description: matched.name, hsnSac: matched.hsnSac, qty: 1, unit: matched.unit, rate: matched.salePrice, discountPct: 0, gstRate: matched.gstRate }]); }
-              setAiMsg(`✅ Barcode matched: ${matched?.name || 'item'} — added to invoice`);
-              setShowBarcode(false);
-            }} className="w-full flex items-center justify-center gap-2 py-3 bg-blue-600 text-white rounded-2xl font-black text-[13px] hover:bg-blue-700 transition-all">
-              <span className="material-symbols-rounded text-[16px]">check</span> Add to Invoice
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ── IMAGE PROCESSING OVERLAY ────────────────────────────────── */}
-      <AnimatePresence>
-        {processingImage && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[400] flex items-center justify-center">
-            <div className="bg-white rounded-3xl p-8 text-center shadow-2xl mx-6 max-w-xs">
-              <div className="w-16 h-16 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin mx-auto mb-4" />
-              <p className="font-black text-slate-900 text-[15px]">Arkle is reading your bill...</p>
-              <p className="text-slate-400 text-[11px] mt-1 font-bold">AI-powered OCR in progress</p>
-              <div className="mt-4 flex gap-1 justify-center">
-                {['Detecting text', 'Reading amounts', 'Matching items'].map((s, i) => (
-                  <span key={s} className="text-[9px] px-2 py-1 bg-blue-50 text-blue-600 rounded-full font-bold" style={{ animationDelay: `${i * 0.3}s` }}>{s}</span>
-                ))}
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ── SAVE BUTTON BAR (New Invoice) ──────────────────────────── */}
+      {/* BOTTOM BARS */}
       {view === 'new-invoice' && (
-        <div className="shrink-0 border-t border-slate-100 bg-white px-4 py-3 flex items-center gap-3" style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}>
-          <div className="flex-1">
-            <p className="text-[9px] text-slate-400 font-bold uppercase">Invoice Total</p>
-            <p className="font-black text-blue-700 text-[18px]">{fmt(totals.grand)}</p>
-          </div>
-          <button onClick={() => { setView('dashboard'); setLines([{ description: '', qty: 1, unit: 'pcs', rate: 0, discountPct: 0, gstRate: 18 }]); setSelPartyId(''); }} className="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-600 font-black text-[12px] hover:bg-slate-200 transition-all">Cancel</button>
-          <button onClick={saveInvoice} disabled={saving} className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl font-black text-[12px] hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/25 disabled:opacity-60">
-            {saving ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <span className="material-symbols-rounded text-[15px]">{saveSuccess ? 'check_circle' : 'save'}</span>}
-            {saving ? 'Saving...' : saveSuccess ? 'Saved! ✅' : 'Save Invoice'}
-          </button>
+        <div style={{ flexShrink: 0, borderTop: '1px solid #f1f5f9', background: '#fff', padding: '12px 16px', display: 'flex', gap: 12, alignItems: 'center', paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}>
+          <div style={{ flex: 1 }}><p style={{ fontSize: 9, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase' }}>Total</p><p style={{ fontWeight: 900, color: '#1d4ed8', fontSize: 20 }}>{fmt(totals.grand)}</p></div>
+          <button onClick={() => { resetForm(); goTo('dashboard'); }} style={{ padding: '10px 16px', borderRadius: 12, background: '#f1f5f9', color: '#475569', border: 'none', cursor: 'pointer', fontWeight: 900, fontSize: 12 }}>Cancel</button>
+          <button onClick={() => saveInvoice('draft')} disabled={saving} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', background: '#334155', color: '#fff', border: 'none', borderRadius: 12, cursor: saving ? 'not-allowed' : 'pointer', fontWeight: 900, fontSize: 12, opacity: saving ? .6 : 1 }}>{saving ? <Spinner /> : <span className="material-symbols-rounded" style={{ fontSize: 15 }}>save</span>}Draft</button>
+          <button onClick={() => saveInvoice('finalized')} disabled={saving} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', background: saved ? '#16a34a' : '#1d4ed8', color: '#fff', border: 'none', borderRadius: 12, cursor: saving ? 'not-allowed' : 'pointer', fontWeight: 900, fontSize: 12, boxShadow: '0 4px 12px rgba(29,78,216,.3)', opacity: saving ? .6 : 1, transition: 'background .3s' }}>{saving ? <Spinner /> : <span className="material-symbols-rounded" style={{ fontSize: 15 }}>{saved ? 'check_circle' : 'receipt_long'}</span>}{saved ? 'Saved! ✅' : 'Finalize'}</button>
         </div>
       )}
+      {view === 'add-party' && (
+        <div style={{ flexShrink: 0, borderTop: '1px solid #f1f5f9', background: '#fff', padding: '12px 16px', display: 'flex', gap: 12, paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}>
+          <button onClick={() => goTo('parties')} style={{ flex: 1, padding: 12, borderRadius: 12, background: '#f1f5f9', border: 'none', cursor: 'pointer', fontWeight: 900, fontSize: 12, color: '#475569' }}>Cancel</button>
+          <button onClick={saveParty} disabled={savingParty || !newParty.name.trim()} style={{ flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 12, background: '#1d4ed8', color: '#fff', border: 'none', borderRadius: 12, cursor: savingParty || !newParty.name.trim() ? 'not-allowed' : 'pointer', fontWeight: 900, fontSize: 12, opacity: savingParty || !newParty.name.trim() ? .5 : 1 }}>{savingParty ? <Spinner /> : <span className="material-symbols-rounded" style={{ fontSize: 15 }}>person_add</span>}Save Party</button>
+        </div>
+      )}
+      {view === 'add-item' && (
+        <div style={{ flexShrink: 0, borderTop: '1px solid #f1f5f9', background: '#fff', padding: '12px 16px', display: 'flex', gap: 12, paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}>
+          <button onClick={() => goTo('items')} style={{ flex: 1, padding: 12, borderRadius: 12, background: '#f1f5f9', border: 'none', cursor: 'pointer', fontWeight: 900, fontSize: 12, color: '#475569' }}>Cancel</button>
+          <button onClick={saveItem} disabled={savingItm || !newItm.name.trim()} style={{ flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 12, background: '#16a34a', color: '#fff', border: 'none', borderRadius: 12, cursor: savingItm || !newItm.name.trim() ? 'not-allowed' : 'pointer', fontWeight: 900, fontSize: 12, opacity: savingItm || !newItm.name.trim() ? .5 : 1 }}>{savingItm ? <Spinner /> : <span className="material-symbols-rounded" style={{ fontSize: 15 }}>add_box</span>}Save Item</button>
+        </div>
+      )}
+
+      {/* CAMERA MODAL */}
+      <AnimatePresence>
+        {showCam && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, background: '#000', zIndex: 300, display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 16, flexShrink: 0 }}>
+              <p style={{ color: '#fff', fontWeight: 900, fontSize: 16 }}>📸 Scan Bill / Invoice</p>
+              <button onClick={() => { (vidRef.current?.srcObject as MediaStream)?.getTracks().forEach(t => t.stop()); setShowCam(false); }} style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,.2)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span className="material-symbols-rounded" style={{ color: '#fff', fontSize: 20 }}>close</span>
+              </button>
+            </div>
+            <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+              <video ref={vidRef} autoPlay playsInline muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <canvas ref={canvasRef} style={{ display: 'none' }} />
+              <div style={{ position: 'absolute', inset: 40, border: '2px solid rgba(255,255,255,.5)', borderRadius: 16, pointerEvents: 'none' }} />
+              <p style={{ position: 'absolute', bottom: 100, left: '50%', transform: 'translateX(-50%)', color: 'rgba(255,255,255,.8)', fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap' }}>Point at bill or invoice</p>
+            </div>
+            <div style={{ padding: '24px', display: 'flex', gap: 16, justifyContent: 'center', flexShrink: 0 }}>
+              <button onClick={() => { fileRef.current?.click(); setShowCam(false); }} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 20px', background: 'rgba(255,255,255,.2)', color: '#fff', border: 'none', borderRadius: 16, cursor: 'pointer', fontWeight: 700, fontSize: 13 }}>
+                <span className="material-symbols-rounded">photo_library</span>Gallery
+              </button>
+              <button onClick={capturePhoto} style={{ width: 68, height: 68, borderRadius: '50%', background: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 20px rgba(0,0,0,.4)' }}>
+                <div style={{ width: 54, height: 54, borderRadius: '50%', border: '4px solid #e2e8f0', background: '#f8fafc' }} />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* BARCODE MODAL */}
+      <AnimatePresence>
+        {showBC && (
+          <motion.div initial={{ opacity: 0, y: 80 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 80 }} style={{ position: 'fixed', inset: '0 0 0 0', background: 'rgba(0,0,0,.5)', zIndex: 300, display: 'flex', alignItems: 'flex-end' }}>
+            <div style={{ background: '#fff', borderRadius: '28px 28px 0 0', padding: 20, width: '100%' }}>
+              <div style={{ width: 48, height: 4, background: '#e2e8f0', borderRadius: 9999, margin: '0 auto 16px' }} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <p style={{ fontWeight: 900, fontSize: 16, color: '#0f172a' }}>📦 Barcode Scanner</p>
+                <button onClick={() => setShowBC(false)} style={{ width: 32, height: 32, borderRadius: '50%', background: '#f1f5f9', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span className="material-symbols-rounded" style={{ fontSize: 16, color: '#475569' }}>close</span>
+                </button>
+              </div>
+              <div style={{ background: '#f8fafc', borderRadius: 16, padding: 32, textAlign: 'center', marginBottom: 16 }}>
+                <span className="material-symbols-rounded" style={{ fontSize: 56, color: '#cbd5e1' }}>qr_code_scanner</span>
+                <p style={{ color: '#94a3b8', fontWeight: 700, fontSize: 13, marginTop: 8 }}>EAN-13, QR Code, UPC-A, Code-128</p>
+              </div>
+              <input className="sbi" style={{ marginBottom: 12 }} placeholder="Type barcode number manually..." value={bcVal} onChange={e => setBcVal(e.target.value)} />
+              <button onClick={() => {
+                const matched = items.find(it => it.hsnSac === bcVal || it.name.toLowerCase().includes(bcVal.toLowerCase()));
+                if (matched) { setLines(prev => [...prev.filter(l => l.description), { ...newLine(), itemId: matched.id, description: matched.name, hsnSac: matched.hsnSac || '', rate: matched.salePrice, gstRate: matched.gstRate, unit: matched.unit }]); setAiMsg(`"${matched.name}" added from barcode`); setShowAI(true); }
+                setShowBC(false); setBcVal('');
+              }} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 14, background: '#1d4ed8', color: '#fff', border: 'none', borderRadius: 16, cursor: 'pointer', fontWeight: 900, fontSize: 13 }}>
+                <span className="material-symbols-rounded" style={{ fontSize: 16 }}>check</span>Add to Invoice
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* OCR OVERLAY */}
+      <AnimatePresence>
+        {processing && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.7)', backdropFilter: 'blur(4px)', zIndex: 400, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+            <div style={{ background: '#fff', borderRadius: 24, padding: 32, textAlign: 'center', maxWidth: 300, width: '100%' }}>
+              <div className="spin" style={{ width: 64, height: 64, border: '4px solid #dbeafe', borderTopColor: '#1d4ed8', borderRadius: '50%', margin: '0 auto 16px' }} />
+              <p style={{ fontWeight: 900, color: '#0f172a', fontSize: 16 }}>Arkle is reading your bill...</p>
+              <p style={{ color: '#94a3b8', fontSize: 11, fontWeight: 700, marginTop: 4 }}>AI-powered OCR + GST extraction</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

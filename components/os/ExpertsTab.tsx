@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // ── Types & Constants ────────────────────────────────────────────────────────
-type BusinessStage = 'idea' | 'existing';
+type BusinessStage = 'idea' | 'growing' | 'existing';
 type AdvisorPersona = 'CEO' | 'CMO' | 'CA' | 'Admin';
 
 const INCORPORATION_CHECKLIST = {
@@ -141,10 +141,10 @@ Answer like a world-class professional ${activePersona} with practical, direct g
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-            🧠 Arkle Advisor & Co-Founder Board
+            🎯 SetMyBizz Professional Desk
           </h1>
           <p className="text-slate-500 font-medium text-xs mt-1 uppercase tracking-wider">
-            Start, Run, Manage, and Operate your entire enterprise with AI guidance.
+            Smart legal, compliance, and CA services tailored to your business stage.
           </p>
         </div>
 
@@ -154,13 +154,19 @@ Answer like a world-class professional ${activePersona} with practical, direct g
             onClick={() => { setStage('idea'); setAiOutput(''); }}
             className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all ${stage === 'idea' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
           >
-            🌱 Start & Validate Idea
+            🌱 1. Idea Stage
+          </button>
+          <button
+            onClick={() => { setStage('growing'); setAiOutput(''); }}
+            className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all ${stage === 'growing' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+          >
+            ⚙️ 2. Growing Setup
           </button>
           <button
             onClick={() => { setStage('existing'); setAiOutput(''); }}
             className={`px-4 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all ${stage === 'existing' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
           >
-            🚀 Run & Scale Business
+            🚀 3. Existing Scale
           </button>
         </div>
       </div>
@@ -334,7 +340,72 @@ Answer like a world-class professional ${activePersona} with practical, direct g
         </div>
       )}
 
-      {/* ═══════ STAGE 2: EXISTING BUSINESS OPERATION & ADVISORY ═══════ */}
+
+      {/* ═══════ STAGE 2: GROWING SETUP & LEGAL INCORPORATION ═══════ */}
+      {stage === 'growing' && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-5 space-y-4">
+            <div className="adv-card p-6 space-y-4">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-rounded text-blue-600">gavel</span>
+                <p className="text-[11px] font-black text-slate-900 uppercase tracking-wider">Business Registration Hub</p>
+              </div>
+              <p className="text-[11px] text-slate-500 font-medium">Select growing business registrations. SetMyBizz team handles filings directly.</p>
+              
+              <div className="space-y-3">
+                {[
+                  { name: 'Udyam / MSME Registration', desc: 'Settle tax benefits and subvention loans', cost: '₹999' },
+                  { name: 'GSTIN Registration', desc: 'For inter-state selling (Amazon/Flipkart ready)', cost: '₹1,999' },
+                  { name: 'Trademark Registry (TM)', desc: 'Protect brand name & logo', cost: '₹5,999' },
+                  { name: 'Startup India DPIIT Recognition', desc: 'Get 3 Years Tax Exemption benefits', cost: '₹4,999' }
+                ].map((s, i) => (
+                  <div key={i} className="flex justify-between items-center p-3 rounded-xl bg-slate-50 border border-slate-100 hover:border-slate-200 transition-all">
+                    <div>
+                      <p className="text-[11px] font-bold text-slate-800 leading-tight">{s.name}</p>
+                      <p className="text-[9px] text-slate-400 font-bold mt-0.5">{s.desc}</p>
+                    </div>
+                    <button onClick={() => { setCaReviewStatus(`Initiated ${s.name} registration request.`); }} className="px-2.5 py-1 bg-blue-100 text-blue-700 rounded-lg text-[9px] font-black uppercase whitespace-nowrap">{s.cost}</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div className="adv-card p-6 space-y-4">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-rounded text-emerald-600">account_balance</span>
+                <p className="text-[11px] font-black text-slate-900 uppercase tracking-wider">Zero-Balance Banking OS</p>
+              </div>
+              <p className="text-[11px] text-slate-500 font-medium">Instantly set up startup bank accounts with ICICI, HDFC, or Jupiter partner APIs directly inside your OS.</p>
+              <button onClick={() => { setCaReviewStatus('Redirecting to Partner KYC Verification...'); }} className="w-full adv-btn adv-btn-primary bg-emerald-600 hover:bg-emerald-700">Open Startup Bank Account →</button>
+            </div>
+          </div>
+          
+          <div className="lg:col-span-7 space-y-4">
+            <div className="adv-card p-6 space-y-4">
+              <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
+                <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600">
+                  <span className="material-symbols-rounded text-[20px]">chat</span>
+                </div>
+                <div>
+                  <h3 className="font-black text-slate-900 text-sm uppercase">Speak with CA / Tax Advisor</h3>
+                  <p className="text-[9px] text-slate-400 font-bold uppercase mt-0.5">SetMyBizz Realtime Help Desk</p>
+                </div>
+              </div>
+              
+              <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl text-[12px] text-slate-600 font-semibold leading-relaxed">
+                💬 Need advice on private company incorporation, GST exemptions, or director listings? Click below to start an interactive consult with a live professional SetMyBizz accountant.
+              </div>
+              
+              <div className="flex gap-2">
+                <button onClick={() => { setAiOutput('CA Advisor: "Hello! SetMyBizz CA here. Based on your stage, we recommend starting with a Proprietorship or LLP to keep compliance costs low. Let us know if you want to apply for MSME Udyam."'); }} className="adv-btn adv-btn-primary flex-1">Book Free Consultation Call</button>
+                <button onClick={() => { setAiOutput('CA Advisor: "Here is your customized document checklist: 1. PAN, 2. Aadhaar, 3. Address Proof (Electricity bill / Rent agreement). Please upload these in the Business Vault."'); }} className="adv-btn adv-btn-ghost flex-1">Get Document Checklist</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══════ STAGE 3: EXISTING BUSINESS OPERATION & ADVISORY ═══════ */}
       {stage === 'existing' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Parameters & Goals */}
@@ -404,8 +475,51 @@ Answer like a world-class professional ${activePersona} with practical, direct g
             </div>
           </div>
 
+          {/* CA & Compliance Services Desk */}
+          <div className="lg:col-span-12 space-y-4">
+            <div className="adv-card p-6 space-y-4">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="material-symbols-rounded text-emerald-600">assignment_turned_in</span>
+                <p className="text-[11px] font-black text-slate-900 uppercase tracking-wider">Professional CA & Compliance Services</p>
+              </div>
+              <p className="text-[11px] text-slate-500 font-medium mb-4">Select the services you need. Our professional CAs and experts will handle the rest.</p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[
+                  { name: 'GST Filing', desc: 'Monthly/Quarterly GSTR-1 & 3B filing', icon: 'receipt' },
+                  { name: 'Virtual CFO', desc: 'Strategic financial planning & forecasting', icon: 'trending_up' },
+                  { name: 'Statutory Audit', desc: 'Annual company audit by certified CA', icon: 'fact_check' },
+                  { name: 'CMA Reports', desc: 'Credit Monitoring Arrangement for bank loans', icon: 'analytics' },
+                  { name: 'Director KYC', desc: 'Annual DIR-3 KYC compliance', icon: 'badge' },
+                  { name: 'Bookkeeping', desc: 'End-to-end accounting & ledger maintenance', icon: 'menu_book' }
+                ].map((s, i) => (
+                  <div key={i} className="flex justify-between items-start p-4 rounded-xl bg-slate-50 border border-slate-100 hover:border-slate-200 transition-all">
+                    <div className="flex gap-3">
+                      <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                        <span className="material-symbols-rounded text-[16px]">{s.icon}</span>
+                      </div>
+                      <div>
+                        <p className="text-[12px] font-bold text-slate-800 leading-tight">{s.name}</p>
+                        <p className="text-[10px] text-slate-400 font-bold mt-1">{s.desc}</p>
+                      </div>
+                    </div>
+                    <button onClick={() => { setCaReviewStatus(`Requested service: ${s.name}. A CA will contact you shortly.`); }} className="px-3 py-1.5 bg-white border border-slate-200 text-slate-600 hover:text-emerald-600 hover:border-emerald-200 rounded-lg text-[9px] font-black uppercase whitespace-nowrap transition-all shadow-sm">
+                      Request
+                    </button>
+                  </div>
+                ))}
+              </div>
+              
+              {caReviewStatus && (
+                <div className="mt-4 p-3 bg-emerald-50 border border-emerald-100 rounded-xl text-[10px] font-bold text-emerald-700 leading-relaxed">
+                  📢 Status: {caReviewStatus}
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Interactive Advisory Output */}
-          <div className="lg:col-span-7 space-y-4">
+          <div className="lg:col-span-12 space-y-4">
             <div className="adv-card p-6 space-y-4">
               <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
                 <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600">
