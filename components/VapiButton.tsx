@@ -3,8 +3,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import Vapi from '@vapi-ai/web';
 import { Mic, Square, Loader2 } from 'lucide-react';
 
-// Make sure to add NEXT_PUBLIC_VAPI_PUBLIC_KEY to your .env.local file
-const vapi = new Vapi(process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY || 'dummy-key');
+const HARDCODED_PUBLIC_KEY = '2a108c49-2447-4bbb-be41-fffa7b8d9cab';
+const HARDCODED_ASSISTANT_ID = 'd9f38a6e-e6d7-4608-abfe-65c392577e4d';
 
 interface VapiButtonProps {
   assistantId?: string; // Optional: ID of the assistant created in Vapi Dashboard
@@ -14,9 +14,14 @@ interface VapiButtonProps {
 export default function VapiButton({ assistantId, className }: VapiButtonProps) {
   const [callStatus, setCallStatus] = useState<'inactive' | 'loading' | 'active'>('inactive');
   const [volumeLevel, setVolumeLevel] = useState(0);
+  const vapiRef = useRef<Vapi | null>(null);
 
   useEffect(() => {
-    // Vapi Event Listeners
+    // Safely initialize Vapi on client side only
+    const apiKey = process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY || HARDCODED_PUBLIC_KEY;
+    const vapi = new Vapi(apiKey);
+    vapiRef.current = vapi;
+
     vapi.on('call-start', () => {
       setCallStatus('active');
     });
@@ -33,29 +38,30 @@ export default function VapiButton({ assistantId, className }: VapiButtonProps) 
     vapi.on('error', (e) => {
       console.error('Vapi error:', e);
       setCallStatus('inactive');
-      alert('Failed to connect to Voice Agent. Please check your Vapi Public Key.');
+      alert('Failed to connect to Voice Agent. Please ensure microphone permissions are granted.');
     });
 
-    // Cleanup on unmount
     return () => {
       vapi.removeAllListeners();
+      vapiRef.current = null;
     };
   }, []);
 
   const toggleCall = async () => {
+    if (!vapiRef.current) return;
+
     if (callStatus === 'active') {
-      vapi.stop();
+      vapiRef.current.stop();
       setCallStatus('inactive');
     } else {
       setCallStatus('loading');
       try {
-        // Use the pre-created Arkle assistant (with Telugu voice + BizDesk brain)
-        const arkleAssistantId = assistantId || process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID || 'd9f38a6e-e6d7-4608-abfe-65c392577e4d';
-        await vapi.start(arkleAssistantId);
+        const targetAssistantId = assistantId || process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID || HARDCODED_ASSISTANT_ID;
+        await vapiRef.current.start(targetAssistantId);
       } catch (error) {
         console.error('Error starting Vapi call:', error);
         setCallStatus('inactive');
-        alert('Voice agent connection failed. Please check your internet connection.');
+        alert('Voice agent connection failed. Please check microphone permissions.');
       }
     }
   };
