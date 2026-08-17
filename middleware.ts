@@ -3,8 +3,12 @@ import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
   // If running locally (localhost), skip all restrictions
-  const hostname = request.nextUrl.hostname;
-  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+  const host = request.headers.get('host') || '';
+  if (
+    process.env.NODE_ENV === 'development' || 
+    host.includes('localhost') || 
+    host.includes('127.0.0.1')
+  ) {
     return NextResponse.next();
   }
 

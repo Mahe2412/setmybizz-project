@@ -162,41 +162,92 @@ export class AgentOrchestrator {
 
 // ─── Voice Synthesis Helper ────────────────────────────────────────────────────
 
-export async function synthesizeVoice(text: string, voiceId?: string): Promise<string | null> {
+export async function synthesizeVoice(text: string, voiceId?: string, language: string = 'tenglish'): Promise<string | null> {
+  const SARVAM_KEY = process.env.SARVAM_API_KEY;
   const ELEVEN_KEY = process.env.ELEVENLABS_API_KEY;
-  if (!ELEVEN_KEY) return null;
 
-  const targetVoiceId = voiceId || 'pNInz6obpgDQGcFmaJgB'; // Default: Adam (Indian English)
-  
-  try {
-    const res = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${targetVoiceId}`,
-      {
+  const cleanedText = text
+    .replace(/\[.*?\]/g, '')
+    .replace(/[*_#]/g, '')
+    .replace(/₹/g, 'రూపాయలు')
+    .slice(0, 500)
+    .trim();
+
+  if (!cleanedText) return null;
+
+  // ── 1. Try Sarvam AI TTS first for Indian Languages ──────────────────────────
+  if (SARVAM_KEY) {
+    try {
+      let langCode = 'te-IN'; // Default Telugu
+      if (language === 'hindi') langCode = 'hi-IN';
+      if (language === 'tamil') langCode = 'ta-IN';
+      if (language === 'english') langCode = 'en-IN';
+
+      const sarvamRes = await fetch('https://api.sarvam.ai/text-to-speech', {
         method: 'POST',
         headers: {
-          'xi-api-key': ELEVEN_KEY,
+          'api-subscription-key': SARVAM_KEY,
           'Content-Type': 'application/json',
-          Accept: 'audio/mpeg',
         },
         body: JSON.stringify({
-          text: text.slice(0, 500),
-          model_id: 'eleven_multilingual_v2',
-          voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.8,
-            style: 0.2,
-            use_speaker_boost: true,
-          },
+          inputs: [cleanedText],
+          target_language_code: langCode,
+          speaker: 'meera', // Native female speaker
+          pitch: 0,
+          pace: 0.95,
+          loudness: 1.5,
+          speech_sample_rate: 16000,
+          enable_preprocessing: true,
+          model: 'bulbul:v1',
         }),
-      }
-    );
+      });
 
-    if (!res.ok) return null;
-    
-    const audioBuffer = await res.arrayBuffer();
-    return Buffer.from(audioBuffer).toString('base64');
-  } catch (err) {
-    console.error('[Voice Synthesis Error]', err);
-    return null;
+      if (sarvamRes.ok) {
+        const data = await sarvamRes.json();
+        if (data.audios && data.audios[0]) {
+          return data.audios[0];
+        }
+      }
+    } catch (sarvamErr) {
+      console.warn('[Sarvam TTS Error, falling back to ElevenLabs]', sarvamErr);
+    }
   }
+
+  // ── 2. Fallback to ElevenLabs TTS ───────────────────────────────────────────
+  if (ELEVEN_KEY) {
+    const targetVoiceId = voiceId || 'pNInz6obpgDQGcFmaJgB'; // Default: Adam
+    
+    try {
+      const res = await fetch(
+        `https://api.elevenlabs.io/v1/text-to-speech/${targetVoiceId}`,
+        {
+          method: 'POST',
+          headers: {
+            'xi-api-key': ELEVEN_KEY,
+            'Content-Type': 'application/json',
+            Accept: 'audio/mpeg',
+          },
+          body: JSON.stringify({
+            text: cleanedText,
+            model_id: 'eleven_multilingual_v2',
+            voice_settings: {
+              stability: 0.5,
+              similarity_boost: 0.8,
+              style: 0.2,
+              use_speaker_boost: true,
+            },
+          }),
+        }
+      );
+
+      if (!res.ok) return null;
+      
+      const audioBuffer = await res.arrayBuffer();
+      return Buffer.from(audioBuffer).toString('base64');
+    } catch (err) {
+      console.error('[ElevenLabs Voice Synthesis Error]', err);
+    }
+  }
+
+  return null;
 }

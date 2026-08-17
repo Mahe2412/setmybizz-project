@@ -75,7 +75,7 @@ export async function POST(req: Request) {
     // ── Generate voice audio (for voice channels) ───────────────────────────
     let audioBase64: string | null = null;
     if (channel.startsWith('voice')) {
-      audioBase64 = await synthesizeVoice(result.audioText, agent.voiceId || undefined);
+      audioBase64 = await synthesizeVoice(result.audioText, agent.voiceId || undefined, agent.language);
     }
 
     // ── Update conversation history ─────────────────────────────────────────
@@ -209,7 +209,7 @@ export async function GET(req: Request) {
     });
 
     const greeting = await orchestrator.getOpeningGreeting(callType, callerName);
-    const audioBase64 = await synthesizeVoice(greeting, agent.voiceId || undefined);
+    const audioBase64 = await synthesizeVoice(greeting, agent.voiceId || undefined, agent.language);
 
     return NextResponse.json({ greeting, audioBase64, agentName: agent.name });
 

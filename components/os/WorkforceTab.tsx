@@ -9,6 +9,7 @@ import {
   CheckCircle2, AlertCircle, TrendingUp, Clock, Building2, Brain,
   ChevronRight, Package, Star, Target, ShoppingBag, Globe, X, Edit3
 } from 'lucide-react';
+import VapiButton from '../VapiButton';
 
 type TabId = 'dashboard' | 'my_employees' | 'new_employee' | 'instant_leads' | 'bulk_campaigns' | 'inbound_calls' | 'leads_results' | 'conversations' | 'train_employees' | 'phone_numbers' | 'billing' | 'settings';
 
@@ -1092,10 +1093,8 @@ ${template?.faqs || 'Q: How to contact us?\nA: Call our primary phone number.'}
                               <Mic className="w-8 h-8 text-indigo-500" />
                             </div>
                             <h3 className="text-lg font-bold text-slate-900 mb-2">Test Call in Browser</h3>
-                            <p className="text-sm text-slate-500 mb-8 max-w-sm mx-auto">Use your microphone to speak with {agentName} directly from your browser. No phone number required.</p>
-                            <button onClick={() => startBrowserCall({ id: 'preview', name: agentName, role: agentRole, language: agentLanguage } as any)} className="py-3 px-8 bg-slate-900 hover:bg-black text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 mx-auto">
-                              <PlayCircle className="w-5 h-5" /> Start Browser Test
-                            </button>
+                            <p className="text-sm text-slate-500 mb-8 max-w-sm mx-auto">Experience the ultra-low latency Vapi Voice Agent directly from your browser. No phone number required.</p>
+                            <VapiButton className="mx-auto" />
                           </div>
                         )}
 
