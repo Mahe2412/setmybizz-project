@@ -814,11 +814,47 @@ export default function HomeTab({
 
             <div className={`px-4 md:px-20 ${conversationMode ? 'py-4' : 'pt-4 pb-12 md:pt-6 md:pb-16'} flex flex-col items-center flex-1 relative w-full`}>
                {!conversationMode && (
-                  <div className="flex flex-col items-center mb-6 text-center">
+                  <div className="flex flex-col items-center mb-4 text-center">
                      <h3 className="text-[38px] md:text-[68px] font-black text-slate-900 tracking-tighter leading-none mb-4">
                         Arkle <span className="text-blue-600">Brain</span>
                      </h3>
                      <p className="text-slate-450 font-black text-[9px] uppercase tracking-[0.4em] opacity-60">Autonomous AI Business Operating System</p>
+                  </div>
+               )}
+
+               {/* Tab Switcher */}
+               {!conversationMode && (
+                  <div className="flex items-center justify-center gap-1 bg-slate-50/80 p-1.5 rounded-2xl border border-slate-100/60 max-w-[340px] w-full mx-auto shadow-xs mb-8">
+                     <button 
+                        onClick={() => setActiveChatTab('ask')} 
+                        className={`flex-1 py-2 px-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${
+                           activeChatTab === 'ask' 
+                              ? 'bg-white text-blue-600 shadow-sm border border-slate-100/50' 
+                              : 'text-slate-400 hover:text-slate-600'
+                        }`}
+                     >
+                        Ask
+                     </button>
+                     <button 
+                        onClick={() => setActiveChatTab('work_agents')} 
+                        className={`flex-1 py-2 px-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${
+                           activeChatTab === 'work_agents' 
+                              ? 'bg-white text-blue-600 shadow-sm border border-slate-100/50' 
+                              : 'text-slate-400 hover:text-slate-600'
+                        }`}
+                     >
+                        Work
+                     </button>
+                     <button 
+                        onClick={() => setActiveChatTab('voice_agents')} 
+                        className={`flex-1 py-2 px-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${
+                           activeChatTab === 'voice_agents' 
+                              ? 'bg-white text-blue-600 shadow-sm border border-slate-100/50' 
+                              : 'text-slate-400 hover:text-slate-600'
+                        }`}
+                     >
+                        Voice
+                     </button>
                   </div>
                )}
 
@@ -837,61 +873,59 @@ export default function HomeTab({
                   </div>
                )}
 
-                <div className={`w-full transition-all duration-500 z-50 ${conversationMode ? 'fixed bottom-6 left-1/2 -translate-x-1/2 max-w-[788px] px-4' : 'max-w-[705px] mx-auto relative translate-y-2'}`}>
+               {/* Query Input Container (only for Ask tab or when in active conversation mode) */}
+               {(activeChatTab === 'ask' || conversationMode) && (
+                  <div className={`w-full transition-all duration-500 z-50 ${conversationMode ? 'fixed bottom-6 left-1/2 -translate-x-1/2 max-w-[788px] px-4' : 'max-w-[705px] mx-auto relative translate-y-2'}`}>
 
-                  {/* Suggestions Menu */}
-                  <AnimatePresence>
-                     {showSuggestions && (
-                        <motion.div
-                           initial={{ opacity: 0, y: 10 }}
-                           animate={{ opacity: 1, y: 0 }}
-                           exit={{ opacity: 0, y: 10 }}
-                           className="absolute bottom-full mb-4 left-0 w-64 bg-white/80 backdrop-blur-xl border border-slate-200 rounded-3xl shadow-2xl p-2 z-[100]"
-                        >
-                           <div className="px-3 py-2 text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 mb-1">Mention Topic</div>
-                           {filteredSuggestions.map(s => (
-                              <button
-                                 key={s}
-                                 onClick={() => selectSuggestion(s)}
-                                 className="w-full text-left p-3 rounded-2xl hover:bg-blue-600 hover:text-white text-[11px] font-bold transition-all flex items-center gap-3 group"
-                              >
-                                 <span className="material-symbols-rounded text-[18px] opacity-50 group-hover:opacity-100">alternate_email</span>
-                                 {s}
-                              </button>
-                           ))}
-                        </motion.div>
-                     )}
-                  </AnimatePresence>
+                     {/* Suggestions Menu */}
+                     <AnimatePresence>
+                        {showSuggestions && (
+                           <motion.div
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: 10 }}
+                              className="absolute bottom-full mb-4 left-0 w-64 bg-white/80 backdrop-blur-xl border border-slate-200 rounded-3xl shadow-2xl p-2 z-[100]"
+                           >
+                              <div className="px-3 py-2 text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 mb-1">Mention Topic</div>
+                              {filteredSuggestions.map(s => (
+                                 <button
+                                    key={s}
+                                    onClick={() => selectSuggestion(s)}
+                                    className="w-full text-left p-3 rounded-2xl hover:bg-blue-600 hover:text-white text-[11px] font-bold transition-all flex items-center gap-3 group"
+                                 >
+                                    <span className="material-symbols-rounded text-[18px] opacity-50 group-hover:opacity-100">alternate_email</span>
+                                    {s}
+                                 </button>
+                              ))}
+                           </motion.div>
+                        )}
+                     </AnimatePresence>
 
-                  <div className="flex items-center ml-0 gap-0 mb-[-4px] relative z-20">
-                     <button onClick={() => setActiveChatTab('ask')} className={`w-[100px] h-[33px] flex items-center justify-center transition-all duration-300 font-black relative z-30 ${activeChatTab === 'ask' ? 'rounded-tr-[15px] rounded-tl-none rounded-b-none bg-gradient-to-r from-violet-600 to-blue-600 text-white shadow-[0_-5px_15px_rgba(124,58,237,0.25)] font-bold text-xs' : 'rounded-none bg-transparent text-slate-400 hover:text-slate-600 text-xs font-semibold'}`}><span className="relative z-10 uppercase tracking-[0.1em] text-[9px]">Ask</span></button>
-                     <button onClick={() => setActiveChatTab('work_agents')} className={`w-[120px] h-[33px] flex items-center justify-center transition-all duration-300 font-black relative z-30 ${activeChatTab === 'work_agents' ? 'rounded-t-[15px] rounded-b-none bg-gradient-to-r from-violet-600 to-blue-600 text-white shadow-[0_-5px_15px_rgba(124,58,237,0.25)] font-bold text-xs' : 'rounded-none bg-transparent text-slate-400 hover:text-slate-600 text-xs font-semibold'}`}><span className="relative z-10 uppercase tracking-[0.1em] text-[9px]">Work Agents</span></button>
-                     <button onClick={() => setActiveChatTab('voice_agents')} className={`w-[120px] h-[33px] flex items-center justify-center transition-all duration-300 font-black relative z-30 ${activeChatTab === 'voice_agents' ? 'rounded-t-[15px] rounded-b-none bg-gradient-to-r from-violet-600 to-blue-600 text-white shadow-[0_-5px_15px_rgba(124,58,237,0.25)] font-bold text-xs' : 'rounded-none bg-transparent text-slate-400 hover:text-slate-600 text-xs font-semibold'}`}><span className="relative z-10 uppercase tracking-[0.1em] text-[9px]">Voice Agents</span></button>
-                  </div>
-                  <div className="relative p-[2px] rounded-tr-[40px] rounded-br-[40px] rounded-bl-[40px] rounded-tl-none bg-gradient-to-r from-purple-600 via-rose-500 to-indigo-600 shadow-[0_30px_70px_-20px_rgba(79,70,229,0.25)] z-10">
-                     <div className="bg-white rounded-tr-[38px] rounded-br-[38px] rounded-bl-[38px] rounded-tl-none flex flex-col overflow-visible">
-                        <textarea ref={textareaRef} value={input} onChange={handleInput} rows={1} className="w-full bg-transparent border-none outline-none focus:outline-none focus:ring-0 text-slate-400 text-[15px] md:text-[21px] font-normal px-6 md:px-12 pt-6 pb-2 resize-none no-scrollbar placeholder:text-slate-300 placeholder:font-light min-h-[60px]" placeholder="Ask Arkle or type @topic for deep research..." />
-                        <div className="flex items-center justify-between px-4 md:px-10 pb-4 md:pb-6 pt-4 bg-white border-none rounded-b-[39px]">
-                           <div className="flex items-center gap-1.5 md:flex-row flex-col items-start gap-y-2 mt-2 w-full md:w-auto">
-                              <div className="flex items-center gap-2">
-                                 <button className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 hover:bg-slate-100"><span className="material-symbols-rounded text-[20px]">add</span></button>
-                                 <div className="flex items-center gap-1.5 bg-slate-50/50 p-1 rounded-full border border-slate-100">
-                                    <div className="relative">
-                                       <button onClick={() => setIsBrainMenuOpen(!isBrainMenuOpen)} className="px-2 md:px-4 h-8 rounded-full bg-white border border-slate-100 flex items-center gap-1.5 text-[8.5px] md:text-[10px] font-black text-slate-800 hover:border-blue-400 transition-all shadow-xs relative z-30"><div className="w-1.5 h-1.5 rounded-full bg-blue-500" />{selectedContext} <span className={`material-symbols-rounded text-[16px] text-slate-300 transition-transform ${isBrainMenuOpen ? 'rotate-180' : ''}`}>expand_more</span></button>
-                                       <AnimatePresence>{isBrainMenuOpen && <motion.div initial={{ opacity: 0, y: conversationMode ? 10 : -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: conversationMode ? 10 : -10 }} className={`absolute ${conversationMode ? 'bottom-full mb-3' : 'top-full mt-3'} left-0 w-64 bg-white rounded-[24px] border border-slate-100 shadow-2xl p-2 z-[999]`}>{['Arkle Brain', 'Biz Book', 'Workspace', 'Launch Pad', 'Agent Mode', 'Global Market'].map(opt => (<button key={opt} onClick={() => { setSelectedContext(opt); setIsBrainMenuOpen(false); }} className="w-full text-left p-3 rounded-xl hover:bg-slate-50 text-[10px] font-black uppercase text-slate-800 transition-all flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-blue-500" />{opt}</button>))}</motion.div>}</AnimatePresence>
-                                    </div>
-                                    <div className="relative">
-                                       <button onClick={() => setIsModelMenuOpen(!isModelMenuOpen)} className="px-2 md:px-4 h-8 rounded-full bg-white border border-slate-100 flex items-center gap-1.5 text-[8.5px] md:text-[10px] font-black text-slate-800 hover:border-blue-400 transition-all shadow-xs relative z-30">{selectedModel} <span className={`material-symbols-rounded text-[16px] text-slate-300 transition-transform ${isModelMenuOpen ? 'rotate-180' : ''}`}>expand_more</span></button>
-                                       <AnimatePresence>{isModelMenuOpen && <motion.div initial={{ opacity: 0, y: conversationMode ? 10 : -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: conversationMode ? 10 : -10 }} className={`absolute ${conversationMode ? 'bottom-full mb-3' : 'top-full mt-3'} left-0 w-64 bg-white rounded-[24px] border border-slate-100 shadow-2xl p-2 z-[999]`}>{['Gemini 1.5 Pro', 'GPT-4o (Premium)', 'Claude 3.5 Sonnet', 'Arkle Test Model'].map(m => (<button key={m} onClick={() => { setSelectedModel(m); setIsModelMenuOpen(false); }} className="w-full text-left p-3 rounded-xl hover:bg-slate-50 text-[10px] font-black uppercase text-slate-800 transition-all">{m}</button>))}</motion.div>}</AnimatePresence>
+                     <div className="relative p-[2px] rounded-[40px] bg-gradient-to-r from-purple-600 via-rose-500 to-indigo-600 shadow-[0_30px_70px_-20px_rgba(79,70,229,0.25)] z-10">
+                        <div className="bg-white rounded-[38px] flex flex-col overflow-visible">
+                           <textarea ref={textareaRef} value={input} onChange={handleInput} rows={1} className="w-full bg-transparent border-none outline-none focus:outline-none focus:ring-0 text-slate-400 text-[15px] md:text-[21px] font-normal px-6 md:px-12 pt-6 pb-2 resize-none no-scrollbar placeholder:text-slate-300 placeholder:font-light min-h-[60px]" placeholder="Ask Arkle or type @topic for deep research..." />
+                           <div className="flex items-center justify-between px-4 md:px-10 pb-4 md:pb-6 pt-4 bg-white border-none rounded-b-[39px]">
+                              <div className="flex items-center gap-1.5 md:flex-row flex-col items-start gap-y-2 mt-2 w-full md:w-auto">
+                                 <div className="flex items-center gap-2">
+                                    <button className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 hover:bg-slate-100"><span className="material-symbols-rounded text-[20px]">add</span></button>
+                                    <div className="flex items-center gap-1.5 bg-slate-50/50 p-1 rounded-full border border-slate-100">
+                                       <div className="relative">
+                                          <button onClick={() => setIsBrainMenuOpen(!isBrainMenuOpen)} className="px-2 md:px-4 h-8 rounded-full bg-white border border-slate-100 flex items-center gap-1.5 text-[8.5px] md:text-[10px] font-black text-slate-800 hover:border-blue-400 transition-all shadow-xs relative z-30"><div className="w-1.5 h-1.5 rounded-full bg-blue-500" />{selectedContext} <span className={`material-symbols-rounded text-[16px] text-slate-300 transition-transform ${isBrainMenuOpen ? 'rotate-180' : ''}`}>expand_more</span></button>
+                                          <AnimatePresence>{isBrainMenuOpen && <motion.div initial={{ opacity: 0, y: conversationMode ? 10 : -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: conversationMode ? 10 : -10 }} className={`absolute ${conversationMode ? 'bottom-full mb-3' : 'top-full mt-3'} left-0 w-64 bg-white rounded-[24px] border border-slate-100 shadow-2xl p-2 z-[999]`}>{['Arkle Brain', 'Biz Book', 'Workspace', 'Launch Pad', 'Agent Mode', 'Global Market'].map(opt => (<button key={opt} onClick={() => { setSelectedContext(opt); setIsBrainMenuOpen(false); }} className="w-full text-left p-3 rounded-xl hover:bg-slate-50 text-[10px] font-black uppercase text-slate-800 transition-all flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-blue-500" />{opt}</button>))}</motion.div>}</AnimatePresence>
+                                       </div>
+                                       <div className="relative">
+                                          <button onClick={() => setIsModelMenuOpen(!isModelMenuOpen)} className="px-2 md:px-4 h-8 rounded-full bg-white border border-slate-100 flex items-center gap-1.5 text-[8.5px] md:text-[10px] font-black text-slate-800 hover:border-blue-400 transition-all shadow-xs relative z-30">{selectedModel} <span className={`material-symbols-rounded text-[16px] text-slate-300 transition-transform ${isModelMenuOpen ? 'rotate-180' : ''}`}>expand_more</span></button>
+                                          <AnimatePresence>{isModelMenuOpen && <motion.div initial={{ opacity: 0, y: conversationMode ? 10 : -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: conversationMode ? 10 : -10 }} className={`absolute ${conversationMode ? 'bottom-full mb-3' : 'top-full mt-3'} left-0 w-64 bg-white rounded-[24px] border border-slate-100 shadow-2xl p-2 z-[999]`}>{['Gemini 1.5 Pro', 'GPT-4o (Premium)', 'Claude 3.5 Sonnet', 'Arkle Test Model'].map(m => (<button key={m} onClick={() => { setSelectedModel(m); setIsModelMenuOpen(false); }} className="w-full text-left p-3 rounded-xl hover:bg-slate-50 text-[10px] font-black uppercase text-slate-800 transition-all">{m}</button>))}</motion.div>}</AnimatePresence>
+                                       </div>
                                     </div>
                                  </div>
                               </div>
+                              <button onClick={() => sendMessage()} disabled={!input.trim()} className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-xs mt-2 ${input.trim() ? 'bg-slate-900 text-white hover:scale-105' : 'bg-slate-50 text-slate-300'}`}><span className="material-symbols-rounded text-[22px]">arrow_forward</span></button>
                            </div>
-                           <button onClick={() => sendMessage()} disabled={!input.trim()} className={`w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-xs mt-2 ${input.trim() ? 'bg-slate-900 text-white hover:scale-105' : 'bg-slate-50 text-slate-300'}`}><span className="material-symbols-rounded text-[22px]">arrow_forward</span></button>
                         </div>
                      </div>
                   </div>
-               </div>
+               )}
 
                {/* ELEMENTS TO HIDE IN CONVERSATION MODE */}
                {!conversationMode && (
@@ -1107,9 +1141,7 @@ export default function HomeTab({
                               </AnimatePresence>
                            </div>
                         </>
-                     )}
-
-                     {/* TAB 2: WORK AGENTS VIEW */}
+                                      {/* TAB 2: WORK AGENTS VIEW */}
                      {activeChatTab === 'work_agents' && (
                         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-4xl mx-auto mt-14 space-y-6 px-4 md:px-0">
                            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
@@ -1117,9 +1149,43 @@ export default function HomeTab({
                                  <h3 className="text-sm font-black uppercase text-slate-800 tracking-wider">Background Work Agents</h3>
                                  <p className="text-xs text-slate-450 font-bold mt-0.5">Autonomous bots executing workflows in the background</p>
                               </div>
+                              <button onClick={() => window.dispatchEvent(new CustomEvent('open-os-tab', { detail: 'workforce' }))} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-colors shadow-lg shadow-blue-500/10">Deploy Agent</button>
+                           </div>
+
+                           {/* Analytics Row */}
+                           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                              <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-xs flex flex-col justify-between min-h-[130px]">
+                                 <div>
+                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Tasks Completed</span>
+                                    <span className="text-3xl font-black text-slate-900 leading-none">230</span>
+                                 </div>
+                                 <div className="flex items-center gap-1 text-[9px] font-bold text-emerald-600 mt-2">
+                                    <span className="material-symbols-rounded text-xs">done_all</span>
+                                    <span>All automation pipelines active</span>
+                                 </div>
+                              </div>
+                              <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-xs md:col-span-2 flex flex-col justify-between min-h-[130px]">
+                                 <div>
+                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2">Automated Triggers vs Hour of Day</span>
+                                    <div className="flex items-end gap-3 h-14 pt-2">
+                                       {[10, 25, 40, 15, 8, 70, 85, 90, 50, 30, 15, 5].map((val, idx) => (
+                                          <div key={idx} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
+                                             <div className={`w-full rounded-t-xs transition-all ${idx === 7 ? 'bg-indigo-600 shadow-[0_0_10px_rgba(79,70,229,0.4)]' : 'bg-slate-200'}`} style={{ height: `${val}%` }} />
+                                          </div>
+                                       ))}
+                                    </div>
+                                 </div>
+                                 <div className="flex justify-between text-[7.5px] font-black text-slate-400 uppercase tracking-wider pt-2 border-t border-slate-50">
+                                    <span>12am</span>
+                                    <span>6am</span>
+                                    <span>12pm</span>
+                                    <span>6pm</span>
+                                    <span>11pm</span>
+                                 </div>
+                              </div>
                            </div>
                            
-                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
                               {workAgents.map(agent => {
                                  const icons: Record<string, string> = { email: '📧', whatsapp: '💬', report: '📊', calendar: '🗓️', marketing: '📣' };
                                  const statusColor: Record<string, string> = {
@@ -1157,7 +1223,7 @@ export default function HomeTab({
                            </div>
                         </motion.div>
                      )}
-
+ 
                      {/* TAB 3: VOICE AGENTS VIEW */}
                      {activeChatTab === 'voice_agents' && (
                         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-4xl mx-auto mt-14 space-y-6 px-4 md:px-0">
@@ -1165,6 +1231,40 @@ export default function HomeTab({
                               <div>
                                  <h3 className="text-sm font-black uppercase text-slate-800 tracking-wider">Voice Calling Employees</h3>
                                  <p className="text-xs text-slate-450 font-bold mt-0.5">High-speed voice calling agents backed by Arkle universal memory</p>
+                              </div>
+                              <button onClick={() => window.dispatchEvent(new CustomEvent('open-os-tab', { detail: 'workforce' }))} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-colors shadow-lg shadow-blue-500/10">Hire Employee</button>
+                           </div>
+
+                           {/* Analytics Row */}
+                           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                              <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-xs flex flex-col justify-between min-h-[130px]">
+                                 <div>
+                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Total Live Calls</span>
+                                    <span className="text-3xl font-black text-slate-900 leading-none">2</span>
+                                 </div>
+                                 <div className="flex items-center gap-1 text-[9px] font-bold text-emerald-600 mt-2">
+                                    <span className="material-symbols-rounded text-xs">trending_up</span>
+                                    <span>+92.4% connection success</span>
+                                 </div>
+                              </div>
+                              <div className="bg-white border border-slate-100 rounded-3xl p-5 shadow-xs md:col-span-2 flex flex-col justify-between min-h-[130px]">
+                                 <div>
+                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2">Connectivity Rate (%) vs Hour of Day</span>
+                                    <div className="flex items-end gap-3 h-14 pt-2">
+                                       {[20, 30, 45, 10, 5, 80, 95, 60, 40, 20, 10, 5].map((val, idx) => (
+                                          <div key={idx} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
+                                             <div className={`w-full rounded-t-xs transition-all ${idx === 6 ? 'bg-blue-600 shadow-[0_0_10px_rgba(37,99,235,0.4)]' : 'bg-slate-200'}`} style={{ height: `${val}%` }} />
+                                          </div>
+                                       ))}
+                                    </div>
+                                 </div>
+                                 <div className="flex justify-between text-[7.5px] font-black text-slate-400 uppercase tracking-wider pt-2 border-t border-slate-50">
+                                    <span>12am</span>
+                                    <span>6am</span>
+                                    <span>12pm</span>
+                                    <span>6pm</span>
+                                    <span>11pm</span>
+                                 </div>
                               </div>
                            </div>
                            
