@@ -69,6 +69,25 @@ const AVAILABLE_SHORTCUTS = [
   { id: 'order_desk', label: 'Order Desk', icon: 'shopping_cart_checkout', color: 'text-pink-600', bg: 'bg-pink-50', app: 'orderdesk', category: 'Operations', subtab: 'home' },
 ];
 
+const CALL_LOGS = [
+   { id: 'cl-1', num: '+91 98480 22338', type: 'Outbound', status: 'qualified', time: '10m ago', duration: '2m 15s', icon: 'call_made', color: 'text-emerald-500' },
+   { id: 'cl-2', num: '+91 88975 66778', type: 'Inbound', status: 'interested', time: '1h ago', duration: '1m 5s', icon: 'call_received', color: 'text-blue-500' },
+   { id: 'cl-3', num: '+91 90520 11223', type: 'Outbound', status: 'busy', time: '3h ago', duration: '0m 18s', icon: 'phone_callback', color: 'text-amber-500' }
+];
+
+const WORK_TASKS = [
+   { id: 't-1', text: 'Sent invoice draft to kmahendrakolli...', icon: 'mail', time: '5m ago', status: 'success' },
+   { id: 't-2', text: 'WhatsApp catalog sent to +91 98480...', icon: 'chat', time: '12m ago', status: 'success' },
+   { id: 't-3', text: 'Generated GSTR-1 draft report', icon: 'description', time: '1h ago', status: 'success' }
+];
+
+const INTEGRATIONS = [
+   { id: 'int-1', name: 'WhatsApp Business API', connected: true, service: 'Meta Cloud', icon: 'chat', color: 'text-emerald-500' },
+   { id: 'int-2', name: 'Gmail / Calendar OAuth', connected: true, service: 'Google', icon: 'mail', color: 'text-blue-500' },
+   { id: 'int-3', name: 'SendGrid Email API', connected: true, service: 'Twilio', icon: 'send', color: 'text-indigo-500' },
+   { id: 'int-4', name: 'Instagram Direct Inbox', connected: false, service: 'Meta Cloud', icon: 'forum', color: 'text-slate-300' }
+];
+
 export default function HomeTab({
    data,
    onOpenBillBook,
@@ -96,17 +115,22 @@ export default function HomeTab({
    const [isLoadingVoice, setIsLoadingVoice] = useState(false);
 
    useEffect(() => {
-      if (activeChatTab === 'voice_agents') {
-         setIsLoadingVoice(true);
-         fetch('/api/voice-agent')
-            .then(res => res.json())
-            .then(data => {
-               setVoiceAgents(data.agents || []);
-            })
-            .catch(err => console.error(err))
-            .finally(() => setIsLoadingVoice(false));
-      }
-   }, [activeChatTab]);
+       if (activeChatTab === 'voice_agents') {
+          setIsLoadingVoice(true);
+          fetch('/api/voice-agent')
+             .then(res => res.json())
+             .then(data => {
+                setVoiceAgents(data.agents || []);
+             })
+             .catch(err => console.error(err))
+             .finally(() => setIsLoadingVoice(false));
+          setActiveSidebarTab('calls');
+       } else if (activeChatTab === 'work_agents') {
+          setActiveSidebarTab('tasks');
+       } else {
+          setActiveSidebarTab('chats');
+       }
+    }, [activeChatTab]);
 
    const [msgs, setMsgs] = useState<Message[]>([]);
    const [input, setInput] = useState('');
@@ -133,7 +157,7 @@ export default function HomeTab({
    const [selectedModel, setSelectedModel] = useState("Gemini 1.5 Pro");
    const [tileIndex, setTileIndex] = useState(0);
     const [isSpotlightOpen, setIsSpotlightOpen] = useState(false);
-    const [activeSidebarTab, setActiveSidebarTab] = useState<'chats' | 'docs'>('chats');
+    const [activeSidebarTab, setActiveSidebarTab] = useState<string>('chats');
     const [selectedDoc, setSelectedDoc] = useState<GeneratedDoc | null>(null);
     const [conversations, setConversations] = useState<Conversation[]>([
        {
@@ -531,97 +555,212 @@ export default function HomeTab({
                   )}
                </div>
 
-               {/* Tab Switcher */}
-               {isSidebarOpen && (
-                  <motion.div 
-                     initial={{ opacity: 0, y: -10 }}
-                     animate={{ opacity: 1, y: 0 }}
-                     className="px-3 mb-4"
-                  >
-                     <div className="grid grid-cols-2 bg-slate-50 p-1 rounded-xl border border-slate-200 text-[10px] font-black uppercase tracking-wider">
-                        <button 
-                           onClick={() => setActiveSidebarTab('chats')}
-                           className={`py-2 rounded-lg transition-all ${activeSidebarTab === 'chats' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-                        >
-                           Chats
-                        </button>
-                        <button 
-                           onClick={() => setActiveSidebarTab('docs')}
-                           className={`py-2 rounded-lg transition-all ${activeSidebarTab === 'docs' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-                        >
-                           Docs
-                        </button>
-                     </div>
-                  </motion.div>
-               )}
+                {/* Tab Switcher */}
+                {isSidebarOpen && (
+                   <motion.div 
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="px-3 mb-4"
+                   >
+                      {activeChatTab === 'ask' && (
+                         <div className="grid grid-cols-2 bg-slate-50 p-1 rounded-xl border border-slate-200 text-[10px] font-black uppercase tracking-wider">
+                            <button 
+                               onClick={() => setActiveSidebarTab('chats')}
+                               className={`py-2 rounded-lg transition-all ${activeSidebarTab === 'chats' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                            >
+                               Chats
+                            </button>
+                            <button 
+                               onClick={() => setActiveSidebarTab('docs')}
+                               className={`py-2 rounded-lg transition-all ${activeSidebarTab === 'docs' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                            >
+                               Docs
+                            </button>
+                         </div>
+                      )}
 
-               {/* Tab Contents */}
-               <div className="flex-1 overflow-y-auto no-scrollbar px-2.5 space-y-1">
-                  {activeSidebarTab === 'chats' ? (
-                     <div className="space-y-1">
-                        {conversations.map(conv => {
-                           const isActive = activeConversationId === conv.id && conversationMode;
-                           return (
-                              <div 
-                                 key={conv.id}
-                                 onClick={() => {
-                                    handleSelectConversation(conv.id);
-                                    if (isMobile) setIsSidebarOpenLocal(false);
-                                 }}
-                                 className={`group flex items-center p-2.5 rounded-2xl cursor-pointer transition-all ${
-                                    isActive 
-                                       ? 'bg-blue-50/60 border border-blue-100 text-blue-600' 
-                                       : 'hover:bg-slate-50 border border-transparent text-slate-600'
-                                 } ${isSidebarOpen ? 'justify-between' : 'justify-center'}`}
-                              >
-                                 <div className="flex items-center gap-2.5 min-w-0">
-                                    <span className={`material-symbols-rounded text-[16px] ${isActive ? 'text-blue-500' : 'text-slate-400'} shrink-0`}>chat_bubble</span>
-                                    {isSidebarOpen && (
-                                       <span className={`text-[12px] font-bold truncate ${isActive ? 'text-blue-700' : 'text-slate-700'}`}>{conv.title}</span>
-                                    )}
-                                 </div>
-                                 {isSidebarOpen && (
-                                    <button 
-                                       onClick={(e) => handleDeleteConversation(conv.id, e)}
-                                       className="opacity-0 group-hover:opacity-100 hover:text-red-600 p-1 rounded-md transition-all text-slate-400"
-                                       title="Delete Chat"
-                                    >
-                                       <span className="material-symbols-rounded text-sm">delete</span>
-                                    </button>
-                                 )}
-                              </div>
-                           );
-                        })}
-                     </div>
-                  ) : (
-                     <div className="space-y-1">
-                        {generatedDocs.map(doc => (
-                           <div 
-                              key={doc.id}
-                              onClick={() => {
-                                 setSelectedDoc(doc);
-                                 if (isMobile) setIsSidebarOpenLocal(false);
-                              }}
-                              className={`flex items-center p-2.5 rounded-2xl hover:bg-slate-50 cursor-pointer transition-all border border-transparent ${
-                                 isSidebarOpen ? 'gap-3' : 'justify-center'
-                              }`}
-                           >
-                              <span className={`material-symbols-rounded text-[18px] ${
-                                 doc.type === 'pdf' ? 'text-rose-500' : doc.type === 'sheet' ? 'text-emerald-500' : 'text-blue-500'
-                              } shrink-0`}>
-                                 {doc.type === 'pdf' ? 'picture_as_pdf' : doc.type === 'sheet' ? 'table_view' : 'description'}
-                              </span>
-                              {isSidebarOpen && (
-                                 <div className="min-w-0">
-                                    <span className="text-[12px] font-bold text-slate-700 block truncate">{doc.name}</span>
-                                    <span className="text-[9px] text-slate-400 block uppercase tracking-wider mt-0.5">{doc.type} • {doc.date}</span>
-                                 </div>
-                              )}
-                           </div>
-                        ))}
-                     </div>
-                  )}
-               </div>
+                      {activeChatTab === 'work_agents' && (
+                         <div className="grid grid-cols-2 bg-slate-50 p-1 rounded-xl border border-slate-200 text-[10px] font-black uppercase tracking-wider">
+                            <button 
+                               onClick={() => setActiveSidebarTab('tasks')}
+                               className={`py-2 rounded-lg transition-all ${activeSidebarTab === 'tasks' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                            >
+                               Tasks
+                            </button>
+                            <button 
+                               onClick={() => setActiveSidebarTab('integrations')}
+                               className={`py-2 rounded-lg transition-all ${activeSidebarTab === 'integrations' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                            >
+                               Integrations
+                            </button>
+                         </div>
+                      )}
+
+                      {activeChatTab === 'voice_agents' && (
+                         <div className="grid grid-cols-2 bg-slate-50 p-1 rounded-xl border border-slate-200 text-[10px] font-black uppercase tracking-wider">
+                            <button 
+                               onClick={() => setActiveSidebarTab('calls')}
+                               className={`py-2 rounded-lg transition-all ${activeSidebarTab === 'calls' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                            >
+                               Calls
+                            </button>
+                            <button 
+                               onClick={() => setActiveSidebarTab('voice_settings')}
+                               className={`py-2 rounded-lg transition-all ${activeSidebarTab === 'voice_settings' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+                            >
+                               Number
+                            </button>
+                         </div>
+                      )}
+                   </motion.div>
+                )}
+
+                {/* Tab Contents */}
+                <div className="flex-1 overflow-y-auto no-scrollbar px-2.5 space-y-1">
+                   {/* ASK: Chats History */}
+                   {activeSidebarTab === 'chats' && (
+                      <div className="space-y-1">
+                         {conversations.map(conv => {
+                            const isActive = activeConversationId === conv.id && conversationMode;
+                            return (
+                               <div 
+                                  key={conv.id}
+                                  onClick={() => {
+                                     handleSelectConversation(conv.id);
+                                     if (isMobile) setIsSidebarOpenLocal(false);
+                                  }}
+                                  className={`group flex items-center p-2.5 rounded-2xl cursor-pointer transition-all ${
+                                     isActive 
+                                        ? 'bg-blue-50/60 border border-blue-100 text-blue-600' 
+                                        : 'hover:bg-slate-50 border border-transparent text-slate-600'
+                                  } ${isSidebarOpen ? 'justify-between' : 'justify-center'}`}
+                               >
+                                  <div className="flex items-center gap-2.5 min-w-0">
+                                     <span className={`material-symbols-rounded text-[16px] ${isActive ? 'text-blue-500' : 'text-slate-400'} shrink-0`}>chat_bubble</span>
+                                     {isSidebarOpen && (
+                                        <span className={`text-[12px] font-bold truncate ${isActive ? 'text-blue-700' : 'text-slate-700'}`}>{conv.title}</span>
+                                     )}
+                                  </div>
+                                  {isSidebarOpen && (
+                                     <button 
+                                        onClick={(e) => handleDeleteConversation(conv.id, e)}
+                                        className="opacity-0 group-hover:opacity-100 hover:text-red-600 p-1 rounded-md transition-all text-slate-400"
+                                        title="Delete Chat"
+                                     >
+                                        <span className="material-symbols-rounded text-sm">delete</span>
+                                     </button>
+                                  )}
+                               </div>
+                            );
+                         })}
+                      </div>
+                   )}
+
+                   {/* ASK: Docs History */}
+                   {activeSidebarTab === 'docs' && (
+                      <div className="space-y-1">
+                         {generatedDocs.map(doc => (
+                            <div 
+                               key={doc.id}
+                               onClick={() => {
+                                  setSelectedDoc(doc);
+                                  if (isMobile) setIsSidebarOpenLocal(false);
+                               }}
+                               className={`flex items-center p-2.5 rounded-2xl hover:bg-slate-50 cursor-pointer transition-all border border-transparent ${
+                                  isSidebarOpen ? 'gap-3' : 'justify-center'
+                               }`}
+                            >
+                               <span className={`material-symbols-rounded text-[18px] ${
+                                  doc.type === 'pdf' ? 'text-rose-500' : doc.type === 'sheet' ? 'text-emerald-500' : 'text-blue-500'
+                               } shrink-0`}>
+                                  {doc.type === 'pdf' ? 'picture_as_pdf' : doc.type === 'sheet' ? 'table_view' : 'description'}
+                               </span>
+                               {isSidebarOpen && (
+                                  <div className="min-w-0">
+                                     <span className="text-[12px] font-bold text-slate-700 block truncate">{doc.name}</span>
+                                     <span className="text-[9px] text-slate-400 block uppercase tracking-wider mt-0.5">{doc.type} • {doc.date}</span>
+                                  </div>
+                                )}
+                            </div>
+                         ))}
+                      </div>
+                   )}
+
+                   {/* WORK AGENTS: Tasks Logs */}
+                   {activeSidebarTab === 'tasks' && (
+                      <div className="space-y-1.5">
+                         {WORK_TASKS.map(task => (
+                            <div key={task.id} className="p-2.5 bg-slate-50/50 border border-slate-100 rounded-2xl flex items-start gap-2.5 text-left">
+                               <span className="material-symbols-rounded text-slate-400 text-sm mt-0.5">{task.icon}</span>
+                               <div className="min-w-0 flex-1">
+                                  <p className="text-[10.5px] font-bold text-slate-700 leading-normal line-clamp-2">{task.text}</p>
+                                  <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mt-0.5">{task.time}</span>
+                               </div>
+                            </div>
+                         ))}
+                      </div>
+                   )}
+
+                   {/* WORK AGENTS: Integrations */}
+                   {activeSidebarTab === 'integrations' && (
+                      <div className="space-y-1.5">
+                         {INTEGRATIONS.map(item => (
+                            <div key={item.id} className="p-2.5 bg-slate-50/50 border border-slate-100 rounded-2xl flex items-center justify-between text-left">
+                               <div className="flex items-center gap-2.5 min-w-0">
+                                  <span className={`material-symbols-rounded text-sm ${item.color}`}>{item.icon}</span>
+                                  <div className="min-w-0">
+                                     <p className="text-[10.5px] font-bold text-slate-700 truncate">{item.name}</p>
+                                     <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mt-0.5">{item.service}</span>
+                                  </div>
+                               </div>
+                               <span className={`w-1.5 h-1.5 rounded-full ${item.connected ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]' : 'bg-slate-350'}`} />
+                            </div>
+                         ))}
+                      </div>
+                   )}
+
+                   {/* VOICE AGENTS: Call Logs */}
+                   {activeSidebarTab === 'calls' && (
+                      <div className="space-y-1.5">
+                         {CALL_LOGS.map(log => (
+                            <div key={log.id} className="p-2.5 bg-slate-50/50 border border-slate-100 rounded-2xl flex items-center justify-between text-left">
+                               <div className="flex items-center gap-2.5 min-w-0">
+                                  <span className={`material-symbols-rounded text-sm ${log.color}`}>{log.icon}</span>
+                                  <div className="min-w-0">
+                                     <p className="text-[10.5px] font-bold text-slate-700 truncate">{log.num}</p>
+                                     <span className="text-[8px] font-bold text-slate-450 uppercase tracking-wider block mt-0.5">{log.type} • {log.duration}</span>
+                                  </div>
+                               </div>
+                               <div className="flex flex-col items-end shrink-0">
+                                  <span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider">{log.time}</span>
+                                  <span className="px-1.5 py-0.5 bg-blue-50/50 border border-blue-100 rounded-full text-[7.5px] font-black uppercase tracking-wider text-blue-500 mt-1">{log.status}</span>
+                               </div>
+                            </div>
+                         ))}
+                      </div>
+                   )}
+
+                   {/* VOICE AGENTS: Voice Settings */}
+                   {activeSidebarTab === 'voice_settings' && (
+                      <div className="p-3 bg-slate-50/50 border border-slate-100 rounded-2xl space-y-3 text-left">
+                         <div>
+                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Active Number</span>
+                            <p className="text-[11px] font-black text-slate-800 flex items-center gap-1.5 font-mono">
+                               <span className="material-symbols-rounded text-xs text-indigo-500">phone</span>
+                               +91 88866 55443
+                            </p>
+                         </div>
+                         <div>
+                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Status</span>
+                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full text-[8px] font-black uppercase tracking-wider">
+                               <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+                               Live & Active
+                            </span>
+                         </div>
+                      </div>
+                   )}
+                </div>
+             </div>
 
                {/* Exit segment */}
                {conversationMode && (
