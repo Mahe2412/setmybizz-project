@@ -48,44 +48,32 @@ Context: You have full access to BizDesk, Launchpad, and Founders Brain. You are
 If the status is 'Autopilot', suggest solutions before user asks. If 'Builder', generate assets immediately.`;
 
 export default function ArklePanel({ onClose, selectedLang = 'en-IN' }: { onClose?: () => void, selectedLang?: string }) {
-  const [messages, setMessages] = useState<Msg[]>([{ role: 'ai', text: "Systems initialized. I am Arkle, your AI Co-Founder. Which mode shall we activate?", mode: 'Voice' }]);
+  const {
+    arkleConversations: rawConversations,
+    setArkleConversations: setConversations,
+    activeConversationId,
+    setActiveConversationId,
+    arkleMessages: rawMessages,
+    setArkleMessages: setMessages,
+    generatedDocs: rawGeneratedDocs,
+    setGeneratedDocs,
+    isVoiceActive,
+    setIsVoiceActive,
+    isInlineBarMode,
+    setIsInlineBarMode
+  } = useBizStore();
+
+  const conversations = Array.isArray(rawConversations) ? rawConversations : [];
+  const messages = Array.isArray(rawMessages) ? rawMessages : [];
+  const generatedDocs = Array.isArray(rawGeneratedDocs) ? rawGeneratedDocs : [];
+
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
   const [activeSidebarTab, setActiveSidebarTab] = useState<'chats' | 'docs'>('chats');
   const [selectedDoc, setSelectedDoc] = useState<GeneratedDoc | null>(null);
-  const [conversations, setConversations] = useState<Conversation[]>([
-     {
-        id: 'c-1',
-        title: 'Amazon Product Launch',
-        messages: [
-           { role: 'user', text: 'What are the steps for launching on Amazon?' },
-           { role: 'ai', text: 'Here is the Amazon onboarding plan: 1. Setup seller account, 2. Optimize Product SEO keywords, 3. Upload catalog.', mode: 'Voice' }
-        ],
-        timestamp: new Date(Date.now() - 3600000)
-     },
-     {
-        id: 'c-2',
-        title: 'GSTR-1 Tax Strategy',
-        messages: [
-           { role: 'user', text: 'What is the penalty for filing late?' },
-           { role: 'ai', text: 'Late filing penalty is ₹50/day. Let\'s file it today to avoid penalty accumulation.', mode: 'Voice' }
-        ],
-        timestamp: new Date(Date.now() - 7200000)
-     }
-  ]);
-  const [activeConversationId, setActiveConversationId] = useState<string | null>('c-1');
-  const [generatedDocs, setGeneratedDocs] = useState<GeneratedDoc[]>([
-     { id: 'd1', name: 'Amazon_Onboarding_Audit.pdf', type: 'pdf', date: '2 hours ago' },
-     { id: 'd2', name: 'GSTR-1_Filing_Summary.docx', type: 'doc', date: 'Yesterday' },
-     { id: 'd3', name: 'Q2_Financial_Projections.xlsx', type: 'sheet', date: 'June 15, 2026' }
-  ]);
 
   const [input, setInput]       = useState('');
   const [loading, setLoading]   = useState(false);
-  const isVoiceActive = useBizStore((state) => state.isVoiceActive);
-  const setIsVoiceActive = useBizStore((state) => state.setIsVoiceActive);
   const liveTranscriptGlobal = useBizStore((state) => state.liveTranscript);
-  const isInlineBarMode = useBizStore((state) => state.isInlineBarMode);
-  const setIsInlineBarMode = useBizStore((state) => state.setIsInlineBarMode);
   const [isRecording, setIsRecording] = useState(false);
   const [isSpeechEnabled, setIsSpeechEnabled] = useState(false);
   const [executionMode, setExecutionMode] = useState<'Brain' | 'Agent' | 'Builder'>('Brain');
@@ -233,9 +221,10 @@ export default function ArklePanel({ onClose, selectedLang = 'en-IN' }: { onClos
     if ((!q && uploadedFiles.length === 0) || loading) return;
     
     const mappedMode: ArkleMode = executionMode === 'Brain' ? 'Auditor' : executionMode === 'Agent' ? 'Autopilot' : 'Builder';
-    const newUserMsg: Msg = { 
+    const newUserMsg: any = { 
       role: 'user', 
       text: q || (uploadedFiles.length > 0 ? `Uploaded ${uploadedFiles.length} file(s)` : ''), 
+      content: q || (uploadedFiles.length > 0 ? `Uploaded ${uploadedFiles.length} file(s)` : ''), 
       mode: mappedMode,
       files: uploadedFiles
     };
@@ -396,7 +385,7 @@ export default function ArklePanel({ onClose, selectedLang = 'en-IN' }: { onClos
 
       // Use the separate clean regex instance (not consumed by the loop)
       const cleanResponse = aiResponse.replace(directiveCleanRegex, '').trim();
-      const newAiMsg: Msg = { role: 'ai', text: cleanResponse, mode: mappedMode };
+      const newAiMsg: any = { role: 'ai', text: cleanResponse, content: cleanResponse, mode: mappedMode };
 
       // Auto-register generated doc to the sidebar docs tab
       if (lastDocGenerated) {

@@ -102,7 +102,26 @@ export default function HomeTab({
    onGmailClick?: () => void;
 }) {
    const { dbUser, dbBusiness } = useAuth();
-   const { whiteboardOpen: isWhiteboardOpen, setWhiteboardOpen: setIsWhiteboardOpen, conversationMode, setConversationMode, setSidebarOpen, performanceGaps } = useBizStore();
+   const { 
+       whiteboardOpen: isWhiteboardOpen, 
+       setWhiteboardOpen: setIsWhiteboardOpen, 
+       conversationMode, 
+       setConversationMode, 
+       setSidebarOpen, 
+       performanceGaps,
+       arkleConversations: rawConversations,
+       setArkleConversations: setConversations,
+       activeConversationId,
+       setActiveConversationId,
+       arkleMessages: rawMsgs,
+       setArkleMessages: setMsgs,
+       generatedDocs: rawGeneratedDocs,
+       setGeneratedDocs
+    } = useBizStore();
+
+    const conversations = Array.isArray(rawConversations) ? rawConversations : [];
+    const msgs = Array.isArray(rawMsgs) ? rawMsgs : [];
+    const generatedDocs = Array.isArray(rawGeneratedDocs) ? rawGeneratedDocs : [];
    
    // Expanded tabs for Arkle Command Center
    const [activeChatTab, setActiveChatTab] = useState<'ask' | 'work_agents' | 'voice_agents'>('ask');
@@ -133,7 +152,6 @@ export default function HomeTab({
        }
     }, [activeChatTab]);
 
-   const [msgs, setMsgs] = useState<Message[]>([]);
    const [input, setInput] = useState('');
    const [loading, setLoading] = useState(false);
    const [isSidebarOpen, setIsSidebarOpenLocal] = useState(false);
@@ -160,32 +178,6 @@ export default function HomeTab({
     const [isSpotlightOpen, setIsSpotlightOpen] = useState(false);
     const [activeSidebarTab, setActiveSidebarTab] = useState<string>('chats');
     const [selectedDoc, setSelectedDoc] = useState<GeneratedDoc | null>(null);
-    const [conversations, setConversations] = useState<Conversation[]>([
-       {
-          id: 'c-1',
-          title: 'Amazon Product Launch',
-          messages: [
-             { id: 'm1', role: 'user', content: 'What are the steps for launching on Amazon?', timestamp: new Date() },
-             { id: 'm2', role: 'assistant', content: 'Here is the Amazon onboarding plan: 1. Setup seller account, 2. Optimize Product SEO keywords, 3. Upload catalog.', timestamp: new Date() }
-          ],
-          timestamp: new Date(Date.now() - 3600000)
-       },
-       {
-          id: 'c-2',
-          title: 'GSTR-1 Tax Strategy',
-          messages: [
-             { id: 'm3', role: 'user', content: 'What is the penalty for filing late?', timestamp: new Date() },
-             { id: 'm4', role: 'assistant', content: 'Late filing penalty is ₹50/day. Let\'s file it today to avoid penalty accumulation.', timestamp: new Date() }
-          ],
-          timestamp: new Date(Date.now() - 7200000)
-       }
-    ]);
-    const [activeConversationId, setActiveConversationId] = useState<string | null>('c-1');
-    const [generatedDocs, setGeneratedDocs] = useState<GeneratedDoc[]>([
-       { id: 'd1', name: 'Amazon_Onboarding_Audit.pdf', type: 'pdf', date: '2 hours ago' },
-       { id: 'd2', name: 'GSTR-1_Filing_Summary.docx', type: 'doc', date: 'Yesterday' },
-       { id: 'd3', name: 'Q2_Financial_Projections.xlsx', type: 'sheet', date: 'June 15, 2026' }
-    ]);
 
     const [shortcuts, setShortcuts] = useState<string[]>(['crm_dash', 'invoice_create', 'invoice_products', 'google_sheets', 'crm_whatsapp']);
     const [isAddToolOpen, setIsAddToolOpen] = useState(false);
@@ -361,7 +353,7 @@ export default function HomeTab({
        setSidebarOpen(false);
        setInput('');
 
-       const newUserMsg: Message = { id: Date.now().toString(), role: 'user', content: q, timestamp: new Date() };
+       const newUserMsg: any = { id: Date.now().toString(), role: 'user', content: q, text: q, timestamp: new Date() };
        let currentConvId = activeConversationId;
        let updatedConversations = [...conversations];
 
@@ -450,7 +442,7 @@ export default function HomeTab({
           
           // Clean directives from visible chat text
           const cleanText = rawText.replace(directiveCleanRegex, '').trim();
-          const newAiMsg: Message = { id: (Date.now() + 1).toString(), role: 'assistant', content: cleanText, timestamp: new Date() };
+          const newAiMsg: any = { id: (Date.now() + 1).toString(), role: 'assistant', content: cleanText, text: cleanText, timestamp: new Date() };
           
           setConversations(prev => prev.map(c => {
              if (c.id === currentConvId) {

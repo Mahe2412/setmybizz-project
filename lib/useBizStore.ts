@@ -43,6 +43,15 @@ interface BizState {
     setIsInlineBarMode: (mode: boolean) => void;
     performanceGaps: any[];
     setPerformanceGaps: (gaps: any[]) => void;
+    // Shared Arkle Chat State
+    arkleConversations: any[];
+    setArkleConversations: (conversations: any[]) => void;
+    activeConversationId: string | null;
+    setActiveConversationId: (id: string | null) => void;
+    arkleMessages: any[];
+    setArkleMessages: (msgs: any[]) => void;
+    generatedDocs: any[];
+    setGeneratedDocs: (docs: any[]) => void;
 }
 
 export const useBizStore = create<BizState>()(
@@ -101,6 +110,42 @@ export const useBizStore = create<BizState>()(
             setIsInlineBarMode: (mode) => set({ isInlineBarMode: mode }),
             performanceGaps: [],
             setPerformanceGaps: (gaps) => set({ performanceGaps: gaps }),
+            
+            // Shared Arkle Chat State Initializer
+            arkleConversations: [
+                {
+                    id: 'c-1',
+                    title: 'Amazon Product Launch',
+                    messages: [
+                        { id: 'm1', role: 'user', content: 'What are the steps for launching on Amazon?', text: 'What are the steps for launching on Amazon?', timestamp: new Date() },
+                        { id: 'm2', role: 'assistant', content: 'Here is the Amazon onboarding plan: 1. Setup seller account, 2. Optimize Product SEO keywords, 3. Upload catalog.', text: 'Here is the Amazon onboarding plan: 1. Setup seller account, 2. Optimize Product SEO keywords, 3. Upload catalog.', timestamp: new Date() }
+                    ],
+                    timestamp: new Date(Date.now() - 3600000)
+                },
+                {
+                    id: 'c-2',
+                    title: 'GSTR-1 Tax Strategy',
+                    messages: [
+                        { id: 'm3', role: 'user', content: 'What is the penalty for filing late?', text: 'What is the penalty for filing late?', timestamp: new Date() },
+                        { id: 'm4', role: 'assistant', content: 'Late filing penalty is ₹50/day. Let\'s file it today to avoid penalty accumulation.', text: 'Late filing penalty is ₹50/day. Let\'s file it today to avoid penalty accumulation.', timestamp: new Date() }
+                    ],
+                    timestamp: new Date(Date.now() - 7200000)
+                }
+            ],
+            setArkleConversations: (conversations) => set({ arkleConversations: conversations }),
+            activeConversationId: 'c-1',
+            setActiveConversationId: (id) => set({ activeConversationId: id }),
+            arkleMessages: [
+                { id: 'm1', role: 'user', content: 'What are the steps for launching on Amazon?', text: 'What are the steps for launching on Amazon?', timestamp: new Date() },
+                { id: 'm2', role: 'assistant', content: 'Here is the Amazon onboarding plan: 1. Setup seller account, 2. Optimize Product SEO keywords, 3. Upload catalog.', text: 'Here is the Amazon onboarding plan: 1. Setup seller account, 2. Optimize Product SEO keywords, 3. Upload catalog.', timestamp: new Date() }
+            ],
+            setArkleMessages: (msgs) => set({ arkleMessages: msgs }),
+            generatedDocs: [
+                { id: 'd1', name: 'Amazon_Onboarding_Audit.pdf', type: 'pdf', date: '2 hours ago' },
+                { id: 'd2', name: 'GSTR-1_Filing_Summary.docx', type: 'doc', date: 'Yesterday' },
+                { id: 'd3', name: 'Q2_Financial_Projections.xlsx', type: 'sheet', date: 'June 15, 2026' }
+            ],
+            setGeneratedDocs: (docs) => set({ generatedDocs: docs }),
         }),
         {
             name: 'bizos-operational-store',
@@ -108,6 +153,10 @@ export const useBizStore = create<BizState>()(
                 tasks: state.tasks,
                 sidebarOpen: state.sidebarOpen,
                 sidebarCollapsed: state.sidebarCollapsed,
+                arkleConversations: state.arkleConversations,
+                activeConversationId: state.activeConversationId,
+                arkleMessages: state.arkleMessages,
+                generatedDocs: state.generatedDocs,
             }),
         }
     )
