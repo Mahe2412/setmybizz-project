@@ -106,6 +106,7 @@ export default function HomeTab({
    
    // Expanded tabs for Arkle Command Center
    const [activeChatTab, setActiveChatTab] = useState<'ask' | 'work_agents' | 'voice_agents'>('ask');
+   const [activeVoiceSubTab, setActiveVoiceSubTab] = useState<'agents' | 'kb' | 'numbers' | 'inbound' | 'outbound' | 'deploy_code' | 'analytics' | 'boards' | 'logs' | 'settings' | 'usage'>('agents');
    const [voiceAgents, setVoiceAgents] = useState<any[]>([]);
    const [workAgents, setWorkAgents] = useState<any[]>([
       { id: 'w1', name: 'WhatsApp Bot', type: 'whatsapp', status: 'active', tasksCompleted: 143, lastRun: '2 min ago', description: 'Sends catalogs after every call' },
@@ -1160,64 +1161,477 @@ export default function HomeTab({
 
                      {/* TAB 3: VOICE AGENTS VIEW */}
                      {activeChatTab === 'voice_agents' && (
-                        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-4xl mx-auto mt-14 space-y-6 px-4 md:px-0">
-                           <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-6xl mx-auto mt-10 px-4 md:px-0 flex flex-col md:flex-row gap-8 items-start">
+                           {/* LEFT SUB-SIDEBAR (Sarvam Layout) */}
+                           <div className="w-full md:w-60 shrink-0 bg-slate-50/50 border border-slate-100 p-4 rounded-3xl space-y-5 text-left">
                               <div>
-                                 <h3 className="text-sm font-black uppercase text-slate-800 tracking-wider">Voice Calling Employees</h3>
-                                 <p className="text-xs text-slate-450 font-bold mt-0.5">High-speed voice calling agents backed by Arkle universal memory</p>
+                                 <span className="text-[8.5px] font-black text-slate-400 uppercase tracking-widest block px-3 mb-2">Build</span>
+                                 <div className="space-y-1">
+                                    <button onClick={() => setActiveVoiceSubTab('agents')} className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${activeVoiceSubTab === 'agents' ? 'bg-white border border-slate-150 text-blue-600 shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}>
+                                       <span className="material-symbols-rounded text-sm">smart_toy</span>
+                                       Agents
+                                    </button>
+                                    <button onClick={() => setActiveVoiceSubTab('kb')} className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${activeVoiceSubTab === 'kb' ? 'bg-white border border-slate-150 text-blue-600 shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}>
+                                       <span className="material-symbols-rounded text-sm">database</span>
+                                       Knowledge base
+                                    </button>
+                                 </div>
+                              </div>
+
+                              <div>
+                                 <span className="text-[8.5px] font-black text-slate-400 uppercase tracking-widest block px-3 mb-2">Deploy</span>
+                                 <div className="space-y-1">
+                                    <button onClick={() => setActiveVoiceSubTab('numbers')} className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${activeVoiceSubTab === 'numbers' ? 'bg-white border border-slate-150 text-blue-600 shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}>
+                                       <span className="material-symbols-rounded text-sm">phone</span>
+                                       Phone numbers
+                                    </button>
+                                    <button onClick={() => setActiveVoiceSubTab('inbound')} className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${activeVoiceSubTab === 'inbound' ? 'bg-white border border-slate-150 text-blue-600 shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}>
+                                       <span className="material-symbols-rounded text-sm">call_received</span>
+                                       Inbound calls
+                                    </button>
+                                    <button onClick={() => setActiveVoiceSubTab('outbound')} className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${activeVoiceSubTab === 'outbound' ? 'bg-white border border-slate-150 text-blue-600 shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}>
+                                       <span className="material-symbols-rounded text-sm">call_made</span>
+                                       Outbound campaigns
+                                    </button>
+                                    <button onClick={() => setActiveVoiceSubTab('deploy_code')} className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${activeVoiceSubTab === 'deploy_code' ? 'bg-white border border-slate-150 text-blue-600 shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}>
+                                       <span className="material-symbols-rounded text-sm">code</span>
+                                       Deploy with code
+                                    </button>
+                                 </div>
+                              </div>
+
+                              <div>
+                                 <span className="text-[8.5px] font-black text-slate-400 uppercase tracking-widest block px-3 mb-2">Monitor</span>
+                                 <div className="space-y-1">
+                                    <button onClick={() => setActiveVoiceSubTab('analytics')} className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${activeVoiceSubTab === 'analytics' ? 'bg-white border border-slate-150 text-blue-600 shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}>
+                                       <span className="material-symbols-rounded text-sm">bar_chart</span>
+                                       Agent analytics
+                                    </button>
+                                    <button onClick={() => setActiveVoiceSubTab('boards')} className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${activeVoiceSubTab === 'boards' ? 'bg-white border border-slate-150 text-blue-600 shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}>
+                                       <span className="material-symbols-rounded text-sm">dashboard</span>
+                                       Boards
+                                    </button>
+                                    <button onClick={() => setActiveVoiceSubTab('logs')} className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${activeVoiceSubTab === 'logs' ? 'bg-white border border-slate-150 text-blue-600 shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}>
+                                       <span className="material-symbols-rounded text-sm">history</span>
+                                       Call logs
+                                    </button>
+                                 </div>
+                              </div>
+
+                              <div>
+                                 <span className="text-[8.5px] font-black text-slate-400 uppercase tracking-widest block px-3 mb-2">Account</span>
+                                 <div className="space-y-1">
+                                    <button onClick={() => setActiveVoiceSubTab('settings')} className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${activeVoiceSubTab === 'settings' ? 'bg-white border border-slate-150 text-blue-600 shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}>
+                                       <span className="material-symbols-rounded text-sm">settings</span>
+                                       Settings
+                                    </button>
+                                    <button onClick={() => setActiveVoiceSubTab('usage')} className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${activeVoiceSubTab === 'usage' ? 'bg-white border border-slate-150 text-blue-600 shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}>
+                                       <span className="material-symbols-rounded text-sm">speed</span>
+                                       Usage
+                                    </button>
+                                 </div>
                               </div>
                            </div>
-                           
-                           {isLoadingVoice ? (
-                              <div className="flex items-center justify-center py-10">
-                                 <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                              </div>
-                           ) : voiceAgents.length === 0 ? (
-                              <div className="text-center py-10 bg-slate-50 rounded-3xl border border-dashed border-slate-200 p-6">
-                                 <span className="material-symbols-rounded text-3xl text-slate-300 block mb-2">call</span>
-                                 <p className="text-xs font-bold text-slate-500">No active voice employees hired yet.</p>
-                                 <button onClick={() => window.dispatchEvent(new CustomEvent('open-os-tab', { detail: 'workforce' }))} className="mt-4 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-colors shadow-lg shadow-blue-500/10">Hire Voice Employee</button>
-                              </div>
-                           ) : (
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                 {voiceAgents.map(agent => (
-                                    <div key={agent.id} className="p-5 bg-white border border-slate-150 rounded-3xl shadow-sm hover:shadow-xl transition-all flex flex-col justify-between group">
+
+                           {/* RIGHT MAIN WORKSPACE */}
+                           <div className="flex-1 min-w-0 bg-white border border-slate-100 p-6 md:p-8 rounded-[32px] shadow-sm text-left w-full min-h-[500px]">
+                              {/* Content switches based on activeVoiceSubTab */}
+
+                              {/* SUBTAB 1: AGENTS */}
+                              {activeVoiceSubTab === 'agents' && (
+                                 <div className="space-y-6">
+                                    <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                                        <div>
-                                          <div className="flex items-start justify-between mb-4">
-                                             <div className="flex items-center gap-3">
-                                                <div className="w-12 h-12 bg-linear-to-tr from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center text-2xl shadow-md text-white font-bold">
-                                                   {agent.role === 'sales' || agent.role === 'sales_caller' ? '🎯' : agent.role === 'support' ? '💬' : '📞'}
-                                                </div>
-                                                <div>
-                                                   <h4 className="text-xs font-black uppercase text-slate-800 tracking-wider">{agent.name}</h4>
-                                                   <p className="text-[10px] text-slate-450 font-bold uppercase tracking-wider capitalize mt-0.5">{agent.role.replace('_', ' ')} · {agent.language}</p>
-                                                </div>
-                                             </div>
-                                             <div className="flex items-center gap-1.5 bg-slate-50 p-1 rounded-full px-2.5 border border-slate-100/50">
-                                                <span className={`w-1.5 h-1.5 rounded-full ${agent.status === 'active' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
-                                                <span className="text-[9px] font-black uppercase tracking-wider text-slate-500">{agent.status}</span>
-                                             </div>
-                                          </div>
-                                          <p className="text-[10px] text-slate-400 font-semibold leading-relaxed line-clamp-3 mb-4">{agent.businessDescription || 'Configured with custom business memory.'}</p>
+                                          <h3 className="text-sm font-black uppercase text-slate-800 tracking-wider">Voice Agents</h3>
+                                          <p className="text-xs text-slate-400 font-semibold mt-0.5">Build and deploy conversational voice agents</p>
                                        </div>
-                                       
-                                       <div className="flex items-center justify-between pt-3 border-t border-slate-100 mt-2">
-                                          <div className="flex gap-4">
-                                             <div className="text-center">
-                                                <div className="text-xs font-black text-slate-800">{agent.totalCalls || 0}</div>
-                                                <div className="text-[8px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Calls</div>
-                                             </div>
-                                             <div className="text-center">
-                                                <div className="text-xs font-black text-slate-800">{agent.totalMinutes || 0}m</div>
-                                                <div className="text-[8px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Minutes</div>
-                                             </div>
-                                          </div>
-                                          <VapiButton assistantId={agent.id || "d9f38a6e-e6d7-4608-abfe-65c392577e4d"} className="text-[10px] font-black uppercase py-2 px-4 shadow-sm" />
+                                       <button onClick={() => window.dispatchEvent(new CustomEvent('open-os-tab', { detail: 'workforce' }))} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-blue-500/10">Create from Scratch</button>
+                                    </div>
+
+                                    {/* Mock prompt generation input (matches Sarvam search input) */}
+                                    <div className="bg-slate-50 border border-slate-150 rounded-2xl p-4 flex flex-col items-center justify-center text-center py-6">
+                                       <h4 className="text-base font-bold text-slate-800 mb-2">What should your voice agent do?</h4>
+                                       <div className="w-full max-w-xl flex items-center bg-white rounded-xl border border-slate-200 p-1.5 shadow-sm">
+                                          <input 
+                                             type="text" 
+                                             placeholder="Create a voice agent to answer calls and confirm appointments..." 
+                                             className="flex-1 bg-transparent px-3 text-xs outline-none text-slate-600 placeholder:text-slate-300 font-semibold"
+                                          />
+                                          <button onClick={() => window.dispatchEvent(new CustomEvent('open-os-tab', { detail: 'workforce' }))} className="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center hover:scale-105 transition-all">
+                                             <span className="material-symbols-rounded text-sm">arrow_upward</span>
+                                          </button>
                                        </div>
                                     </div>
-                                 ))}
-                              </div>
-                           )}
+
+                                    {/* Recents list */}
+                                    <div>
+                                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-3">Recents</span>
+                                       {isLoadingVoice ? (
+                                          <div className="flex justify-center py-6"><div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>
+                                       ) : voiceAgents.length === 0 ? (
+                                          <p className="text-xs font-semibold text-slate-400 py-3 text-center bg-slate-50/50 rounded-xl border border-slate-100">No agents built yet.</p>
+                                       ) : (
+                                          <div className="border border-slate-150 rounded-2xl overflow-hidden shadow-xs">
+                                             <table className="w-full text-left border-collapse text-xs">
+                                                <thead>
+                                                   <tr className="bg-slate-50 text-slate-400 font-black uppercase tracking-wider border-b border-slate-150">
+                                                      <th className="p-3">Agent</th>
+                                                      <th className="p-3">Language</th>
+                                                      <th className="p-3">Status</th>
+                                                      <th className="p-3 text-right">Actions</th>
+                                                   </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-slate-100">
+                                                   {voiceAgents.map(agent => (
+                                                      <tr key={agent.id} className="hover:bg-slate-50/50">
+                                                         <td className="p-3">
+                                                            <div className="flex items-center gap-2.5">
+                                                               <span className="text-base">🎯</span>
+                                                               <div>
+                                                                  <p className="font-bold text-slate-800">{agent.name}</p>
+                                                                  <p className="text-[9px] text-slate-400 capitalize">{agent.role.replace('_', ' ')}</p>
+                                                               </div>
+                                                            </div>
+                                                         </td>
+                                                         <td className="p-3 text-slate-500 font-semibold uppercase">{agent.language}</td>
+                                                         <td className="p-3">
+                                                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full text-[9px] font-black uppercase">
+                                                               <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+                                                               {agent.status}
+                                                            </span>
+                                                         </td>
+                                                         <td className="p-3 text-right">
+                                                            <VapiButton assistantId={agent.id} className="text-[9px] py-1.5 px-3 uppercase font-black" />
+                                                         </td>
+                                                      </tr>
+                                                   ))}
+                                                </tbody>
+                                             </table>
+                                          </div>
+                                       )}
+                                    </div>
+
+                                    {/* Templates */}
+                                    <div>
+                                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-3">Templates</span>
+                                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                          {[{ title: 'Appointment management', icon: '🗓️', desc: 'Schedules calls and syncs with calendar' },
+                                            { title: 'Sales discovery', icon: '🎯', desc: 'Qualifies inbound leads on interest' },
+                                            { title: 'EMI Collection', icon: '💰', desc: 'Sends payment links and records confirmations' }].map(t => (
+                                             <div key={t.title} className="p-4 bg-slate-50/50 border border-slate-100 rounded-2xl hover:border-blue-400 cursor-pointer transition-all flex flex-col justify-between min-h-[100px] group">
+                                                <div>
+                                                   <span className="text-xl block mb-2">{t.icon}</span>
+                                                   <h5 className="text-[11px] font-extrabold text-slate-900 uppercase tracking-tight group-hover:text-blue-600">{t.title}</h5>
+                                                   <p className="text-[9px] text-slate-400 font-semibold leading-snug mt-1">{t.desc}</p>
+                                                </div>
+                                             </div>
+                                          ))}
+                                       </div>
+                                    </div>
+                                 </div>
+                              )}
+
+                              {/* SUBTAB 2: KNOWLEDGE BASE */}
+                              {activeVoiceSubTab === 'kb' && (
+                                 <div className="space-y-6">
+                                    <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                                       <div>
+                                          <h3 className="text-sm font-black uppercase text-slate-800 tracking-wider">Knowledge Base</h3>
+                                          <p className="text-xs text-slate-400 font-semibold mt-0.5">Manage reference documents used to train voice agents</p>
+                                       </div>
+                                       <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-blue-500/10">Add Knowledge Source</button>
+                                    </div>
+
+                                    <div className="p-8 border-2 border-dashed border-slate-200 hover:border-blue-400 rounded-3xl bg-slate-50/50 flex flex-col items-center justify-center text-center cursor-pointer transition-all group">
+                                       <span className="material-symbols-rounded text-3xl text-slate-300 group-hover:text-blue-500 mb-3">upload_file</span>
+                                       <h5 className="text-xs font-black text-slate-800 uppercase tracking-wider mb-1">Drag & Drop Knowledge files</h5>
+                                       <p className="text-[10px] text-slate-400 font-semibold">Supports PDF, DOCX, CSV or TXT up to 10MB</p>
+                                    </div>
+
+                                    <div>
+                                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-3">Active Documents</span>
+                                       <div className="space-y-2">
+                                          {[{ name: 'Refund_and_Cancellation_Policy.pdf', size: '240 KB', date: '3 days ago' },
+                                            { name: 'Product_Catalog_2026.docx', size: '1.2 MB', date: '1 week ago' }].map(file => (
+                                             <div key={file.name} className="p-3 bg-white border border-slate-150 rounded-2xl flex items-center justify-between shadow-xs">
+                                                <div className="flex items-center gap-3">
+                                                   <span className="material-symbols-rounded text-rose-500 text-lg">picture_as_pdf</span>
+                                                   <div>
+                                                      <p className="text-xs font-bold text-slate-700">{file.name}</p>
+                                                      <p className="text-[9px] text-slate-400">{file.size} • Uploaded {file.date}</p>
+                                                   </div>
+                                                </div>
+                                                <button className="w-8 h-8 rounded-full hover:bg-slate-50 flex items-center justify-center text-slate-400 hover:text-red-600 transition-colors">
+                                                   <span className="material-symbols-rounded text-sm">delete</span>
+                                                </button>
+                                             </div>
+                                          ))}
+                                       </div>
+                                    </div>
+                                 </div>
+                              )}
+
+                              {/* SUBTAB 3: PHONE NUMBERS */}
+                              {activeVoiceSubTab === 'numbers' && (
+                                 <div className="space-y-6">
+                                    <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                                       <div>
+                                          <h3 className="text-sm font-black uppercase text-slate-800 tracking-wider">Phone Numbers</h3>
+                                          <p className="text-xs text-slate-400 font-semibold mt-0.5">Configure virtual calling numbers and SIP trunks</p>
+                                       </div>
+                                       <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-blue-500/10">Buy Virtual Number</button>
+                                    </div>
+
+                                    <div className="p-5 bg-slate-50/50 border border-slate-100 rounded-3xl flex items-center justify-between">
+                                       <div className="flex items-center gap-4">
+                                          <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                                             <span className="material-symbols-rounded text-lg">phone_in_talk</span>
+                                          </div>
+                                          <div>
+                                             <p className="text-xs font-black text-slate-800 font-mono">+91 88866 55443</p>
+                                             <p className="text-[9px] text-slate-400 uppercase tracking-wider font-bold mt-0.5">Primary inbound & outbound gateway</p>
+                                          </div>
+                                       </div>
+                                       <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full text-[9px] font-black uppercase tracking-wider flex items-center gap-1">
+                                          <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+                                          Active
+                                       </span>
+                                    </div>
+                                 </div>
+                              )}
+
+                              {/* SUBTAB 4: INBOUND CALLS */}
+                              {activeVoiceSubTab === 'inbound' && (
+                                 <div className="space-y-6">
+                                    <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                                       <div>
+                                          <h3 className="text-sm font-black uppercase text-slate-800 tracking-wider">Inbound Routing</h3>
+                                          <p className="text-xs text-slate-400 font-semibold mt-0.5">Route incoming customer calls to specific voice agents</p>
+                                       </div>
+                                    </div>
+
+                                    <div className="bg-slate-50/50 border border-slate-100 p-5 rounded-3xl space-y-4">
+                                       <div className="flex items-center justify-between border-b border-slate-150 pb-3">
+                                          <span className="text-xs font-bold text-slate-700">Incoming calls on primary number</span>
+                                          <select className="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-semibold outline-none text-slate-700 shadow-sm">
+                                             <option>Route to Priya (Receptionist)</option>
+                                             <option>Route to Ravi (Support Agent)</option>
+                                             <option>Do Not Disturb (Voicemail)</option>
+                                          </select>
+                                       </div>
+                                       <div className="flex items-center justify-between">
+                                          <span className="text-xs font-bold text-slate-700">Record conversations</span>
+                                          <input type="checkbox" defaultChecked className="w-4 h-4 text-blue-600 rounded-md border-slate-350 focus:ring-blue-500" />
+                                       </div>
+                                    </div>
+                                 </div>
+                              )}
+
+                              {/* SUBTAB 5: OUTBOUND CAMPAIGNS */}
+                              {activeVoiceSubTab === 'outbound' && (
+                                 <div className="space-y-6">
+                                    <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                                       <div>
+                                          <h3 className="text-sm font-black uppercase text-slate-800 tracking-wider">Outbound Campaigns</h3>
+                                          <p className="text-xs text-slate-400 font-semibold mt-0.5">Bulk lead call dialing campaigns</p>
+                                       </div>
+                                       <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-blue-500/10">Create Campaign</button>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                       <div className="p-5 bg-white border border-slate-150 rounded-3xl shadow-sm space-y-4">
+                                          <div>
+                                             <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-full text-[9px] font-black uppercase tracking-wider mb-2">Active Campaign</span>
+                                             <h4 className="text-xs font-black uppercase text-slate-800 tracking-wider">Leads Followup July</h4>
+                                             <p className="text-[10px] text-slate-400 font-semibold mt-1">Agent: Swara (Sales Caller)</p>
+                                          </div>
+                                          <div className="space-y-1">
+                                             <div className="flex justify-between text-[10px] font-bold text-slate-500">
+                                                <span>Calling progress</span>
+                                                <span>42 / 100 leads</span>
+                                             </div>
+                                             <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                                <div className="bg-indigo-600 h-full rounded-full" style={{ width: '42%' }} />
+                                             </div>
+                                          </div>
+                                       </div>
+
+                                       <div className="p-5 border-2 border-dashed border-slate-200 hover:border-blue-400 hover:bg-blue-50/10 rounded-3xl flex flex-col items-center justify-center gap-1 text-center cursor-pointer transition-all">
+                                          <span className="material-symbols-rounded text-2xl text-slate-300">upload_file</span>
+                                          <span className="text-[10px] font-black uppercase text-slate-450 tracking-wider">Upload Leads list (.csv)</span>
+                                       </div>
+                                    </div>
+                                 </div>
+                              )}
+
+                              {/* SUBTAB 6: DEPLOY WITH CODE */}
+                              {activeVoiceSubTab === 'deploy_code' && (
+                                 <div className="space-y-6">
+                                    <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                                       <div>
+                                          <h3 className="text-sm font-black uppercase text-slate-800 tracking-wider">Deploy with Code</h3>
+                                          <p className="text-xs text-slate-400 font-semibold mt-0.5">Embed WebRTC calling into your website or mobile apps</p>
+                                       </div>
+                                    </div>
+
+                                    <div className="bg-slate-900 rounded-2xl p-4 font-mono text-[10px] text-slate-300 overflow-x-auto space-y-2">
+                                       <p className="text-slate-450">// HTML Call Widget Embed Script</p>
+                                       <p>&lt;<span className="text-rose-400">script</span> <span className="text-indigo-400">src</span>=<span className="text-emerald-400">&quot;https://cdn.vapi.ai/widget.js&quot;</span>&gt;&lt;/<span className="text-rose-400">script</span>&gt;</p>
+                                       <p>&lt;<span className="text-rose-400">script</span>&gt;</p>
+                                       <p className="pl-4">VapiWidget.<span className="text-blue-400">init</span>(&#123;</p>
+                                       <p className="pl-8">apiKey: <span className="text-emerald-400">&apos;YOUR_PUBLIC_KEY&apos;</span>,</p>
+                                       <p className="pl-8">assistantId: <span className="text-emerald-400">&apos;YOUR_ASSISTANT_ID&apos;</span>,</p>
+                                       <p className="pl-4">&#125;);</p>
+                                       <p>&lt;/<span className="text-rose-400">script</span>&gt;</p>
+                                    </div>
+                                 </div>
+                              )}
+
+                              {/* SUBTAB 7: ANALYTICS */}
+                              {activeVoiceSubTab === 'analytics' && (
+                                 <div className="space-y-6">
+                                    <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                                       <div>
+                                          <h3 className="text-sm font-black uppercase text-slate-800 tracking-wider">Call Analytics</h3>
+                                          <p className="text-xs text-slate-450 font-bold mt-0.5">Calling statistics and conversion metrics</p>
+                                       </div>
+                                    </div>
+
+                                    {/* Charts summary */}
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                                       <div className="bg-white border border-slate-150 rounded-3xl p-5 shadow-xs flex flex-col justify-between min-h-[120px]">
+                                          <div>
+                                             <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Total Minutes</span>
+                                             <span className="text-3xl font-black text-slate-900 leading-none">125m</span>
+                                          </div>
+                                          <div className="flex items-center gap-1 text-[9px] font-bold text-emerald-600 mt-2">
+                                             <span className="material-symbols-rounded text-xs">trending_up</span>
+                                             <span>+14.2% since yesterday</span>
+                                          </div>
+                                       </div>
+                                       <div className="bg-white border border-slate-150 rounded-3xl p-5 shadow-xs md:col-span-2 flex flex-col justify-between min-h-[120px]">
+                                          <div>
+                                             <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2">Connectivity Rate (%) vs Hour</span>
+                                             <div className="flex items-end gap-3 h-14 pt-2">
+                                                {[20, 30, 45, 10, 5, 80, 95, 60, 40, 20, 10, 5].map((val, idx) => (
+                                                   <div key={idx} className="flex-1 flex flex-col items-center justify-end h-full">
+                                                      <div className={`w-full rounded-t-xs transition-all ${idx === 6 ? 'bg-blue-600 shadow-[0_0_10px_rgba(37,99,235,0.4)]' : 'bg-slate-200'}`} style={{ height: `${val}%` }} />
+                                                   </div>
+                                                ))}
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </div>
+                              )}
+
+                              {/* SUBTAB 8: BOARDS */}
+                              {activeVoiceSubTab === 'boards' && (
+                                 <div className="space-y-6">
+                                    <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                                       <div>
+                                          <h3 className="text-sm font-black uppercase text-slate-800 tracking-wider">Outcomes Board</h3>
+                                          <p className="text-xs text-slate-400 font-semibold mt-0.5">Kanban view of completed calls by outcomes</p>
+                                       </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                       {['Qualified', 'Interested', 'Call Back'].map((col, idx) => (
+                                          <div key={col} className="bg-slate-50/50 border border-slate-100 p-4 rounded-3xl space-y-3">
+                                             <div className="flex items-center justify-between border-b border-slate-150 pb-2">
+                                                <span className="text-[10px] font-black text-slate-700 uppercase tracking-wider">{col}</span>
+                                                <span className="px-1.5 py-0.5 bg-slate-200/50 rounded text-[9px] font-black text-slate-500">2</span>
+                                             </div>
+                                             <div className="space-y-2">
+                                                <div className="p-3 bg-white border border-slate-150 rounded-2xl shadow-xs">
+                                                   <p className="text-xs font-bold text-slate-800">+91 98480 22338</p>
+                                                   <p className="text-[9px] text-slate-400 font-semibold mt-1">Talked for 2m 15s • Swara</p>
+                                                </div>
+                                             </div>
+                                          </div>
+                                       ))}
+                                    </div>
+                                 </div>
+                              )}
+
+                              {/* SUBTAB 9: CALL LOGS */}
+                              {activeVoiceSubTab === 'logs' && (
+                                 <div className="space-y-6">
+                                    <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                                       <div>
+                                          <h3 className="text-sm font-black uppercase text-slate-800 tracking-wider">Call Logs</h3>
+                                          <p className="text-xs text-slate-400 font-semibold mt-0.5">List of all call activities and recordings</p>
+                                       </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                       {CALL_LOGS.map(log => (
+                                          <div key={log.id} className="p-3.5 bg-white border border-slate-150 rounded-2xl flex items-center justify-between shadow-xs hover:border-slate-350 transition-all">
+                                             <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-500">
+                                                   <span className="material-symbols-rounded text-sm">{log.icon}</span>
+                                                </div>
+                                                <div>
+                                                   <p className="text-xs font-bold text-slate-800 font-mono">{log.num}</p>
+                                                   <p className="text-[9px] text-slate-400 uppercase tracking-wider font-bold mt-0.5">{log.type} • {log.duration}</p>
+                                                </div>
+                                             </div>
+                                             <div className="flex items-center gap-3">
+                                                <span className="px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-100 rounded-full text-[9px] font-black uppercase tracking-wider">{log.status}</span>
+                                                <span className="text-[9px] font-semibold text-slate-400">{log.time}</span>
+                                             </div>
+                                          </div>
+                                       ))}
+                                    </div>
+                                 </div>
+                              )}
+
+                              {/* SUBTAB 10: SETTINGS */}
+                              {activeVoiceSubTab === 'settings' && (
+                                 <div className="space-y-6">
+                                    <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                                       <div>
+                                          <h3 className="text-sm font-black uppercase text-slate-800 tracking-wider">Voice Settings</h3>
+                                          <p className="text-xs text-slate-450 font-bold mt-0.5">Configure API integrations and credentials</p>
+                                       </div>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                       <div>
+                                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Vapi Private Key</span>
+                                          <input type="password" value="••••••••••••••••••••••••••••" readOnly className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-xs font-semibold text-slate-600 outline-none" />
+                                       </div>
+                                       <div>
+                                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Sarvam API Key</span>
+                                          <input type="password" value="••••••••••••••••••••••••••••" readOnly className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-xs font-semibold text-slate-600 outline-none" />
+                                       </div>
+                                    </div>
+                                 </div>
+                              )}
+
+                              {/* SUBTAB 11: USAGE */}
+                              {activeVoiceSubTab === 'usage' && (
+                                 <div className="space-y-6">
+                                    <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                                       <div>
+                                          <h3 className="text-sm font-black uppercase text-slate-800 tracking-wider">Usage & Billing</h3>
+                                          <p className="text-xs text-slate-450 font-bold mt-0.5">Calling minutes usage quotas</p>
+                                       </div>
+                                    </div>
+
+                                    <div className="p-5 bg-slate-50/50 border border-slate-100 rounded-3xl space-y-4">
+                                       <div className="flex justify-between items-center text-xs font-bold">
+                                          <span className="text-slate-600">Calling Minutes Quota</span>
+                                          <span className="text-slate-800">42 / 500 minutes</span>
+                                       </div>
+                                       <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                                          <div className="bg-indigo-600 h-full rounded-full" style={{ width: '8.4%' }} />
+                                       </div>
+                                       <p className="text-[9px] text-slate-400 font-semibold leading-relaxed">Your plan resets in 12 days. Pro Plan limits allow up to 1,500 calling minutes per month.</p>
+                                    </div>
+                                 </div>
+                              )}
+                           </div>
                         </motion.div>
                      )}
                   </>
