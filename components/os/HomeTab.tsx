@@ -760,7 +760,6 @@ export default function HomeTab({
                       </div>
                    )}
                 </div>
-             </div>
 
                {/* Exit segment */}
                {conversationMode && (
