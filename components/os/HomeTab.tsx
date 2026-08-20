@@ -7,6 +7,7 @@ import { useBizStore } from '../../lib/useBizStore';
 import RightQuickTray from './RightQuickTray';
 import { useAuth } from '@/context/AuthContext';
 import MarketHookStep from '../steps/MarketHookStep';
+import VapiButton from '../VapiButton';
 
 type Message = {
    id: string;
@@ -83,7 +84,30 @@ export default function HomeTab({
 }) {
    const { dbUser, dbBusiness } = useAuth();
    const { whiteboardOpen: isWhiteboardOpen, setWhiteboardOpen: setIsWhiteboardOpen, conversationMode, setConversationMode, setSidebarOpen, performanceGaps } = useBizStore();
-   const [activeChatTab, setActiveChatTab] = useState<'ask' | 'agents'>('ask');
+   
+   // Expanded tabs for Arkle Command Center
+   const [activeChatTab, setActiveChatTab] = useState<'ask' | 'work_agents' | 'voice_agents'>('ask');
+   const [voiceAgents, setVoiceAgents] = useState<any[]>([]);
+   const [workAgents, setWorkAgents] = useState<any[]>([
+      { id: 'w1', name: 'WhatsApp Bot', type: 'whatsapp', status: 'active', tasksCompleted: 143, lastRun: '2 min ago', description: 'Sends catalogs after every call' },
+      { id: 'w2', name: 'Daily Report', type: 'report', status: 'idle', tasksCompleted: 31, lastRun: '8 hrs ago', description: 'Morning business summary' },
+      { id: 'w3', name: 'Email Assistant', type: 'email', status: 'active', tasksCompleted: 87, lastRun: '1 hr ago', description: 'Follows up with customers via email' }
+   ]);
+   const [isLoadingVoice, setIsLoadingVoice] = useState(false);
+
+   useEffect(() => {
+      if (activeChatTab === 'voice_agents') {
+         setIsLoadingVoice(true);
+         fetch('/api/voice-agent')
+            .then(res => res.json())
+            .then(data => {
+               setVoiceAgents(data.agents || []);
+            })
+            .catch(err => console.error(err))
+            .finally(() => setIsLoadingVoice(false));
+      }
+   }, [activeChatTab]);
+
    const [msgs, setMsgs] = useState<Message[]>([]);
    const [input, setInput] = useState('');
    const [loading, setLoading] = useState(false);
@@ -702,8 +726,9 @@ export default function HomeTab({
                   </AnimatePresence>
 
                   <div className="flex items-center ml-0 gap-0 mb-[-4px] relative z-20">
-                     <button onClick={() => setActiveChatTab('ask')} className={`w-[105px] h-[33px] flex items-center justify-center transition-all duration-300 font-black relative z-30 ${activeChatTab === 'ask' ? 'rounded-tr-[20px] rounded-tl-none rounded-b-none bg-gradient-to-r from-violet-600 to-blue-600 text-white shadow-[0_-5px_15px_rgba(124,58,237,0.25)]' : 'rounded-none bg-transparent text-slate-400 hover:text-slate-600'}`}><span className="relative z-10 uppercase tracking-[0.2em] text-[10px]">Ask</span></button>
-                     <button onClick={() => setActiveChatTab('agents')} className={`w-[105px] h-[33px] flex items-center justify-center transition-all duration-300 font-black relative z-30 ${activeChatTab === 'agents' ? 'rounded-tl-[20px] rounded-tr-none rounded-b-none bg-gradient-to-r from-violet-600 to-blue-600 text-white shadow-[0_-5px_15px_rgba(124,58,237,0.25)]' : 'rounded-none bg-transparent text-slate-400 hover:text-slate-600'}`}><span className="relative z-10 uppercase tracking-[0.2em] text-[10px]">Agent</span></button>
+                     <button onClick={() => setActiveChatTab('ask')} className={`w-[100px] h-[33px] flex items-center justify-center transition-all duration-300 font-black relative z-30 ${activeChatTab === 'ask' ? 'rounded-tr-[15px] rounded-tl-none rounded-b-none bg-gradient-to-r from-violet-600 to-blue-600 text-white shadow-[0_-5px_15px_rgba(124,58,237,0.25)] font-bold text-xs' : 'rounded-none bg-transparent text-slate-400 hover:text-slate-600 text-xs font-semibold'}`}><span className="relative z-10 uppercase tracking-[0.1em] text-[9px]">Ask</span></button>
+                     <button onClick={() => setActiveChatTab('work_agents')} className={`w-[120px] h-[33px] flex items-center justify-center transition-all duration-300 font-black relative z-30 ${activeChatTab === 'work_agents' ? 'rounded-t-[15px] rounded-b-none bg-gradient-to-r from-violet-600 to-blue-600 text-white shadow-[0_-5px_15px_rgba(124,58,237,0.25)] font-bold text-xs' : 'rounded-none bg-transparent text-slate-400 hover:text-slate-600 text-xs font-semibold'}`}><span className="relative z-10 uppercase tracking-[0.1em] text-[9px]">Work Agents</span></button>
+                     <button onClick={() => setActiveChatTab('voice_agents')} className={`w-[120px] h-[33px] flex items-center justify-center transition-all duration-300 font-black relative z-30 ${activeChatTab === 'voice_agents' ? 'rounded-t-[15px] rounded-b-none bg-gradient-to-r from-violet-600 to-blue-600 text-white shadow-[0_-5px_15px_rgba(124,58,237,0.25)] font-bold text-xs' : 'rounded-none bg-transparent text-slate-400 hover:text-slate-600 text-xs font-semibold'}`}><span className="relative z-10 uppercase tracking-[0.1em] text-[9px]">Voice Agents</span></button>
                   </div>
                   <div className="relative p-[2px] rounded-tr-[40px] rounded-br-[40px] rounded-bl-[40px] rounded-tl-none bg-gradient-to-r from-purple-600 via-rose-500 to-indigo-600 shadow-[0_30px_70px_-20px_rgba(79,70,229,0.25)] z-10">
                      <div className="bg-white rounded-tr-[38px] rounded-br-[38px] rounded-bl-[38px] rounded-tl-none flex flex-col overflow-visible">
@@ -733,213 +758,330 @@ export default function HomeTab({
                {/* ELEMENTS TO HIDE IN CONVERSATION MODE */}
                {!conversationMode && (
                   <>
-                     <div className="mt-14 w-full max-w-4xl mx-auto flex items-center gap-3 group">
-                        <button onClick={prevTiles} disabled={tileIndex === 0} className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${tileIndex === 0 ? 'opacity-0' : 'bg-white shadow-md text-slate-400 hover:text-blue-600 hover:scale-105'}`}><span className="material-symbols-rounded text-[18px]">chevron_left</span></button>
-                        <div className="flex-1 grid grid-cols-4 gap-4 overflow-hidden">
-                           <AnimatePresence mode="popLayout">
-                              {QUICK_TILES.slice(tileIndex, tileIndex + 4).map((tile) => (
-                                 <motion.button
-                                    key={tile.title}
-                                    type="button"
-                                    onClick={() => {
-                                       if ('action' in tile && typeof tile.action === 'function') {
-                                          tile.action();
-                                       }
-                                       if ('tab' in tile && tile.tab === 'billbook') {
-                                          onOpenBillBook?.();
-                                       }
-                                       if ('tab' in tile && tile.tab === 'billease') {
-                                          onOpenBillEase?.();
-                                       }
-                                       if ('tab' in tile && tile.tab === 'orderdesk') {
-                                          onOpenOrderDesk?.();
-                                       }
-                                    }}
-                                    initial={{ opacity: 0, x: 15 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: -15 }}
-                                    className="bg-white p-3.5 rounded-[22px] border border-slate-100/80 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all text-left group min-h-[108px] flex flex-col justify-between"
-                                 >
-                                    <div className="mb-2 text-slate-300 group-hover:text-blue-500 transition-colors">
-                                       <span className="material-symbols-rounded text-[21px]">{tile.icon}</span>
-                                    </div>
-                                    <div>
-                                       <h4 className="text-[10px] font-extrabold text-slate-900 mb-0.5 leading-tight uppercase tracking-tight">{tile.title}</h4>
-                                       <p className="text-[8px] font-semibold text-slate-400 leading-tight uppercase tracking-wide opacity-70">{tile.desc}</p>
-                                    </div>
-                                 </motion.button>
-                              ))}
-                           </AnimatePresence>
-                        </div>
-                        <button onClick={nextTiles} disabled={tileIndex + 4 >= QUICK_TILES.length} className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${tileIndex + 4 >= QUICK_TILES.length ? 'opacity-0' : 'bg-white shadow-md text-slate-400 hover:text-blue-600 hover:scale-105'}`}><span className="material-symbols-rounded text-[18px]">chevron_right</span></button>
-                     </div>
+                     {/* TAB 1: ASK VIEW (DEFAULT DASHBOARD) */}
+                     {activeChatTab === 'ask' && (
+                        <>
+                           <div className="mt-14 w-full max-w-4xl mx-auto flex items-center gap-3 group">
+                              <button onClick={prevTiles} disabled={tileIndex === 0} className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${tileIndex === 0 ? 'opacity-0' : 'bg-white shadow-md text-slate-400 hover:text-blue-600 hover:scale-105'}`}><span className="material-symbols-rounded text-[18px]">chevron_left</span></button>
+                              <div className="flex-1 grid grid-cols-4 gap-4 overflow-hidden">
+                                 <AnimatePresence mode="popLayout">
+                                    {QUICK_TILES.slice(tileIndex, tileIndex + 4).map((tile) => (
+                                       <motion.button
+                                          key={tile.title}
+                                          type="button"
+                                          onClick={() => {
+                                             if ('action' in tile && typeof tile.action === 'function') {
+                                                tile.action();
+                                             }
+                                             if ('tab' in tile && tile.tab === 'billbook') {
+                                                onOpenBillBook?.();
+                                             }
+                                             if ('tab' in tile && tile.tab === 'billease') {
+                                                onOpenBillEase?.();
+                                             }
+                                             if ('tab' in tile && tile.tab === 'orderdesk') {
+                                                onOpenOrderDesk?.();
+                                             }
+                                          }}
+                                          initial={{ opacity: 0, x: 15 }}
+                                          animate={{ opacity: 1, x: 0 }}
+                                          exit={{ opacity: 0, x: -15 }}
+                                          className="bg-white p-3.5 rounded-[22px] border border-slate-100/80 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all text-left group min-h-[108px] flex flex-col justify-between"
+                                       >
+                                          <div className="mb-2 text-slate-300 group-hover:text-blue-500 transition-colors">
+                                             <span className="material-symbols-rounded text-[21px]">{tile.icon}</span>
+                                          </div>
+                                          <div>
+                                             <h4 className="text-[10px] font-extrabold text-slate-900 mb-0.5 leading-tight uppercase tracking-tight">{tile.title}</h4>
+                                             <p className="text-[8px] font-semibold text-slate-400 leading-tight uppercase tracking-wide opacity-70">{tile.desc}</p>
+                                          </div>
+                                       </motion.button>
+                                    ))}
+                                 </AnimatePresence>
+                              </div>
+                              <button onClick={nextTiles} disabled={tileIndex + 4 >= QUICK_TILES.length} className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${tileIndex + 4 >= QUICK_TILES.length ? 'opacity-0' : 'bg-white shadow-md text-slate-400 hover:text-blue-600 hover:scale-105'}`}><span className="material-symbols-rounded text-[18px]">chevron_right</span></button>
+                           </div>
 
-                     <div className="w-full max-w-[850px] mx-auto mt-16 px-4 md:px-0">
-                         <div className="flex items-center gap-3 mb-8">
-                            <div className="w-2 h-2 rounded-full bg-blue-600 shadow-[0_0_10px_rgba(37,99,235,0.5)]" />
-                            <h3 className="text-[12px] font-black text-slate-900 uppercase tracking-[0.3em]">Quick Workspace Hub</h3>
-                         </div>
-                         <div className="grid grid-cols-6 gap-2 md:gap-4">
-                            {shortcuts.map(shortcutId => {
-                               const item = AVAILABLE_SHORTCUTS.find(s => s.id === shortcutId);
-                               if (!item) return null;
-                               return (
+                           <div className="w-full max-w-[850px] mx-auto mt-16 px-4 md:px-0">
+                               <div className="flex items-center gap-3 mb-8">
+                                  <div className="w-2 h-2 rounded-full bg-blue-600 shadow-[0_0_10px_rgba(37,99,235,0.5)]" />
+                                  <h3 className="text-[12px] font-black text-slate-900 uppercase tracking-[0.3em]">Quick Workspace Hub</h3>
+                               </div>
+                               <div className="grid grid-cols-6 gap-2 md:gap-4">
+                                  {shortcuts.map(shortcutId => {
+                                     const item = AVAILABLE_SHORTCUTS.find(s => s.id === shortcutId);
+                                     if (!item) return null;
+                                     return (
+                                        <button
+                                           key={item.id}
+                                           type="button"
+                                           onClick={() => handleLaunchShortcut(item.id)}
+                                           className="flex flex-col items-center gap-4 group cursor-pointer border-0 bg-transparent p-0"
+                                        >
+                                           <div className={`w-16 h-16 rounded-full ${item.bg} flex items-center justify-center border-2 border-white shadow-sm group-hover:shadow-xl group-hover:-translate-y-1 transition-all duration-300`}>
+                                              <span className={`material-symbols-rounded text-[28px] ${item.color}`}>{item.icon}</span>
+                                           </div>
+                                           <span className="text-[9px] font-black text-blue-600 uppercase tracking-widest text-center">{item.label}</span>
+                                        </button>
+                                     );
+                                  })}
                                   <button
-                                     key={item.id}
                                      type="button"
-                                     onClick={() => handleLaunchShortcut(item.id)}
+                                     onClick={() => setIsAddToolOpen(true)}
                                      className="flex flex-col items-center gap-4 group cursor-pointer border-0 bg-transparent p-0"
                                   >
-                                     <div className={`w-16 h-16 rounded-full ${item.bg} flex items-center justify-center border-2 border-white shadow-sm group-hover:shadow-xl group-hover:-translate-y-1 transition-all duration-300`}>
-                                        <span className={`material-symbols-rounded text-[28px] ${item.color}`}>{item.icon}</span>
+                                     <div className="w-16 h-16 rounded-full border-2 border-dashed border-slate-200 flex items-center justify-center bg-slate-50/30 group-hover:border-blue-400 group-hover:bg-blue-50/30 transition-all duration-300">
+                                        <span className="material-symbols-rounded text-blue-600 text-[28px]">add</span>
                                      </div>
-                                     <span className="text-[9px] font-black text-blue-600 uppercase tracking-widest text-center">{item.label}</span>
+                                     <span className="text-[9px] font-black text-blue-600 uppercase tracking-widest text-center">ADD TOOL</span>
                                   </button>
-                               );
-                            })}
-                            <button
-                               type="button"
-                               onClick={() => setIsAddToolOpen(true)}
-                               className="flex flex-col items-center gap-4 group cursor-pointer border-0 bg-transparent p-0"
-                            >
-                               <div className="w-16 h-16 rounded-full border-2 border-dashed border-slate-200 flex items-center justify-center bg-slate-50/30 group-hover:border-blue-400 group-hover:bg-blue-50/30 transition-all duration-300">
-                                  <span className="material-symbols-rounded text-blue-600 text-[28px]">add</span>
                                </div>
-                               <span className="text-[9px] font-black text-blue-600 uppercase tracking-widest text-center">ADD TOOL</span>
-                            </button>
-                         </div>
-                      </div>
+                            </div>
 
-                      {/* ADD TOOL POPUP MODAL */}
-                      <AnimatePresence>
-                        {isAddToolOpen && (
-                          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-[9999] animate-in fade-in duration-200">
-                            <motion.div 
-                              initial={{ scale: 0.95, opacity: 0 }}
-                              animate={{ scale: 1, opacity: 1 }}
-                              exit={{ scale: 0.95, opacity: 0 }}
-                              className="bg-white rounded-[2rem] shadow-2xl w-full max-w-lg p-6 border border-slate-100 max-h-[80vh] flex flex-col"
-                            >
-                              <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4 shrink-0">
-                                <div className="flex items-center gap-2">
-                                  <span className="material-symbols-rounded text-blue-600">settings</span>
-                                  <h3 className="text-sm font-black uppercase text-slate-800 tracking-wider">Configure Workspace Hub</h3>
-                                </div>
-                                <button 
-                                  onClick={() => setIsAddToolOpen(false)}
-                                  className="w-8 h-8 rounded-full bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors"
-                                >
-                                  <span className="material-symbols-rounded text-sm">close</span>
-                                </button>
-                              </div>
+                            {/* ADD TOOL POPUP MODAL */}
+                            <AnimatePresence>
+                              {isAddToolOpen && (
+                                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-[9999] animate-in fade-in duration-200">
+                                  <motion.div 
+                                    initial={{ scale: 0.95, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    exit={{ scale: 0.95, opacity: 0 }}
+                                    className="bg-white rounded-[2rem] shadow-2xl w-full max-w-lg p-6 border border-slate-100 max-h-[80vh] flex flex-col"
+                                  >
+                                    <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4 shrink-0">
+                                      <div className="flex items-center gap-2">
+                                        <span className="material-symbols-rounded text-blue-600">settings</span>
+                                        <h3 className="text-sm font-black uppercase text-slate-800 tracking-wider">Configure Workspace Hub</h3>
+                                      </div>
+                                      <button 
+                                        onClick={() => setIsAddToolOpen(false)}
+                                        className="w-8 h-8 rounded-full bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors"
+                                      >
+                                        <span className="material-symbols-rounded text-sm">close</span>
+                                      </button>
+                                    </div>
 
-                              <div className="overflow-y-auto no-scrollbar flex-1 space-y-4 pr-1">
-                                <p className="text-slate-500 text-xs font-semibold leading-relaxed">
-                                  Select the tools and specific sub-features you want to display on your quick-access dashboard.
-                                </p>
-                                
-                                <div className="space-y-6">
-                                  {Array.from(new Set(AVAILABLE_SHORTCUTS.map(s => s.category))).map(category => (
-                                    <div key={category}>
-                                      <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-100 pb-2">{category}</h4>
-                                      <div className="grid grid-cols-2 gap-3">
-                                        {AVAILABLE_SHORTCUTS.filter(item => item.category === category).map(item => {
-                                          const isAdded = shortcuts.includes(item.id);
-                                          return (
-                                            <button
-                                              key={item.id}
-                                              onClick={() => toggleShortcut(item.id)}
-                                              className={`p-3 rounded-2xl border text-left flex items-center gap-3 transition-all ${
-                                                isAdded 
-                                                  ? 'border-blue-500 bg-blue-50/20 ring-1 ring-blue-500/20' 
-                                                  : 'border-slate-100 hover:border-slate-200 hover:bg-slate-50/50'
-                                              }`}
-                                            >
-                                              <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${item.bg}`}>
-                                                <span className={`material-symbols-rounded text-lg ${item.color}`}>{item.icon}</span>
-                                              </div>
-                                              <div className="min-w-0 flex-1">
-                                                <span className="text-[10px] font-black text-slate-900 block truncate">{item.label}</span>
-                                                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">{item.app}</span>
-                                              </div>
-                                              <div className={`w-5 h-5 rounded-full flex items-center justify-center border transition-all ${
-                                                isAdded ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 bg-white text-transparent'
-                                              }`}>
-                                                <span className="material-symbols-rounded text-[12px] font-bold">check</span>
-                                              </div>
-                                            </button>
-                                          );
-                                        })}
+                                    <div className="overflow-y-auto no-scrollbar flex-1 space-y-4 pr-1">
+                                      <p className="text-slate-500 text-xs font-semibold leading-relaxed">
+                                        Select the tools and specific sub-features you want to display on your quick-access dashboard.
+                                      </p>
+                                      
+                                      <div className="space-y-6">
+                                        {Array.from(new Set(AVAILABLE_SHORTCUTS.map(s => s.category))).map(category => (
+                                          <div key={category}>
+                                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-100 pb-2">{category}</h4>
+                                            <div className="grid grid-cols-2 gap-3">
+                                              {AVAILABLE_SHORTCUTS.filter(item => item.category === category).map(item => {
+                                                const isAdded = shortcuts.includes(item.id);
+                                                return (
+                                                  <button
+                                                    key={item.id}
+                                                    onClick={() => toggleShortcut(item.id)}
+                                                    className={`p-3 rounded-2xl border text-left flex items-center gap-3 transition-all ${
+                                                      isAdded 
+                                                        ? 'border-blue-500 bg-blue-50/20 ring-1 ring-blue-500/20' 
+                                                        : 'border-slate-100 hover:border-slate-200 hover:bg-slate-50/50'
+                                                    }`}
+                                                  >
+                                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${item.bg}`}>
+                                                      <span className={`material-symbols-rounded text-lg ${item.color}`}>{item.icon}</span>
+                                                    </div>
+                                                    <div className="min-w-0 flex-1">
+                                                      <span className="text-[10px] font-black text-slate-900 block truncate">{item.label}</span>
+                                                      <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">{item.app}</span>
+                                                    </div>
+                                                    <div className={`w-5 h-5 rounded-full flex items-center justify-center border transition-all ${
+                                                      isAdded ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-200 bg-white text-transparent'
+                                                    }`}>
+                                                      <span className="material-symbols-rounded text-[12px] font-bold">check</span>
+                                                    </div>
+                                                  </button>
+                                                );
+                                              })}
+                                            </div>
+                                          </div>
+                                        ))}
                                       </div>
                                     </div>
-                                  ))}
+                                  </motion.div>
                                 </div>
-                              </div>
-                            </motion.div>
-                          </div>
-                        )}
-                      </AnimatePresence>
+                              )}
+                            </AnimatePresence>
 
-                     <div className="w-full max-w-[850px] mx-auto mt-16 px-4 md:px-0">
-                        <div onClick={() => setIsNeuralMenuOpen(!isNeuralMenuOpen)} className="bg-slate-50/50 backdrop-blur-xl border border-slate-100 p-5 rounded-[28px] flex items-center justify-between cursor-pointer group hover:bg-white hover:shadow-2xl transition-all">
-                           <div className="flex items-center gap-5">
-                              <div className="w-10 h-10 rounded-full bg-linear-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-                                 <span className="material-symbols-rounded text-white text-[22px] animate-pulse">psychology</span>
+                           <div className="w-full max-w-[850px] mx-auto mt-16 px-4 md:px-0">
+                              <div onClick={() => setIsNeuralMenuOpen(!isNeuralMenuOpen)} className="bg-slate-50/50 backdrop-blur-xl border border-slate-100 p-5 rounded-[28px] flex items-center justify-between cursor-pointer group hover:bg-white hover:shadow-2xl transition-all">
+                                 <div className="flex items-center gap-5">
+                                    <div className="w-10 h-10 rounded-full bg-linear-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                                       <span className="material-symbols-rounded text-white text-[22px] animate-pulse">psychology</span>
+                                    </div>
+                                    <div>
+                                       <span className="text-[11px] font-black text-slate-900 uppercase tracking-[0.3em] block">Neural Notifications</span>
+                                       <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">3 active business directives</span>
+                                    </div>
+                                 </div>
+                                 <div className="flex items-center gap-3">
+                                    <span className="text-[9px] font-black uppercase text-slate-400 group-hover:text-blue-600 transition-colors">Operational Intelligence</span>
+                                    <span className={`material-symbols-rounded text-slate-300 group-hover:text-blue-600 transition-transform ${isNeuralMenuOpen ? 'rotate-180' : ''}`}>expand_more</span>
+                                 </div>
                               </div>
+                              <AnimatePresence>
+                                 {isNeuralMenuOpen && (
+                                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden mt-4 space-y-3">
+                                       {NEURAL_NOTIFICATIONS.map(notif => (
+                                          <div key={notif.id} className="bg-white border border-slate-50 p-4 rounded-2xl flex items-center gap-4 shadow-sm hover:shadow-md transition-all">
+                                             <div className={`w-2 h-2 rounded-full ${notif.type === 'alert' ? 'bg-rose-500' : notif.type === 'opportunity' ? 'bg-emerald-500' : 'bg-blue-500'}`} />
+                                             <p className="text-[12px] font-bold text-slate-600">{notif.text}</p>
+                                          </div>
+                                       ))}
+                                    </motion.div>
+                                 )}
+                              </AnimatePresence>
+                           </div>
+
+                           <div className="w-full max-w-[850px] mx-auto mt-6 px-4 md:px-0">
+                              <div onClick={() => setIsSpotlightOpen(!isSpotlightOpen)} className="bg-white/40 backdrop-blur-xl border border-slate-100 p-5 rounded-[28px] flex items-center justify-between cursor-pointer group hover:bg-white hover:shadow-2xl transition-all">
+                                 <div className="flex items-center gap-5">
+                                    <div className="w-10 h-10 rounded-full bg-linear-to-tr from-fuchsia-600 to-rose-600 flex items-center justify-center shadow-lg shadow-rose-500/20">
+                                       <span className="material-symbols-rounded text-white text-[22px]">auto_awesome_motion</span>
+                                    </div>
+                                    <div>
+                                       <span className="text-[11px] font-black text-slate-900 uppercase tracking-[0.3em] block">Bizboard Spotlight</span>
+                                       <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Ecosystem Hub & Media Space</span>
+                                    </div>
+                                 </div>
+                                 <div className="flex items-center gap-3">
+                                    <div className="flex -space-x-2 mr-2">
+                                       {[1, 2, 3].map(i => (
+                                          <div key={i} className="w-6 h-6 rounded-full border-2 border-white bg-slate-100 overflow-hidden shadow-sm">
+                                             <img src={`https://i.pravatar.cc/100?u=spot${i}`} alt="user" />
+                                          </div>
+                                       ))}
+                                    </div>
+                                    <span className={`material-symbols-rounded text-slate-300 group-hover:text-rose-600 transition-transform ${isSpotlightOpen ? 'rotate-180' : ''}`}>expand_more</span>
+                                 </div>
+                              </div>
+                              <AnimatePresence>
+                                 {isSpotlightOpen && (
+                                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden mt-4">
+                                       <BizboardSpotlight />
+                                    </motion.div>
+                                 )}
+                              </AnimatePresence>
+                           </div>
+                        </>
+                     )}
+
+                     {/* TAB 2: WORK AGENTS VIEW */}
+                     {activeChatTab === 'work_agents' && (
+                        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-4xl mx-auto mt-14 space-y-6 px-4 md:px-0">
+                           <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                               <div>
-                                 <span className="text-[11px] font-black text-slate-900 uppercase tracking-[0.3em] block">Neural Notifications</span>
-                                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">3 active business directives</span>
+                                 <h3 className="text-sm font-black uppercase text-slate-800 tracking-wider">Background Work Agents</h3>
+                                 <p className="text-xs text-slate-450 font-bold mt-0.5">Autonomous bots executing workflows in the background</p>
                               </div>
                            </div>
-                           <div className="flex items-center gap-3">
-                              <span className="text-[9px] font-black uppercase text-slate-400 group-hover:text-blue-600 transition-colors">Operational Intelligence</span>
-                              <span className={`material-symbols-rounded text-slate-300 group-hover:text-blue-600 transition-transform ${isNeuralMenuOpen ? 'rotate-180' : ''}`}>expand_more</span>
+                           
+                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              {workAgents.map(agent => {
+                                 const icons: Record<string, string> = { email: '📧', whatsapp: '💬', report: '📊', calendar: '🗓️', marketing: '📣' };
+                                 const statusColor: Record<string, string> = {
+                                   active: 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)]',
+                                   idle: 'bg-slate-400',
+                                   building: 'bg-amber-400'
+                                 };
+                                 return (
+                                    <div key={agent.id} className="p-5 bg-white border border-slate-150 rounded-3xl shadow-sm hover:shadow-xl transition-all flex flex-col justify-between min-h-[140px] group">
+                                       <div>
+                                          <div className="flex items-center justify-between mb-3">
+                                             <span className="text-3xl">{icons[agent.type] || '🤖'}</span>
+                                             <div className="flex items-center gap-1.5">
+                                                <span className={`w-2 h-2 rounded-full ${statusColor[agent.status]} ${agent.status === 'active' ? 'animate-pulse' : ''}`} />
+                                                <span className="text-[9px] font-black uppercase tracking-wider text-slate-450">{agent.status}</span>
+                                             </div>
+                                          </div>
+                                          <h4 className="text-xs font-black uppercase text-slate-800 tracking-wider mb-1">{agent.name}</h4>
+                                          <p className="text-[10px] text-slate-400 font-semibold leading-relaxed line-clamp-2">{agent.description}</p>
+                                       </div>
+                                       <div className="flex items-center justify-between pt-3 border-t border-slate-100 mt-4 text-[9px] font-bold text-slate-400">
+                                          <span>{agent.tasksCompleted} tasks done</span>
+                                          <span>Last active: {agent.lastRun || 'N/A'}</span>
+                                       </div>
+                                    </div>
+                                 );
+                              })}
+                              
+                              <button onClick={() => window.dispatchEvent(new CustomEvent('open-os-tab', { detail: 'workforce' }))} className="p-5 border-2 border-dashed border-slate-200 hover:border-blue-400 hover:bg-blue-50/10 rounded-3xl flex flex-col items-center justify-center gap-2 transition-all text-center group min-h-[140px]">
+                                 <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
+                                    <span className="material-symbols-rounded text-lg">add</span>
+                                 </div>
+                                 <span className="text-[10px] font-black uppercase text-slate-450 tracking-wider group-hover:text-blue-600">Deploy New Agent</span>
+                              </button>
                            </div>
-                        </div>
-                        <AnimatePresence>
-                           {isNeuralMenuOpen && (
-                              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden mt-4 space-y-3">
-                                 {NEURAL_NOTIFICATIONS.map(notif => (
-                                    <div key={notif.id} className="bg-white border border-slate-50 p-4 rounded-2xl flex items-center gap-4 shadow-sm hover:shadow-md transition-all">
-                                       <div className={`w-2 h-2 rounded-full ${notif.type === 'alert' ? 'bg-rose-500' : notif.type === 'opportunity' ? 'bg-emerald-500' : 'bg-blue-500'}`} />
-                                       <p className="text-[12px] font-bold text-slate-600">{notif.text}</p>
+                        </motion.div>
+                     )}
+
+                     {/* TAB 3: VOICE AGENTS VIEW */}
+                     {activeChatTab === 'voice_agents' && (
+                        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-4xl mx-auto mt-14 space-y-6 px-4 md:px-0">
+                           <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                              <div>
+                                 <h3 className="text-sm font-black uppercase text-slate-800 tracking-wider">Voice Calling Employees</h3>
+                                 <p className="text-xs text-slate-450 font-bold mt-0.5">High-speed voice calling agents backed by Arkle universal memory</p>
+                              </div>
+                           </div>
+                           
+                           {isLoadingVoice ? (
+                              <div className="flex items-center justify-center py-10">
+                                 <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                              </div>
+                           ) : voiceAgents.length === 0 ? (
+                              <div className="text-center py-10 bg-slate-50 rounded-3xl border border-dashed border-slate-200 p-6">
+                                 <span className="material-symbols-rounded text-3xl text-slate-300 block mb-2">call</span>
+                                 <p className="text-xs font-bold text-slate-500">No active voice employees hired yet.</p>
+                                 <button onClick={() => window.dispatchEvent(new CustomEvent('open-os-tab', { detail: 'workforce' }))} className="mt-4 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-colors shadow-lg shadow-blue-500/10">Hire Voice Employee</button>
+                              </div>
+                           ) : (
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                 {voiceAgents.map(agent => (
+                                    <div key={agent.id} className="p-5 bg-white border border-slate-150 rounded-3xl shadow-sm hover:shadow-xl transition-all flex flex-col justify-between group">
+                                       <div>
+                                          <div className="flex items-start justify-between mb-4">
+                                             <div className="flex items-center gap-3">
+                                                <div className="w-12 h-12 bg-linear-to-tr from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center text-2xl shadow-md text-white font-bold">
+                                                   {agent.role === 'sales' || agent.role === 'sales_caller' ? '🎯' : agent.role === 'support' ? '💬' : '📞'}
+                                                </div>
+                                                <div>
+                                                   <h4 className="text-xs font-black uppercase text-slate-800 tracking-wider">{agent.name}</h4>
+                                                   <p className="text-[10px] text-slate-450 font-bold uppercase tracking-wider capitalize mt-0.5">{agent.role.replace('_', ' ')} · {agent.language}</p>
+                                                </div>
+                                             </div>
+                                             <div className="flex items-center gap-1.5 bg-slate-50 p-1 rounded-full px-2.5 border border-slate-100/50">
+                                                <span className={`w-1.5 h-1.5 rounded-full ${agent.status === 'active' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
+                                                <span className="text-[9px] font-black uppercase tracking-wider text-slate-500">{agent.status}</span>
+                                             </div>
+                                          </div>
+                                          <p className="text-[10px] text-slate-400 font-semibold leading-relaxed line-clamp-3 mb-4">{agent.businessDescription || 'Configured with custom business memory.'}</p>
+                                       </div>
+                                       
+                                       <div className="flex items-center justify-between pt-3 border-t border-slate-100 mt-2">
+                                          <div className="flex gap-4">
+                                             <div className="text-center">
+                                                <div className="text-xs font-black text-slate-800">{agent.totalCalls || 0}</div>
+                                                <div className="text-[8px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Calls</div>
+                                             </div>
+                                             <div className="text-center">
+                                                <div className="text-xs font-black text-slate-800">{agent.totalMinutes || 0}m</div>
+                                                <div className="text-[8px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Minutes</div>
+                                             </div>
+                                          </div>
+                                          <VapiButton assistantId={agent.id || "d9f38a6e-e6d7-4608-abfe-65c392577e4d"} className="text-[10px] font-black uppercase py-2 px-4 shadow-sm" />
+                                       </div>
                                     </div>
                                  ))}
-                              </motion.div>
+                              </div>
                            )}
-                        </AnimatePresence>
-                     </div>
-
-                     <div className="w-full max-w-[850px] mx-auto mt-6 px-4 md:px-0">
-                        <div onClick={() => setIsSpotlightOpen(!isSpotlightOpen)} className="bg-white/40 backdrop-blur-xl border border-slate-100 p-5 rounded-[28px] flex items-center justify-between cursor-pointer group hover:bg-white hover:shadow-2xl transition-all">
-                           <div className="flex items-center gap-5">
-                              <div className="w-10 h-10 rounded-full bg-linear-to-tr from-fuchsia-600 to-rose-600 flex items-center justify-center shadow-lg shadow-rose-500/20">
-                                 <span className="material-symbols-rounded text-white text-[22px]">auto_awesome_motion</span>
-                              </div>
-                              <div>
-                                 <span className="text-[11px] font-black text-slate-900 uppercase tracking-[0.3em] block">Bizboard Spotlight</span>
-                                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Ecosystem Hub & Media Space</span>
-                              </div>
-                           </div>
-                           <div className="flex items-center gap-3">
-                              <div className="flex -space-x-2 mr-2">
-                                 {[1, 2, 3].map(i => (
-                                    <div key={i} className="w-6 h-6 rounded-full border-2 border-white bg-slate-100 overflow-hidden shadow-sm">
-                                       <img src={`https://i.pravatar.cc/100?u=spot${i}`} alt="user" />
-                                    </div>
-                                 ))}
-                              </div>
-                              <span className={`material-symbols-rounded text-slate-300 group-hover:text-rose-600 transition-transform ${isSpotlightOpen ? 'rotate-180' : ''}`}>expand_more</span>
-                           </div>
-                        </div>
-                        <AnimatePresence>
-                           {isSpotlightOpen && (
-                              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden mt-4">
-                                 <BizboardSpotlight />
-                              </motion.div>
-                           )}
-                        </AnimatePresence>
-                     </div>
+                        </motion.div>
+                     )}
                   </>
                )}
             </div>
