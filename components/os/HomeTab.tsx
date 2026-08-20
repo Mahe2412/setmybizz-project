@@ -1141,7 +1141,9 @@ export default function HomeTab({
                               </AnimatePresence>
                            </div>
                         </>
-                                      {/* TAB 2: WORK AGENTS VIEW */}
+                     )}
+ 
+                     {/* TAB 2: WORK AGENTS VIEW */}
                      {activeChatTab === 'work_agents' && (
                         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-4xl mx-auto mt-14 space-y-6 px-4 md:px-0">
                            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
