@@ -165,11 +165,15 @@ export default function WorkforceTab() {
         ? `Business: ${profileData.business.name}. Industry: ${profileData.business.industryType}.`
         : '';
 
-      const res = await fetch('/api/voice-agent/agent', {
+      const res = await fetch('/api/voice-agent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: agentName,
+          businessId: profileData.business?.id,
+          businessName: profileData.business?.name,
+          ownerName: profileData.business?.ownerName,
+          ownerPhone: profileData.business?.phone,
+          agentName: agentName,
           role: agentRole,
           language: agentLanguage,
           businessDescription: businessBrain || bizDesc || `You are ${agentName}, a helpful AI agent.`,
@@ -675,7 +679,7 @@ export default function WorkforceTab() {
                 <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 text-center">
                   <p className="text-sm font-bold text-indigo-900 mb-1">Test {selectedAgent.name} Now</p>
                   <p className="text-xs text-indigo-600 mb-3">Speak to this agent via your browser</p>
-                  <VapiButton assistantId="d9f38a6e-e6d7-4608-abfe-65c392577e4d" />
+                  <VapiButton assistantId={selectedAgent.id} />
                 </div>
               </div>
             </motion.div>

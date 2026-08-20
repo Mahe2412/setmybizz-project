@@ -131,10 +131,16 @@ export async function createVapiAssistant(options: {
         },
       ],
     },
-    voice: {
-      provider: 'azure',
-      voiceId: voiceMap[language] || 'te-IN-ShrutiNeural',
-    },
+    voice: process.env.SARVAM_API_KEY
+      ? {
+          provider: 'custom-voice',
+          voiceId: language === 'te-IN' ? 'meera' : language === 'hi-IN' ? 'kavya' : 'neel',
+          serverUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://setmybizz.in'}/api/vapi/tts`,
+        }
+      : {
+          provider: 'azure',
+          voiceId: voiceMap[language] || 'te-IN-ShrutiNeural',
+        },
     transcriber: {
       provider: 'deepgram',
       model: 'nova-2',

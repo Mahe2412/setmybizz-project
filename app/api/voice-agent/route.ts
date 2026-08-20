@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@billease/db';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { createVapiAssistant } from '@/lib/agent-core/ArkleVoiceAgent';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
@@ -88,8 +89,28 @@ export async function POST(req: Request) {
       language,
     });
 
+    // Create assistant in Vapi if key is present
+    let vapiAssistantId = undefined;
+    try {
+      const vapiRes = await createVapiAssistant({
+        businessContext: {
+          businessName: businessName || 'Our Business',
+          ownerName: ownerName || 'the Owner',
+          products: faqKnowledge || businessDescription,
+          phone: ownerPhone || '',
+          customInstructions: systemPrompt,
+        },
+        assistantName: `${agentName} (${role})`,
+        language: language === 'tenglish' ? 'te-IN' : language === 'hindi' ? 'hi-IN' : language === 'tamil' ? 'ta-IN' : 'en-IN',
+      });
+      vapiAssistantId = vapiRes?.id;
+    } catch (e) {
+      console.warn('Vapi assistant creation failed or skipped:', e);
+    }
+
     const agent = await prisma.voiceAgent.create({
       data: {
+        id: vapiAssistantId, // Use Vapi ID as database primary key if registered successfully
         businessId,
         name: agentName,
         role,
@@ -99,7 +120,7 @@ export async function POST(req: Request) {
         faqKnowledge,
         systemPrompt,
         language,
-        voiceId,
+        voiceId: vapiAssistantId || voiceId,
         status: 'active',
       },
     });
